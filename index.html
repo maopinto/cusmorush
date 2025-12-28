@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Main Lobby</title>
+  <link rel="icon" href="./images/logo.png" />
+  <link rel="stylesheet" href="./cssFiles/main.css" />
+  <script defer src="./javaScriptFiles/main.js"></script>
+</head>
+
+<body>
+  <div class="phone-frame">
+    <div class="screen">
+      <div class="notch"></div>
+
+      <!-- ================= HOME ================= -->
+      <div id="homeScreen" class="page active">
+        <div id="coinsContainer">
+          <span id="coinsText"></span>
+          <div id="coinsDiv"></div>
+        </div>
+
+        <button id="profileSettingsBtn" onclick="openProfileDiv(event)"></button>
+
+        <div id="profileSettingsDiv">
+          <div class="profileInfo">
+            <span class="profileLine"><strong>Profile Name:</strong> maor</span>
+            <span class="profileLine"><strong>Days Played:</strong> 1</span>
+          </div>
+
+          <button class="profileSettingsInsideDivBtn">Change Name</button>
+          <button class="profileSettingsInsideDivBtn">Profile Icon</button>
+          <button class="profileSettingsInsideDivBtn">Account</button>
+        </div>
+
+        <button id="settingsBtn"></button>
+
+        <div id="settingsDiv">
+          <span id="settingsTitle">Settings</span>
+
+          <label class="settingRow">
+            <input type="checkbox" id="musicToggle" />
+            <span class="toggle"></span>
+            <span class="settingText">Music</span>
+          </label>
+
+          <label class="settingRow">
+            <input type="checkbox" id="audioToggle" />
+            <span class="toggle"></span>
+            <span class="settingText">Audio</span>
+          </label>
+
+          <label class="volumeRow">
+            <span class="volumeText">Music Volume</span>
+            <input type="range" id="musicVolume" min="0" max="100" value="70" />
+          </label>
+
+          <label class="volumeRow">
+            <span class="volumeText">Audio Volume</span>
+            <input type="range" id="audioVolume" min="0" max="100" value="80" />
+          </label>
+
+          <button id="languageBtn" class="settingsActionBtn">Language</button>
+        </div>
+
+        <div id="languageMenu">
+          <button class="languageOption" data-lang="en">English</button>
+          <button class="languageOption" data-lang="he">עברית</button>
+          <button class="languageOption" data-lang="es">Español</button>
+        </div>
+
+        <button id="socialBtn" onclick="toggleSocial(event)">🌐</button>
+
+        <div id="socialDiv">
+
+          <div class="socialHeader">
+            JOIN THE COMMUNITY
+          </div>
+
+          <div class="socialGrid">
+
+            <div class="socialItem discord" onclick="window.open('https://discord.gg/3R3Jd78X')">
+              <img src="./images/logosImage/socialLogos/discordLogo.png" alt="Discord">
+              <span>Discord</span>
+            </div>
+
+            <div class="socialItem youtube" onclick="window.open('https://www.youtube.com/@Pdutegames')">
+              <img src="./images/logosImage/socialLogos/youtubeLogo.png" alt="YouTube">
+              <span>YouTube</span>
+            </div>
+
+            <div class="socialItem twitter">
+              <img src="./images/logosImage/socialLogos/instagramLogo.png" alt="Instagram">
+              <span>Instagram</span>
+            </div>
+
+            <div class="socialItem tiktok" onclick="window.open('https://www.tiktok.com/@user22502301035013')">
+              <img src="./images/logosImage/socialLogos/tiktokLogo.png" alt="TikTok">
+              <span>TikTok</span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div id="centerCherecter"></div>
+        <button id="startGameBtn" onclick="openMap(event)" data-sound="map">BATTLE</button>
+      </div>
+
+      <!-- ================= MAP ================= -->
+      <div id="mapDiv">
+        <h2 id="mapTitle">LEVELS</h2>
+        <button id="closeMapDiv" onclick="closeMap()">✕
+        </button>
+
+        <div id="levelsContainer">
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(10)">10</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(9)">9</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(8)">8</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(7)">7</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(6)">6</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(5)">5</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(4)">4</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(3)">3</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(2)">2</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(1)">1</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= SHOP ================= -->
+      <div id="shopScreen" class="page">
+        <h1 class="pageText">SHOP</h1>
+      </div>
+
+      <!-- ================= INVENTORY ================= -->
+      <div id="inventoryScreen" class="page">
+        <h1 class="pageText">INVENTORY</h1>
+
+        <div id="InventoryBtnDiv">
+          <div class="inventoryItem">
+            <button class="InventoryBtn" onclick="openWeaponDiv(event)">
+              <img src="./images/logosImage/weaponlogo.png" class="itemIconInside" />
+            </button>
+            <span class="itemText">Weapons</span>
+          </div>
+
+          <div class="inventoryItem">
+            <button class="InventoryBtn" onclick="openPetShop()">
+              <img src="./images/logosImage/petIcone.png" class="itemIconInside" />
+            </button>
+            <span class="itemText">Pets</span>
+          </div>
+
+          <div class="inventoryItem">
+            <button class="InventoryBtn" onclick="toggleSuperShop(event)">
+              <img src="./images/logosImage/superIcone.png" class="itemIconInside" />
+            </button>
+            <span class="itemText">Super</span>
+          </div>
+
+          <div class="inventoryItem">
+            <button class="InventoryBtn">
+              <img src="./images/logosImage/upgreatIcone.png" class="itemIconInside" />
+            </button>
+            <span class="itemText">Upgrade</span>
+          </div>
+        </div>
+
+        <div id="weaponOverlay" onclick="closeWeaponDiv(event)"></div>
+
+        <div id="weaponShop">
+          <div id="weaponDiv">
+            <button id="closeWeaponDiv" onclick="closeWeaponDiv(event)">
+              ✕
+            </button>
+
+            <div class="weaponItem" data-weapon="laser">
+              <button class="upgradeWeapon" onclick="openBuyWeapon('laser')">
+                <img src="./images/logosImage/weaponImg/leserIcone.png" class="itemIconInside" />
+              </button>
+
+              <button class="equipBtn" data-sound="equip" onclick="equipWeapon('laser')">
+                EQUIP
+              </button>
+            </div>
+
+            <div class="weaponItem" data-weapon="missile">
+              <button class="upgradeWeapon" onclick="openBuyWeapon('missile')">
+                <img src="./images/logosImage/weaponImg/missileIcone.png" class="itemIconInside" />
+              </button>
+
+              <button class="equipBtn" data-sound="equip" onclick="equipWeapon('missile')">
+                EQUIP
+              </button>
+            </div>
+
+            <div class="weaponItem" data-weapon="triangleShooter">
+              <button class="upgradeWeapon" onclick="openBuyWeapon('triangleShooter')">
+                <img src="./images/logosImage/weaponImg/triangleShooter.png" class="itemIconInside" />
+              </button>
+
+              <button class="equipBtn" data-sound="equip" onclick="equipWeapon('triangleShooter')">
+                EQUIP
+              </button>
+            </div>
+
+            <button class="upgradeWeapon locked" data-locked>
+              <img src="./images/logosImage/weaponImg/lockIcone.png" class="itemIconInside" />
+            </button>
+
+            <button class="upgradeWeapon locked" data-locked>
+              <img src="./images/logosImage/weaponImg/lockIcone.png" class="itemIconInside" />
+            </button>
+
+            <div class="comingSoonOverlay" id="comingSoonOverlay">
+              <div class="comingSoonText" id="comingSoonText">
+                Coming Soon..
+              </div>
+            </div>
+          </div>
+
+          <div id="buyWeaponPopup" onclick="event.stopPropagation()">
+            <div class="buyTitle" id="buyWeaponName">WEAPON</div>
+            <img id="buyWeaponImg" />
+            <div class="buyPrice"><span id="buyWeaponPrice">0</span> 🪙</div>
+            <button id="buyConfirmBtn">BUY</button>
+            <button id="buyCancelBtn">CLOSE</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="petShoopDiv" class="petShop hidden">
+        <div class="petShopBox">
+          <button class="closePetShopBtn">✕</button>
+
+          <h2 class="petTitle">🐾 PET SHOP</h2>
+
+          <div class="petGrid">
+            <div class="petCard" data-pet="dog">
+              <div class="petIcon">🐶</div>
+              <div class="petName">Chimpo</div>
+              <div class="petPrice">1000 🪙</div>
+              <button class="petBuyBtn" onclick="buyPet('dog')">BUY</button>
+            </div>
+
+            <div class="petCard" data-pet="siren">
+              <div class="petIcon">🐱</div>
+              <div class="petName">Siren</div>
+              <div class="petPrice">2500 🪙</div>
+              <button class="petBuyBtn" onclick="buyPet('siren')">BUY</button>
+            </div>
+          </div>
+
+
+          <div id="petInfoOverlay" class="hidden">
+            <div id="petInfoBox">
+              <button id="closePetInfo">✕</button>
+              <h2 id="petInfoTitle"></h2>
+              <p id="petInfoDesc"></p>
+              <ul id="petInfoStats"></ul>
+              <div id="petInfoLongDesc"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="superShopDiv" data-sound="super">
+        <div class="superShopHeader">
+          <div class="superTitle">SUPER SHOP</div>
+          <button class="closeSuperShopDiv" onclick="closeSuperShop()">✕</button>
+        </div>
+        <div class="superShopBody">
+          <div class="superButtonsRow">
+
+            <!-- SUPER 1 -->
+            <div class="superCard" data-super="waveShield">
+              <button class="selectSuperBtn" data-super="waveShield"></button>
+              <button class="superEquipBtn" data-sound="equip">
+                <span class="label">EQUIP</span>
+                <span class="check">✓</span>
+              </button>
+            </div>
+
+            <!-- SUPER 2 -->
+            <div class="superCard" data-super="superLaser">
+              <button class="selectSuperBtn" data-super="superLaser"></button>
+              <button class="superEquipBtn" data-sound="equip">
+                <span class="label">EQUIP</span>
+                <span class="check">✓</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="superInfoPanel">
+            <div class="superInfoDiv">
+              <button id="closeSuperInfoDiv" onclick="closeSuperInfo()">✕</button>
+              <div class="superInfoHeader" id="superInfoTitle"></div>
+              <div class="superInfoDesc" id="superInfoDesc"></div>
+              <div class="superStats" id="superStats"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="buySuperConfirm" class="buySuperConfirm">
+          <div class="buySuperBox">
+            <div class="buySuperTitle">BUY SUPER?</div>
+            <div class="buySuperText">
+              Are you sure you want to buy this super?
+            </div>
+
+            <div class="buySuperActions">
+              <button class="buyCancelBtn" onclick="closeBuySuperConfirm()">
+                CANCEL
+              </button>
+
+              <button class="buyConfirmBtn" onclick="confirmBuySuper()">
+                BUY
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <p id="petInfoDesc"></p>
+      <!-- ================= LOCKER ================= -->
+      <div id="lockerScreen" class="page">
+        <h1 class="pageText">LOCKER</h1>
+      </div>
+
+      <!-- ================= BOTTOM NAV ================= -->
+      <div id="bottomBtns">
+        <button class="bottomButton" data-target="shopScreen">Shop</button>
+        <button class="bottomButton" data-target="inventoryScreen">
+          Inventory
+        </button>
+        <button id="battle" class="bottomButton" data-target="homeScreen">
+          Battle!
+        </button>
+        <button class="bottomButton" data-target="lockerScreen">
+          Locker
+        </button>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+  </div>
+</body>
+
+</html>
