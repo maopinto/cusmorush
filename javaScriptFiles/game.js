@@ -504,11 +504,25 @@ window.addEventListener('load', function () {
       this.shootingInterval = 200;
       this.lastFireTime = 0;
       this.weapon = localStorage.getItem('equippedWeapon') || 'laser';
+      this.image = document.getElementById('player');
+      this.frameX = 0;
+      this.frameY = 1;
+      this.frameTimer = 0;
+      this.frameInterval = 80;
+      this.spriteWidth = 128;
+      this.spriteHeight = 128;
     }
 
-    update() {
+    update(deltaTime) {
       this.x += this.speedX;
       this.y += this.speedY;
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX++;
+        if (this.frameX >= 6) this.frameX = 0;
+        this.frameTimer = 0;
+      }
 
       if (this.game.mouse.pressed) {
         const dx = this.game.mouse.x - (this.x + this.width / 2);
@@ -536,9 +550,24 @@ window.addEventListener('load', function () {
     }
 
     draw(context) {
-      if (this.invulnerable) context.fillStyle = 'lightblue';
-      else context.fillStyle = 'blue';
-      context.fillRect(this.x, this.y, this.width, this.height);
+      context.save();
+
+      if (this.invulnerable) context.globalAlpha = 0.65;
+
+      context.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+
+      context.restore();
+
       this.projectiles.forEach((p) => p.draw(context));
     }
 
@@ -1264,7 +1293,7 @@ window.addEventListener('load', function () {
     }
 
     update(deltaTime) {
-      this.player.update();
+      this.player.update(deltaTime);
 
       if (this.pet) {
         this.pet.update(deltaTime);

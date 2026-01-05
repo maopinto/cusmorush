@@ -434,10 +434,22 @@ function openMap(e) {
 
   map.classList.add('open');
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     updateLevelsMap();
-    levels.scrollTop = levels.scrollHeight;
-  });
+
+    const currentNode = levels.querySelector('.levelNode.current-node');
+    if (!currentNode) return;
+
+    const target = currentNode.offsetTop - levels.clientHeight * 0.35;
+
+    const maxScroll = levels.scrollHeight - levels.clientHeight;
+    const safeTop = Math.max(0, Math.min(target, maxScroll));
+
+    levels.scrollTo({
+      top: safeTop,
+      behavior: 'smooth',
+    });
+  }, 450);
 }
 
 function closeMap(e) {
