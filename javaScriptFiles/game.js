@@ -48,11 +48,16 @@ window.addEventListener('load', function () {
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
   }
 
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    background.resize();
+    stars.resize();
+  });
 
   ctx.fillStyle = 'lime';
   ctx.fillRect(0, 0, 100, 100);
@@ -206,6 +211,145 @@ window.addEventListener('load', function () {
     }
   }
 
+  class ScrollingBackground {
+    constructor(canvas, imageSrc, speed = 1) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+
+      this.image = new Image();
+      this.image.src = imageSrc;
+
+      this.speed = speed;
+
+      this.y1 = 0;
+      this.y2 = -this.canvas.height;
+    }
+
+    resize() {
+      this.y1 = 0;
+      this.y2 = -this.canvas.height;
+    }
+
+    update(deltaTime) {
+      const dt = deltaTime / 16.67;
+
+      this.y1 += this.speed * dt;
+      this.y2 += this.speed * dt;
+
+      if (this.y1 >= this.canvas.height) {
+        this.y1 = this.y2 - this.canvas.height;
+      }
+
+      if (this.y2 >= this.canvas.height) {
+        this.y2 = this.y1 - this.canvas.height;
+      }
+    }
+
+    draw() {
+      if (!this.image.complete) return;
+
+      this.ctx.drawImage(
+        this.image,
+        0,
+        this.y1,
+        this.canvas.width,
+        this.canvas.height
+      );
+
+      this.ctx.drawImage(
+        this.image,
+        0,
+        this.y2,
+        this.canvas.width,
+        this.canvas.height
+      );
+    }
+  }
+
+  const background = new ScrollingBackground(
+    canvas,
+    './images/game/background/blueSpace.png',
+    1.2
+  );
+
+  class Starfield {
+    constructor(canvas, count = 150) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.count = count;
+      this.stars = [];
+      this.w = canvas.width;
+      this.h = canvas.height;
+      this.seed();
+    }
+
+    seed() {
+      this.w = this.canvas.width;
+      this.h = this.canvas.height;
+      this.stars.length = 0;
+
+      for (let i = 0; i < this.count; i++) {
+        const layer = Math.random();
+        this.stars.push({
+          x: Math.random() * this.w,
+          y: Math.random() * this.h,
+          r: 0.6 + Math.random() * 1.8,
+          layer,
+          baseA: 0.25 + Math.random() * 0.55,
+          tw: 0.5 + Math.random() * 1.8,
+          p: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+
+    resize() {
+      this.seed();
+    }
+
+    update(deltaTime, speed = 1.2) {
+      const dt = deltaTime / 16.67;
+
+      for (const s of this.stars) {
+        const v = speed * (0.35 + s.layer * 1.2);
+        s.y += v * dt;
+
+        s.p += 0.02 * dt * s.tw;
+
+        if (s.y - s.r > this.h) {
+          s.y = -s.r;
+          s.x = Math.random() * this.w;
+        }
+      }
+    }
+
+    draw() {
+      const ctx = this.ctx;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+
+      for (const s of this.stars) {
+        const twinkle = 0.6 + 0.4 * Math.sin(s.p);
+        const a = Math.min(1, s.baseA * 1.6 * twinkle);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        const glow = 0.8 + 1.6 * s.layer;
+        ctx.globalAlpha = a * 0.55;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r * glow, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  const stars = new Starfield(canvas, 160);
+
   class Explosion {
     constructor(game, x, y) {
       this.game = game;
@@ -233,7 +377,7 @@ window.addEventListener('load', function () {
       this.image.onload = () => {
         this.imageLoaded = true;
       };
-      this.image.src = './images/spritesForGame/smokeExplosion.png';
+      this.image.src = './images/game/sprites/smokeExplosion.png';
     }
 
     update(deltaTime) {
@@ -292,13 +436,57 @@ window.addEventListener('load', function () {
 
   class Missile extends Projectile {
     constructor(game, x, y) {
-      super(game);
+      super(game, x, y);
       this.width = 25;
       this.height = 30;
-      this.x = x;
-      this.y = y;
-      this.speedY = -4;
+
+      this.vy = -4.5;
+      this.accY = -0.25;
+      this.maxSpeed = -14;
+
       this.damage = 5;
+
+      this.image = document.getElementById('missile');
+      this.frameX = 0;
+      this.frameY = 0;
+      this.frameTimer = 0;
+      this.frameInterval = 80;
+      this.spriteWidth = 25;
+      this.spriteHeight = 30;
+      this.maxFrame = 7;
+    }
+
+    update(deltaTime) {
+      const dt = deltaTime / 16.67;
+
+      this.vy += this.accY * dt;
+      if (this.vy < this.maxSpeed) this.vy = this.maxSpeed;
+
+      this.y += this.vy * dt;
+
+      if (this.y < -this.height) this.markedForDeletion = true;
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % this.maxFrame;
+        this.frameTimer = 0;
+      }
+    }
+
+    draw(context) {
+      if (!this.image) return;
+
+      context.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
     }
   }
 
@@ -564,7 +752,7 @@ window.addEventListener('load', function () {
       if (this.y + this.height > this.game.height)
         this.y = this.game.height - this.height;
 
-      this.projectiles.forEach((p) => p.update());
+      this.projectiles.forEach((p) => p.update(deltaTime));
       this.projectiles = this.projectiles.filter((p) => !p.markedForDeletion);
     }
 
@@ -1770,15 +1958,24 @@ window.addEventListener('load', function () {
 
   let lastTime = 0;
 
-  function animate(timeStemp) {
-    const deltaTime = timeStemp - lastTime;
-    lastTime = timeStemp;
+  function animate(timeStamp) {
+    const deltaTime = timeStamp - lastTime;
+    lastTime = timeStamp;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    background.update(deltaTime);
+    background.draw();
+
+    stars.update(deltaTime, 1.2);
+    stars.draw();
+
     game.update(deltaTime);
     game.draw(ctx);
+
     requestAnimationFrame(animate);
   }
+
   animate(0);
 });
 
