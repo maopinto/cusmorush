@@ -58,7 +58,6 @@ button {
   max-width: 400px;
   max-height: 844px;
   background: #000;
-  /*border-radius: 40px; */
   padding: 12px;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
   display: flex;
@@ -66,20 +65,7 @@ button {
   align-items: center;
   overflow: hidden;
   margin:0 auto;
-
 }
-
-/*.notch {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 25px;
-  background: #000;
-  border-radius: 15px;
-  z-index: 10;
-}*/
 
 #coinsContainer {
   position: absolute;
