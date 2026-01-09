@@ -40,6 +40,36 @@ function unlockNextLevel(currentLevel) {
 }
 
 window.addEventListener('load', function () {
+  const ASSETS = {
+    bg: './images/game/background/blueSpace.png',
+    explosion: './images/game/sprites/smokeExplosion.png',
+  };
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  let cached = {};
+
+  let EXPLOSION_IMG = null;
+  let background = null;
+  let stars = null;
+  let game = null;
+
+  async function preload() {
+    const [bgImg, explosionImg] = await Promise.all([
+      loadImage(ASSETS.bg),
+      loadImage(ASSETS.explosion),
+    ]);
+    cached.bgImg = bgImg;
+    cached.explosionImg = explosionImg;
+  }
+
   // canvas settings
   const canvas = document.getElementById('gameBoard');
   const ctx = canvas.getContext('2d');
@@ -63,8 +93,12 @@ window.addEventListener('load', function () {
   resizeCanvas();
   window.addEventListener('resize', () => {
     resizeCanvas();
-    background.resize();
-    stars.resize();
+    if (background) background.resize();
+    if (stars) stars.resize();
+    if (game) {
+      game.width = logicalW;
+      game.height = logicalH;
+    }
   });
 
   ctx.fillStyle = 'lime';
@@ -244,13 +278,10 @@ window.addEventListener('load', function () {
   }
 
   class ScrollingBackground {
-    constructor(canvas, imageSrc, speed = 1) {
+    constructor(canvas, image, speed = 1) {
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
-
-      this.image = new Image();
-      this.image.src = imageSrc;
-
+      this.image = image;
       this.speed = speed;
 
       const rect = canvas.getBoundingClientRect();
@@ -259,9 +290,6 @@ window.addEventListener('load', function () {
 
       this.y1 = 0;
       this.y2 = -this.h;
-
-      this.ctx.imageSmoothingEnabled = true;
-      this.ctx.imageSmoothingQuality = 'high';
     }
 
     resize() {
@@ -304,12 +332,6 @@ window.addEventListener('load', function () {
       this.drawCover(this.y2);
     }
   }
-
-  const background = new ScrollingBackground(
-    canvas,
-    './images/game/background/blueSpace.png',
-    1.2
-  );
 
   class Starfield {
     constructor(canvas, count = 150) {
@@ -387,12 +409,9 @@ window.addEventListener('load', function () {
     }
   }
 
-  const stars = new Starfield(canvas, 160);
-
   class Explosion {
     constructor(game, x, y) {
       this.game = game;
-
       this.spriteWidth = 200;
       this.spriteHeight = 200;
       this.width = this.spriteWidth;
@@ -411,17 +430,10 @@ window.addEventListener('load', function () {
       this.markedForDeletion = false;
       this.maxFrame = 8;
 
-      this.imageLoaded = false;
-      this.image = new Image();
-      this.image.onload = () => {
-        this.imageLoaded = true;
-      };
-      this.image.src = './images/game/sprites/smokeExplosion.png';
+      this.image = EXPLOSION_IMG;
     }
 
     update(deltaTime) {
-      if (!this.imageLoaded) return;
-
       if (this.timer > this.interval) {
         this.frameX++;
         this.timer = 0;
@@ -429,13 +441,10 @@ window.addEventListener('load', function () {
         this.timer += deltaTime;
       }
 
-      if (this.frameX > this.maxFrame) {
-        this.markedForDeletion = true;
-      }
+      if (this.frameX > this.maxFrame) this.markedForDeletion = true;
     }
-
     draw(context) {
-      if (!this.imageLoaded) return;
+      if (!this.image) return;
 
       context.drawImage(
         this.image,
@@ -1003,8 +1012,6 @@ window.addEventListener('load', function () {
       controller.mindControlled = true;
       controller.mindTarget = target;
       controller.mindTimer = 0;
-
-      console.log('🧠 Siren controlled:', controller, '→', target);
     }
 
     draw(ctx) {
@@ -1145,7 +1152,6 @@ window.addEventListener('load', function () {
       if (this.shooterTimer >= this.shooterInterval && !this.game.gameOver) {
         this.shootTop();
         this.shooterTimer = 0;
-        console.log('💥 The Enemy is Shooting!');
       }
 
       if (this.y >= 100) {
@@ -1542,7 +1548,6 @@ window.addEventListener('load', function () {
       if (this.enemyTimer >= this.enemyInterval && !this.gameOver) {
         this.addEnemy();
         this.enemyTimer = 0;
-        console.log('enemy is entering');
       } else {
         this.enemyTimer += deltaTime;
       }
@@ -1565,8 +1570,6 @@ window.addEventListener('load', function () {
           this.player.invulnerable = true;
           this.player.invulnerableTimer += deltaTime;
           playerHit = true;
-          if (playerHit)
-            console.log('player hitet you have ', this.player.lives, ' lives ');
         }
         if (
           this.pet &&
@@ -1576,8 +1579,6 @@ window.addEventListener('load', function () {
         ) {
           this.pet.lives--;
           this.pet.invulnerable = true;
-
-          console.log('🐾 Pet hit! lives:', this.pet.lives);
 
           if (this.pet.lives <= 0 && !this.pet.markedForDeletion) {
             const px = this.pet.x + this.pet.width / 2;
@@ -1591,11 +1592,9 @@ window.addEventListener('load', function () {
 
       if (this.player.invulnerable && !this.gameOver) {
         this.player.invulnerableTimer += deltaTime;
-        console.log('invurerable mode is on');
         if (this.player.invulnerableTimer >= this.player.invulnerableInterval) {
           this.player.invulnerable = false;
           this.player.invulnerableTimer = 0;
-          console.log('invunrerable mode is off');
         }
       }
 
@@ -1655,14 +1654,10 @@ window.addEventListener('load', function () {
         this.enemies.forEach((enemy) => {
           enemy.originalSpeedY = enemy.speedY;
           enemy.speedY = 0;
-          console.log('stage: ', this.stage);
         });
 
         this.stage++;
         this.enemyInterval = this.getEnemyInterval();
-
-        console.log(this.stage);
-
         this.createUpgradeCards();
       }
 
@@ -1889,12 +1884,10 @@ window.addEventListener('load', function () {
     applyUpgrade(type) {
       switch (type) {
         case 'dublleShoter':
-          console.log('💥 Upgrade: Double Shooter activated!');
           this.player.doubleShot = true;
           break;
 
         case 'plusHp':
-          console.log('❤️ Upgrade: Extra HP!');
           this.player.lives++;
           break;
 
@@ -1907,15 +1900,12 @@ window.addEventListener('load', function () {
           break;
 
         case 'shild':
-          console.log('🛡️ Upgrade: Temporary Shield!');
-
           this.player.invulnerable = true;
           this.player.shieldActive = true;
 
           setTimeout(() => {
             this.player.invulnerable = false;
             this.player.shieldActive = false;
-            console.log('🛡️ Shield expired');
           }, 20000);
 
           break;
@@ -1945,7 +1935,6 @@ window.addEventListener('load', function () {
 
       const superData = SUPER_TYPES[this.equippedSuper];
       if (!superData) {
-        console.warn('Unknown super:', this.equippedSuper);
         return;
       }
 
@@ -1983,33 +1972,44 @@ window.addEventListener('load', function () {
     localStorage.setItem('coins', current + amount);
   }
 
-  let game = new Game(logicalW, logicalH);
-
   function restartGame() {
     game = new Game(logicalW, logicalH);
   }
 
-  let lastTime = 0;
+  (async () => {
+    await preload();
 
-  function animate(timeStamp) {
-    const deltaTime = timeStamp - lastTime;
-    lastTime = timeStamp;
+    EXPLOSION_IMG = cached.explosionImg;
 
-    ctx.clearRect(0, 0, logicalW, logicalH);
+    background = new ScrollingBackground(canvas, cached.bgImg, 1.2);
+    stars = new Starfield(canvas, 160);
 
-    background.update(deltaTime);
-    background.draw();
+    game = new Game(logicalW, logicalH);
 
-    stars.update(deltaTime, 1.2);
-    stars.draw();
+    let lastTime = 0;
+    function loop(timeStamp) {
+      let deltaTime = timeStamp - lastTime;
+      lastTime = timeStamp;
 
-    game.update(deltaTime);
-    game.draw(ctx);
+      if (deltaTime > 50) deltaTime = 50;
+      if (deltaTime < 0) deltaTime = 0;
 
-    requestAnimationFrame(animate);
-  }
+      ctx.clearRect(0, 0, logicalW, logicalH);
 
-  animate(0);
+      background.update(deltaTime);
+      background.draw();
+
+      stars.update(deltaTime, 1.2);
+      stars.draw();
+
+      game.update(deltaTime);
+      game.draw(ctx);
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  })();
 });
 
 function showVictoryScreen(reward, level) {
