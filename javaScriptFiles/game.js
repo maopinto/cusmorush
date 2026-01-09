@@ -43,11 +43,19 @@ window.addEventListener('load', function () {
   // canvas settings
   const canvas = document.getElementById('gameBoard');
   const ctx = canvas.getContext('2d');
+  let logicalW = 0;
+  let logicalH = 0;
+
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
+
+    logicalW = rect.width;
+    logicalH = rect.height;
+
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
+
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
   }
@@ -699,7 +707,7 @@ window.addEventListener('load', function () {
       this.width = 100;
       this.height = 120;
       this.x = this.game.width / 2 - this.width / 2;
-      this.y = 700;
+      this.y = this.game.height - this.height - 20;
       this.speedX = 0;
       this.speedY = 0;
       this.projectiles = [];
@@ -1950,10 +1958,10 @@ window.addEventListener('load', function () {
     localStorage.setItem('coins', current + amount);
   }
 
-  let game = new Game(canvas.width, canvas.height);
+  let game = new Game(logicalW, logicalH);
 
   function restartGame() {
-    game = new Game(canvas.width, canvas.height);
+    game = new Game(logicalW, logicalH);
   }
 
   let lastTime = 0;
@@ -1962,7 +1970,7 @@ window.addEventListener('load', function () {
     const deltaTime = timeStamp - lastTime;
     lastTime = timeStamp;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     background.update(deltaTime);
     background.draw();
