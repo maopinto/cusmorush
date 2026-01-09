@@ -136,7 +136,6 @@ window.addEventListener('load', function () {
       },
     },
   };
-
   class Mouse {
     constructor(game) {
       this.game = game;
@@ -144,30 +143,27 @@ window.addEventListener('load', function () {
       this.x = 0;
       this.y = 0;
       this.fireInterval = null;
+      this.activePointerId = null;
 
       const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
-        return {
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-        };
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
       };
 
       const startFiring = () => {
         if (this.fireInterval) return;
-
         this.fireInterval = setInterval(() => {
           if (!this.pressed) return;
           if (this.game.gameOver) return;
           if (this.game.upgradeCardsShowing) return;
           if (this.game.isSuperLaserActive()) return;
-
           this.game.player.fire();
         }, 16);
       };
 
       const stopFiring = () => {
         this.pressed = false;
+        this.activePointerId = null;
         clearInterval(this.fireInterval);
         this.fireInterval = null;
       };
@@ -176,16 +172,18 @@ window.addEventListener('load', function () {
         'pointerdown',
         (e) => {
           e.preventDefault();
+          this.activePointerId = e.pointerId;
           canvas.setPointerCapture(e.pointerId);
-
-          this.pressed = true;
 
           const p = getPos(e);
           this.x = p.x;
           this.y = p.y;
 
+          this.pressed = true;
+
           if (this.game.upgradeCardsShowing) {
             this.handleClick(this.x, this.y);
+            stopFiring();
             return;
           }
 
@@ -197,9 +195,12 @@ window.addEventListener('load', function () {
       canvas.addEventListener(
         'pointermove',
         (e) => {
-          if (!this.pressed) return;
+          if (
+            this.activePointerId !== null &&
+            e.pointerId !== this.activePointerId
+          )
+            return;
           e.preventDefault();
-
           const p = getPos(e);
           this.x = p.x;
           this.y = p.y;
@@ -207,9 +208,11 @@ window.addEventListener('load', function () {
         { passive: false }
       );
 
-      canvas.addEventListener('pointerup', stopFiring);
-      canvas.addEventListener('pointercancel', stopFiring);
-      canvas.addEventListener('pointerleave', stopFiring);
+      canvas.addEventListener('pointerup', stopFiring, { passive: true });
+      canvas.addEventListener('pointercancel', stopFiring, { passive: true });
+      canvas.addEventListener('lostpointercapture', stopFiring, {
+        passive: true,
+      });
 
       window.addEventListener('keydown', (e) => {
         if (e.key === 'r' && this.game.gameOver) restartGame();
@@ -224,8 +227,6 @@ window.addEventListener('load', function () {
           my > card.y &&
           my < card.y + card.height
         ) {
-          console.log('✅ Selected upgrade:', card.type);
-
           this.game.applyUpgrade(card.type);
           this.game.upgradeCardsShowing = false;
           this.game.nextRageScore += 10;
@@ -235,7 +236,6 @@ window.addEventListener('load', function () {
 
     restartFire() {
       if (!this.pressed) return;
-
       clearInterval(this.fireInterval);
       this.fireInterval = setInterval(() => {
         this.game.player.fire();
