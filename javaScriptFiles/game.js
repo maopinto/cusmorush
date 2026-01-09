@@ -145,9 +145,15 @@ window.addEventListener('load', function () {
       this.y = 0;
       this.fireInterval = null;
 
-      canvas.addEventListener('mousedown', (e) => {
-        this.pressed = true;
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        };
+      };
 
+      const startFiring = () => {
         if (this.fireInterval) return;
 
         this.fireInterval = setInterval(() => {
@@ -158,57 +164,75 @@ window.addEventListener('load', function () {
 
           this.game.player.fire();
         }, 16);
-      });
+      };
 
-      canvas.addEventListener('mousemove', (e) => {
-        this.x = e.offsetX;
-        this.y = e.offsetY;
-      });
-
-      canvas.addEventListener('mouseup', () => {
+      const stopFiring = () => {
         this.pressed = false;
-
         clearInterval(this.fireInterval);
         this.fireInterval = null;
-      });
+      };
 
-      canvas.addEventListener('mouseleave', () => {
-        this.pressed = false;
+      canvas.addEventListener(
+        'pointerdown',
+        (e) => {
+          e.preventDefault();
+          canvas.setPointerCapture(e.pointerId);
 
-        clearInterval(this.fireInterval);
-        this.fireInterval = null;
-      });
+          this.pressed = true;
 
-      canvas.addEventListener('click', (e) => {
-        if (this.game.upgradeCardsShowing) {
-          const mx = e.offsetX;
-          const my = e.offsetY;
+          const p = getPos(e);
+          this.x = p.x;
+          this.y = p.y;
 
-          this.game.upgradeCards.forEach((card) => {
-            if (
-              mx > card.x &&
-              mx < card.x + card.width &&
-              my > card.y &&
-              my < card.y + card.height
-            ) {
-              console.log('✅ Selected upgrade:', card.type);
+          if (this.game.upgradeCardsShowing) {
+            this.handleClick(this.x, this.y);
+            return;
+          }
 
-              this.game.applyUpgrade(card.type);
+          startFiring();
+        },
+        { passive: false }
+      );
 
-              this.game.upgradeCardsShowing = false;
+      canvas.addEventListener(
+        'pointermove',
+        (e) => {
+          if (!this.pressed) return;
+          e.preventDefault();
 
-              this.game.nextRageScore += 10;
-            }
-          });
-        }
-      });
+          const p = getPos(e);
+          this.x = p.x;
+          this.y = p.y;
+        },
+        { passive: false }
+      );
+
+      canvas.addEventListener('pointerup', stopFiring);
+      canvas.addEventListener('pointercancel', stopFiring);
+      canvas.addEventListener('pointerleave', stopFiring);
 
       window.addEventListener('keydown', (e) => {
-        if (e.key === 'r' && this.game.gameOver) {
-          restartGame();
+        if (e.key === 'r' && this.game.gameOver) restartGame();
+      });
+    }
+
+    handleClick(mx, my) {
+      this.game.upgradeCards.forEach((card) => {
+        if (
+          mx > card.x &&
+          mx < card.x + card.width &&
+          my > card.y &&
+          my < card.y + card.height
+        ) {
+          console.log('✅ Selected upgrade:', card.type);
+
+          this.game.applyUpgrade(card.type);
+          this.game.upgradeCardsShowing = false;
+          this.game.nextRageScore += 10;
         }
       });
     }
+
     restartFire() {
       if (!this.pressed) return;
 
@@ -229,13 +253,24 @@ window.addEventListener('load', function () {
 
       this.speed = speed;
 
+      const rect = canvas.getBoundingClientRect();
+      this.w = rect.width;
+      this.h = rect.height;
+
       this.y1 = 0;
-      this.y2 = -this.canvas.height;
+      this.y2 = -this.h;
+
+      this.ctx.imageSmoothingEnabled = true;
+      this.ctx.imageSmoothingQuality = 'high';
     }
 
     resize() {
+      const rect = this.canvas.getBoundingClientRect();
+      this.w = rect.width;
+      this.h = rect.height;
+
       this.y1 = 0;
-      this.y2 = -this.canvas.height;
+      this.y2 = -this.h;
     }
 
     update(deltaTime) {
@@ -244,33 +279,29 @@ window.addEventListener('load', function () {
       this.y1 += this.speed * dt;
       this.y2 += this.speed * dt;
 
-      if (this.y1 >= this.canvas.height) {
-        this.y1 = this.y2 - this.canvas.height;
-      }
+      if (this.y1 >= this.h) this.y1 = this.y2 - this.h;
+      if (this.y2 >= this.h) this.y2 = this.y1 - this.h;
+    }
 
-      if (this.y2 >= this.canvas.height) {
-        this.y2 = this.y1 - this.canvas.height;
-      }
+    drawCover(y) {
+      const img = this.image;
+      if (!img.complete || !img.naturalWidth) return;
+
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+
+      const scale = Math.max(this.w / iw, this.h / ih);
+      const sw = this.w / scale;
+      const sh = this.h / scale;
+      const sx = (iw - sw) / 2;
+      const sy = (ih - sh) / 2;
+
+      this.ctx.drawImage(img, sx, sy, sw, sh, 0, y, this.w, this.h);
     }
 
     draw() {
-      if (!this.image.complete) return;
-
-      this.ctx.drawImage(
-        this.image,
-        0,
-        this.y1,
-        this.canvas.width,
-        this.canvas.height
-      );
-
-      this.ctx.drawImage(
-        this.image,
-        0,
-        this.y2,
-        this.canvas.width,
-        this.canvas.height
-      );
+      this.drawCover(this.y1);
+      this.drawCover(this.y2);
     }
   }
 

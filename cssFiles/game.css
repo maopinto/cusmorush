@@ -35,6 +35,7 @@ body {
   background-color: rgb(80, 79, 79);
   border-radius: 15px;
   display: block;
+  touch-action: none;
 }
 
 .phone-frame {
