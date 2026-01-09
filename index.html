@@ -2,8 +2,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit="cover" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Main Lobby</title>
   <link rel="icon" href="./images/logo.png" />
   <link rel="stylesheet" href="./cssFiles/main.css" />
@@ -148,11 +148,6 @@
             <button class="levelsBtn" onclick="goToLevel(1)">1</button>
           </div>
         </div>
-      </div>
-
-      <!-- ================= SHOP ================= -->
-      <div id="shopScreen" class="page">
-        <h1 class="pageText">SHOP</h1>
       </div>
 
       <!-- ================= INVENTORY ================= -->
@@ -342,11 +337,96 @@
             </div>
           </div>
         </div>
-
       </div>
 
 
       <p id="petInfoDesc"></p>
+
+      <!-- ================= SHOP ================= -->
+      <div id="shopScreen" class="page">
+        <div class="shopHeader">
+          <div id="shopCoinsContainer">
+            <span id="shopCoinsText"></span>
+            <div id="shopCoinsIcon"></div>
+          </div>
+          <div class="shopTitle">SHOP</div>
+          <div class="shopSub">Grab deals • Upgrade style • Power up</div>
+        </div>
+
+        <div id="shopScroll">
+
+          <section class="shopSection">
+            <div class="sectionTop">
+              <div class="sectionTitle">DAILY OFFERS</div>
+              <div class="sectionHint">Refreshes daily</div>
+            </div>
+            <div id="dailyOffersRow" class="cardsRow"></div>
+          </section>
+
+          <section class="shopSection">
+            <div class="sectionTop">
+              <div class="sectionTitle">FEATURED</div>
+              <div class="sectionHint">Limited</div>
+            </div>
+
+            <div id="featuredCard" class="featuredCard">
+              <div class="featuredGlow"></div>
+              <div class="featuredLeft">
+                <div class="featuredTag">SPECIAL DROP</div>
+                <div id="featuredName" class="featuredName">Galaxy Pass</div>
+                <div id="featuredDesc" class="featuredDesc">Unlock a premium reward track + bonus coins</div>
+                <div class="featuredBottom">
+                  <div class="pricePill"><span id="featuredPrice">2500</span> 🪙</div>
+                  <button id="featuredBuyBtn" class="buyPillBtn">GET</button>
+                </div>
+              </div>
+              <div class="featuredRight">
+                <div id="featuredIcon" class="featuredIcon">✨</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="shopSection">
+            <div class="sectionTop">
+              <div class="sectionTitle">SKINS</div>
+              <div class="sectionHint">Cosmetics</div>
+            </div>
+            <div id="skinsGrid" class="shopGrid"></div>
+          </section>
+
+          <section class="shopSection">
+            <div class="sectionTop">
+              <div class="sectionTitle">COINS</div>
+              <div class="sectionHint">Best value packs</div>
+            </div>
+            <div id="coinsGrid" class="shopGrid"></div>
+          </section>
+
+          <div class="shopSpacer"></div>
+        </div>
+
+        <div id="shopModal" class="shopModal hidden">
+          <div class="shopModalBox" onclick="event.stopPropagation()">
+            <button id="shopModalClose" class="shopModalClose">✕</button>
+
+            <div class="shopModalTop">
+              <div id="shopModalIcon" class="shopModalIcon">🛒</div>
+              <div class="shopModalText">
+                <div id="shopModalTitle" class="shopModalTitle">Item</div>
+                <div id="shopModalDesc" class="shopModalDesc">Description</div>
+              </div>
+            </div>
+
+            <div class="shopModalPrice">
+              <span id="shopModalPrice">0</span> 🪙
+            </div>
+
+            <button id="shopModalBuy" class="shopModalBuy">BUY</button>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ================= LOCKER ================= -->
       <div id="lockerScreen" class="page">
         <h1 class="pageText">LOCKER</h1>

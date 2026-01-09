@@ -760,27 +760,21 @@ window.addEventListener('load', function () {
     }
 
     update(deltaTime) {
-      this.x += this.speedX;
-      this.y += this.speedY;
-
       this.frameTimer += deltaTime;
       if (this.frameTimer > this.frameInterval) {
         this.frameX++;
         if (this.frameX >= 6) this.frameX = 0;
         this.frameTimer = 0;
       }
-
       if (this.game.mouse.pressed) {
-        const dx = this.game.mouse.x - (this.x + this.width / 2);
-        const dy = this.game.mouse.y - (this.y + this.height / 2);
+        const targetX = this.game.mouse.x - this.width / 2;
+        const targetY = this.game.mouse.y - this.height / 2;
 
-        this.speedX = dx * 0.1;
-        this.speedY = dy * 0.1;
+        this.x += (targetX - this.x) * 0.22;
+        this.y += (targetY - this.y) * 0.22;
 
         canvas.style.cursor = 'none';
       } else {
-        this.speedX = 0;
-        this.speedY = 0;
         canvas.style.cursor = 'default';
       }
 
