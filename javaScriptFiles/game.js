@@ -737,7 +737,7 @@ window.addEventListener('load', function () {
   }
 
   const SUPER_TYPES = {
-    waveShield: { class: SuperAttack1, duration: 500, charge: 1 },
+    waveShield: { class: SuperAttack1, duration: 500, charge: 5 },
     superLaser: { class: SuperLaser, duration: 4000, charge: 9 },
   };
 

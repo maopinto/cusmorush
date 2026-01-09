@@ -12,6 +12,35 @@ body {
   background: #000;
 }
 
+.phone-frame {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: 400px;
+  max-height: 844px;
+  background: #000;
+  /*border-radius: 40px; */
+  padding: 12px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/*.notch {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 25px;
+  background: #000;
+  border-radius: 15px;
+  z-index: 10;
+}*/
+
 body {
   display: flex;
   justify-content: center;
@@ -38,26 +67,6 @@ body {
   touch-action: none;
 }
 
-.phone-frame {
-  position: relative;
-
-  width: 100vw;
-  height: 100vh;
-  max-width: 400px;
-  max-height: 844px;
-
-  background: #000;
-  border-radius: 40px;
-  padding: 12px;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  margin: auto;
-}
-
 .screen {
   background: #fff;
   width: 100%;
@@ -67,18 +76,6 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-}
-
-.notch {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 25px;
-  background: #000;
-  border-radius: 15px;
-  z-index: 10;
 }
 
 .btn {
