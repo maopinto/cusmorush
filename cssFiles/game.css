@@ -34,7 +34,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: 0;
-  background: #ccc;
+  background: rgb(87, 87, 87);
   font-family: system-ui, sans-serif;
 }
 

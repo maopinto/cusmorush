@@ -354,8 +354,7 @@
         </div>
 
         <div id="shopScroll">
-
-          <section class="shopSection">
+          <section class="shopSection" data-shop-target="Daily">
             <div class="sectionTop">
               <div class="sectionTitle">DAILY OFFERS</div>
               <div class="sectionHint">Refreshes daily</div>
@@ -363,7 +362,7 @@
             <div id="dailyOffersRow" class="cardsRow"></div>
           </section>
 
-          <section class="shopSection">
+          <section class="shopSection" data-shop-target="Featured">
             <div class="sectionTop">
               <div class="sectionTitle">FEATURED</div>
               <div class="sectionHint">Limited</div>
@@ -386,7 +385,7 @@
             </div>
           </section>
 
-          <section class="shopSection">
+          <section class="shopSection" data-shop-target="Skins">
             <div class="sectionTop">
               <div class="sectionTitle">SKINS</div>
               <div class="sectionHint">Cosmetics</div>
@@ -394,7 +393,7 @@
             <div id="skinsGrid" class="shopGrid"></div>
           </section>
 
-          <section class="shopSection">
+          <section class="shopSection" data-shop-target="Coins">
             <div class="sectionTop">
               <div class="sectionTitle">COINS</div>
               <div class="sectionHint">Best value packs</div>
@@ -403,6 +402,11 @@
           </section>
 
           <div class="shopSpacer"></div>
+        </div>
+
+        <div id="shopRail">
+          <div id="shopScrollIndicator"></div>
+          <div id="shopDots"></div>
         </div>
 
         <div id="shopModal" class="shopModal hidden">
@@ -424,7 +428,6 @@
             <button id="shopModalBuy" class="shopModalBuy">BUY</button>
           </div>
         </div>
-
       </div>
 
       <!-- ================= LOCKER ================= -->

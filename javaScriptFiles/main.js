@@ -1723,3 +1723,136 @@ function shopBuy(item) {
 document.addEventListener('DOMContentLoaded', () => {
   shopInit();
 });
+
+function initShopBlueScroller() {
+  const scroller = document.getElementById('shopScroll');
+  const bar = document.getElementById('shopScrollbar');
+  const thumb = document.getElementById('shopThumb');
+  if (!scroller || !bar || !thumb) return;
+
+  let hideTm = null;
+  let dragging = false;
+
+  const showBar = () => {
+    bar.classList.add('show');
+    clearTimeout(hideTm);
+    hideTm = setTimeout(() => bar.classList.remove('show'), 900);
+  };
+
+  const syncThumb = () => {
+    const view = scroller.clientHeight;
+    const total = scroller.scrollHeight;
+
+    if (total <= view + 1) {
+      bar.classList.remove('show');
+      thumb.style.height = '0px';
+      return;
+    }
+
+    const track = bar.clientHeight;
+    const minH = 36;
+    const h = Math.max(minH, Math.round((view / total) * track));
+    const maxTop = track - h;
+
+    const ratio = scroller.scrollTop / (total - view);
+    const top = Math.round(maxTop * ratio);
+
+    thumb.style.height = `${h}px`;
+    thumb.style.top = `${top}px`;
+  };
+
+  const setScrollFromThumbY = (clientY) => {
+    const rect = bar.getBoundingClientRect();
+    const track = rect.height;
+
+    const thumbH = thumb.offsetHeight || 1;
+    const maxTop = track - thumbH;
+
+    let y = clientY - rect.top - thumbH / 2;
+    y = Math.max(0, Math.min(y, maxTop));
+
+    const view = scroller.clientHeight;
+    const total = scroller.scrollHeight;
+
+    const ratio = y / maxTop;
+    scroller.scrollTop = ratio * (total - view);
+  };
+
+  scroller.addEventListener('scroll', () => {
+    if (!dragging) syncThumb();
+    showBar();
+  });
+
+  scroller.addEventListener('pointerdown', showBar, { passive: true });
+  scroller.addEventListener('pointermove', showBar, { passive: true });
+
+  thumb.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    showBar();
+    thumb.setPointerCapture(e.pointerId);
+    setScrollFromThumbY(e.clientY);
+  });
+
+  thumb.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    setScrollFromThumbY(e.clientY);
+  });
+
+  thumb.addEventListener('pointerup', () => {
+    dragging = false;
+    showBar();
+  });
+
+  window.addEventListener('resize', () => {
+    syncThumb();
+  });
+
+  syncThumb();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initShopBlueScroller();
+});
+
+function initShopDotsNav() {
+  const scroller = document.getElementById('shopScroll');
+  const dotsWrap = document.getElementById('shopDots');
+  if (!scroller || !dotsWrap) return;
+
+  const targets = Array.from(scroller.querySelectorAll('[data-shop-target]'));
+  if (!targets.length) return;
+
+  dotsWrap.innerHTML = '';
+  const dots = targets.map((el, i) => {
+    const b = document.createElement('button');
+    b.className = 'shopDot';
+    b.type = 'button';
+    b.setAttribute(
+      'aria-label',
+      el.getAttribute('data-shop-target') || `Section ${i + 1}`
+    );
+
+    b.addEventListener('click', () => {
+      const top = el.offsetTop;
+      scroller.scrollTo({ top, behavior: 'smooth' });
+    });
+
+    dotsWrap.appendChild(b);
+    return b;
+  });
+
+  const setActive = () => {
+    const y = scroller.scrollTop + scroller.clientHeight * 0.25;
+    let best = 0;
+    for (let i = 0; i < targets.length; i++) {
+      if (targets[i].offsetTop <= y) best = i;
+    }
+    dots.forEach((d, idx) => d.classList.toggle('active', idx === best));
+  };
+
+  scroller.addEventListener('scroll', setActive, { passive: true });
+  window.addEventListener('resize', setActive);
+  setActive();
+}
+
+document.addEventListener('DOMContentLoaded', initShopDotsNav);
