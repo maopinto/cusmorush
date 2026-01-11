@@ -2,12 +2,14 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Main Lobby</title>
   <link rel="icon" href="./images/logo.png" />
   <link rel="stylesheet" href="./cssFiles/main.css" />
+  <link rel="stylesheet" href="./cssFiles/mainShop.css">
   <script defer src="./javaScriptFiles/main.js"></script>
+  <script defer src="./javaScriptFiles/mainShop.js"></script>
 </head>
 
 <body>
@@ -358,6 +360,7 @@
             <div class="sectionTop">
               <div class="sectionTitle">DAILY OFFERS</div>
               <div class="sectionHint">Refreshes daily</div>
+              <div id="dailyTimer" class="timer"></div>
             </div>
             <div id="dailyOffersRow" class="cardsRow"></div>
           </section>
@@ -365,6 +368,7 @@
           <section class="shopSection" data-shop-target="Featured">
             <div class="sectionTop">
               <div class="sectionTitle">FEATURED</div>
+              <div id="featuredTimer" class="timer"></div>
               <div class="sectionHint">Limited</div>
             </div>
 
@@ -406,7 +410,12 @@
 
         <div id="shopRail">
           <div id="shopScrollIndicator"></div>
-          <div id="shopDots"></div>
+          <div id="shopDots">
+            <button class="shopDot" data-target="featured" data-label="1"></button>
+            <button class="shopDot" data-target="weapons" data-label="W"></button>
+            <button class="shopDot" data-target="pets" data-label="P"></button>
+            <button class="shopDot" data-target="boosts" data-label="B"></button>
+          </div>
         </div>
 
         <div id="shopModal" class="shopModal hidden">

@@ -12,12 +12,23 @@ body {
   background: #000;
 }
 
+#app,
+.app,
+.phoneFrame,
+.gameRoot {
+  height: 100dvh;
+  width: 100vw;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
 .phone-frame {
   position: relative;
   width: 100vw;
   height: 100vh;
   max-width: 400px;
-  max-height: 900px;
+  max-height: 844px;
   background: #000;
   padding: 12px;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
