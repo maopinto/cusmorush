@@ -813,28 +813,27 @@ document.getElementById('buyConfirmBtn').addEventListener('click', () => {
   const weapon = WEAPONS[selectedWeaponId];
   if (!weapon) return;
 
-  // Already own?
-  if (isWeaponOwned(selectedWeaponId)) return;
+  const owned = getOwnedWeapons();
+  if (owned.includes(selectedWeaponId)) return;
 
-  // Not enough coins
   if (coins < weapon.price) {
+    showToast('Not enough coins!', 'error');
     return;
   }
 
-  // Pay
   coins -= weapon.price;
   saveCoins();
   updateCoinsUI();
 
-  // Save weapon
-  const owned = getOwnedWeapons();
   owned.push(selectedWeaponId);
   saveOwnedWeapons(owned);
 
-  alert(`You bought ${weapon.name}!`);
+  document.getElementById('buyWeaponPopup')?.classList.remove('open');
 
-  // Close popup
-  document.getElementById('buyWeaponPopup').classList.remove('open');
+  showToast(`You bought ${weapon.name}!`, 'success');
+
+  renderInventoryOverview();
+  updateEquipUI();
 });
 
 const overlay = document.getElementById('comingSoonOverlay');
@@ -1365,7 +1364,7 @@ function toggleSocial(e) {
 
   const isOpen = socialDiv.classList.contains('open');
 
-  closeAll(); // סוגר הכל קודם
+  closeAll();
 
   if (!isOpen) {
     socialDiv.classList.add('open');
@@ -1376,7 +1375,3 @@ function enterFullscreen() {
   const el = document.documentElement;
   if (el.requestFullscreen) el.requestFullscreen();
 }
-
-battleBtn.addEventListener('click', () => {
-  enterFullscreen();
-});

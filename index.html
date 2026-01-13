@@ -8,8 +8,11 @@
   <link rel="icon" href="./images/logo.png" />
   <link rel="stylesheet" href="./cssFiles/main.css" />
   <link rel="stylesheet" href="./cssFiles/mainShop.css">
+  <link rel="stylesheet" href="./cssFiles/mainLoadout.css">
+  <link rel="stylesheet" href="./cssFiles/mainInventory.css">
   <script defer src="./javaScriptFiles/main.js"></script>
   <script defer src="./javaScriptFiles/mainShop.js"></script>
+  <script defer src="./javaScriptFiles/mainInventory.js"></script>
 </head>
 
 <body>
@@ -152,41 +155,41 @@
         </div>
       </div>
 
-      <!-- ================= INVENTORY ================= -->
-      <div id="inventoryScreen" class="page">
-        <h1 class="pageText">INVENTORY</h1>
+      <!-- ================= LOADOUT SCREEN ================= -->
+      <div id="loadoutScreen" class="page">
+        <h1 class="pageText" id="loadoutPageTitle">LOADOUT</h1>
 
-        <div id="InventoryBtnDiv">
-          <div class="inventoryItem">
-            <button class="InventoryBtn" onclick="openWeaponDiv(event)">
+        <div id="loadoutBtnDiv">
+          <div class="loadoutItem">
+            <button class="loadoutBtn" onclick="openWeaponDiv(event)">
               <img src="./images/logosImage/weaponlogo.png" class="itemIconInside" />
             </button>
             <span class="itemText">Weapons</span>
           </div>
 
-          <div class="inventoryItem">
-            <button class="InventoryBtn" onclick="openPetShop()">
+          <div class="loadoutItem">
+            <button class="loadoutBtn" onclick="openPetShop()">
               <img src="./images/logosImage/petIcone.png" class="itemIconInside" />
             </button>
             <span class="itemText">Pets</span>
           </div>
 
-          <div class="inventoryItem">
-            <button class="InventoryBtn" onclick="toggleSuperShop(event)">
+          <div class="loadoutItem">
+            <button class="loadoutBtn" onclick="toggleSuperShop(event)">
               <img src="./images/logosImage/superIcone.png" class="itemIconInside" />
             </button>
             <span class="itemText">Super</span>
           </div>
 
-          <div class="inventoryItem">
-            <button class="InventoryBtn">
+          <div class="loadoutItem">
+            <button class="loadoutBtn">
               <img src="./images/logosImage/upgreatIcone.png" class="itemIconInside" />
             </button>
             <span class="itemText">Upgrade</span>
           </div>
         </div>
 
-        <div id="weaponOverlay" onclick="closeWeaponDiv(event)"></div>
+        <div id="overlay" onclick="closeWeaponDiv(event)"></div>
 
         <div id="weaponShop">
           <div id="weaponDiv">
@@ -333,16 +336,13 @@
                 CANCEL
               </button>
 
-              <button class="buyConfirmBtn" onclick="confirmBuySuper()">
+              <button class="confirmBox" onclick="confirmBuySuper()">
                 BUY
               </button>
             </div>
           </div>
         </div>
       </div>
-
-
-      <p id="petInfoDesc"></p>
 
       <!-- ================= SHOP ================= -->
       <div id="shopScreen" class="page">
@@ -439,22 +439,101 @@
         </div>
       </div>
 
-      <!-- ================= LOCKER ================= -->
-      <div id="lockerScreen" class="page">
-        <h1 class="pageText">LOCKER</h1>
+      <!-- ================= INVENTORY ================= -->
+      <div id="inventoryScreen" class="page">
+        <h1 class="pageText" id="inventoryTitle">INVENTORY</h1>
+
+        <div class="invWrap">
+          <!-- SKINS -->
+          <div class="invSection" data-inv="skins">
+            <div class="invHead">
+              <div class="invIcon">🟦</div>
+              <div class="invText">
+                <div class="invName">Skins</div>
+                <div class="invSub">Cosmetics you own</div>
+              </div>
+              <div class="invPill" id="invSkinsCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invSkinsGrid"></div>
+
+            <button class="invBtn" onclick="openInv('skins')">OPEN</button>
+          </div>
+
+          <!-- WEAPONS -->
+          <div class="invSection" data-inv="weapons">
+            <div class="invHead">
+              <div class="invIcon">🔫</div>
+              <div class="invText">
+                <div class="invName">Weapons</div>
+                <div class="invSub">Your unlocked weapons</div>
+              </div>
+              <div class="invPill" id="invWeaponsCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invWeaponsGrid"></div>
+
+            <button class="invBtn" onclick="openInv('weapons')">OPEN</button>
+          </div>
+
+          <!-- MINI ROW -->
+          <div class="invRow2">
+            <div class="invMini">
+              <div class="invMiniTop">
+                <span class="invMiniIcon">🐾</span>
+                <span class="invMiniTitle">Pets</span>
+                <span class="invMiniPill" id="invPetsCount">0</span>
+              </div>
+              <div class="invMiniSub">Companions & helpers</div>
+            </div>
+
+            <div class="invMini">
+              <div class="invMiniTop">
+                <span class="invMiniIcon">⚡</span>
+                <span class="invMiniTitle">Supers</span>
+                <span class="invMiniPill" id="invSupersCount">0</span>
+              </div>
+              <div class="invMiniSub">Special abilities</div>
+            </div>
+
+            <div class="invMini">
+              <div class="invMiniTop">
+                <span class="invMiniIcon">🧩</span>
+                <span class="invMiniTitle">Upgrades</span>
+                <span class="invMiniPill" id="invUpgradesCount">0</span>
+              </div>
+              <div class="invMiniSub">Permanent boosts</div>
+            </div>
+
+            <div class="invMini">
+              <div class="invMiniTop">
+                <span class="invMiniIcon">🎁</span>
+                <span class="invMiniTitle">Boosts</span>
+                <span class="invMiniPill" id="invBoostsCount">0</span>
+              </div>
+              <div class="invMiniSub">Consumables</div>
+            </div>
+          </div>
+        </div>
+        <div id="invModal" class="invModal hidden">
+          <div class="invModalBox" onclick="event.stopPropagation()">
+            <button id="invModalClose" class="invModalClose">✕</button>
+            <div id="invModalTitle" class="invModalTitle">TITLE</div>
+            <div id="invModalGrid" class="invModalGrid"></div>
+          </div>
+        </div>
       </div>
+
 
       <!-- ================= BOTTOM NAV ================= -->
       <div id="bottomBtns">
         <button class="bottomButton" data-target="shopScreen">Shop</button>
-        <button class="bottomButton" data-target="inventoryScreen">
-          Inventory
-        </button>
+        <button class="bottomButton" data-target="loadoutScreen">Loadout</button>
         <button id="battle" class="bottomButton" data-target="homeScreen">
           Battle!
         </button>
-        <button class="bottomButton" data-target="lockerScreen">
-          Locker
+        <button class="bottomButton" data-target="inventoryScreen">
+          Inventory
         </button>
       </div>
     </div>

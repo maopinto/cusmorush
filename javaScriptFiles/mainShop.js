@@ -107,6 +107,13 @@ const shopData = {
   ],
   skins: [
     {
+      id: 'default',
+      name: 'Classic',
+      image: './images/shopAInventoryicons/skin1Icon.png',
+      icon: '🟦',
+      price: 0,
+    },
+    {
       id: 'skin_neon',
       name: 'Neon Runner',
       desc: 'Electric neon trails',
@@ -171,6 +178,8 @@ const shopData = {
   ],
 };
 
+const K_DAILY_OWNED = 'ownedDaily';
+
 function getCoins() {
   return Number(localStorage.getItem('coins') || '0');
 }
@@ -194,6 +203,18 @@ function showToast(msg, type = '') {
   showToast._tm = setTimeout(() => {
     t.className = 'toast';
   }, 1400);
+}
+
+function getOwnedDaily() {
+  return new Set(JSON.parse(localStorage.getItem(K_DAILY_OWNED) || '[]'));
+}
+
+function saveOwnedDaily(set) {
+  localStorage.setItem(K_DAILY_OWNED, JSON.stringify([...set]));
+}
+
+function isDailyOwned(id) {
+  return getOwnedDaily().has(id);
 }
 
 function shopInit() {
@@ -306,34 +327,49 @@ function startFeaturedRotation() {
 
 function shopRenderDaily() {
   const row = document.getElementById('dailyOffersRow');
+  if (!row) return;
+
   row.innerHTML = '';
 
   const daily3 = getSelectedDaily();
+  const ownedDaily = getOwnedDaily();
 
   daily3.forEach((item) => {
+    const owned = ownedDaily.has(item.id);
+
     const el = document.createElement('div');
-    el.className = 'offerCard';
+    el.className = `offerCard ${owned ? 'owned' : ''}`.trim();
+
     el.innerHTML = `
       <div class="offerTop">
         <div class="offerBadge">${item.badge}</div>
         <div class="offerIcon">${item.icon}</div>
       </div>
+
       <div class="offerMid">
         <div class="offerName">${item.name}</div>
         <div class="offerDesc">${item.desc}</div>
       </div>
+
       <div class="offerBottom">
-        <div class="priceChip">${item.price} 🪙</div>
-        <button class="buyMiniBtn">BUY</button>
+        <div class="priceChip">${owned ? '—' : `${item.price} 🪙`}</div>
+        <button class="buyMiniBtn" ${owned ? 'disabled' : ''}>
+          ${owned ? 'OWNED' : 'BUY'}
+        </button>
       </div>
     `;
 
-    el.querySelector('.buyMiniBtn').onclick = (e) => {
-      e.stopPropagation();
+    const open = () => {
+      if (owned) return;
       shopOpenModal({ ...item, type: 'daily' });
     };
 
-    el.onclick = () => shopOpenModal({ ...item, type: 'daily' });
+    el.querySelector('.buyMiniBtn').onclick = (e) => {
+      e.stopPropagation();
+      open();
+    };
+
+    el.onclick = open;
 
     row.appendChild(el);
   });
@@ -341,6 +377,8 @@ function shopRenderDaily() {
 
 function shopRenderSkins() {
   const grid = document.getElementById('skinsGrid');
+  if (!grid) return;
+
   grid.innerHTML = '';
 
   shopData.skins.forEach((s) => {
@@ -349,31 +387,41 @@ function shopRenderSkins() {
 
     const el = document.createElement('div');
     el.className = `shopItemCard ${owned ? 'owned' : ''}`.trim();
+
+    const status = equipped ? 'EQUIPPED' : owned ? 'OWNED' : '';
+    const priceText = owned ? '—' : `${s.price} 🪙`;
+    const btnText = owned ? (equipped ? 'EQUIPPED' : 'EQUIP') : 'BUY';
+
     el.innerHTML = `
       <div class="itemTopLine">
         <div class="itemIcon">${s.icon}</div>
         <div style="font-size:11px;font-weight:1000;letter-spacing:2px;color:rgba(255,255,255,0.75);text-transform:uppercase;">
-          ${equipped ? 'EQUIPPED' : owned ? 'OWNED' : ''}
+          ${status}
         </div>
       </div>
+
       <div class="itemName">${s.name}</div>
       <div class="itemDesc">${s.desc}</div>
+
       <div class="itemBottomLine">
-        <div class="itemPrice">${owned ? '—' : `${s.price} 🪙`}</div>
-        <button class="itemBtn">${
-          owned ? (equipped ? 'EQUIPPED' : 'EQUIP') : 'BUY'
-        }</button>
+        <div class="itemPrice">${priceText}</div>
+        <button class="itemBtn" ${
+          equipped ? 'disabled' : ''
+        }>${btnText}</button>
       </div>
     `;
 
     const btn = el.querySelector('.itemBtn');
+
     btn.onclick = (e) => {
       e.stopPropagation();
 
       if (owned) {
         if (equipped) return;
+
         SHOP.equippedSkin = s.id;
         localStorage.setItem('equippedSkin', s.id);
+
         showToast('Skin equipped!', 'success');
         shopRenderSkins();
         return;

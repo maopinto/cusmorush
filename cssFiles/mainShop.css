@@ -640,6 +640,7 @@
 
   transition: top 0.08s linear;
   margin-left: -3px;
+  z-index: 1;
 }
 
 #shopDots {
@@ -650,6 +651,7 @@
   justify-content: space-evenly;
   align-items: center;
   padding: 10px 0;
+  z-index: 3;
 }
 
 .shopDot {
