@@ -379,6 +379,17 @@ function equipWeapon(id) {
   updateEquipUI();
 }
 
+function equipWeaponFromInventory(id) {
+  if (!isWeaponOwned(id)) return;
+  if (getEquippedWeapon() === id) return;
+
+  playEquipSound();
+  setEquippedWeapon(id);
+
+  updateEquipUI();
+  openInv('weapons');
+}
+
 const UI = {
   profile: () => document.getElementById('profileSettingsDiv'),
   profileBtn: () => document.getElementById('profileSettingsBtn'),

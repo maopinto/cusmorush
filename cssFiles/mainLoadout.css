@@ -327,7 +327,7 @@
 
 #buyWeaponPopup {
   position: absolute;
-  bottom: 140px;
+  top: 20%;
   left: 50%;
   transform: translateX(-50%) scale(0.85);
 

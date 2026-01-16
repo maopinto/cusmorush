@@ -114,11 +114,12 @@ const shopData = {
       price: 0,
     },
     {
-      id: 'skin_neon',
+      id: 'redclassic',
       name: 'Red Classic',
-      desc: 'Electric neon trails',
+      image: './images/shopAInventoryicons/redSkunIcone.png',
+      desc: 'Red classic',
       icon: '🟦',
-      price: 1200,
+      price: 1,
     },
     {
       id: 'skin_void',
@@ -496,9 +497,6 @@ function shopCloseModal() {
 }
 
 function shopBuy(item) {
-  showToast('Shop purchases disabled for now', 'error');
-  return;
-
   const price = Number(item.price || 0);
   const c = getCoins();
 

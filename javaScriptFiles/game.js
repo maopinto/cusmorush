@@ -39,6 +39,47 @@ function unlockNextLevel(currentLevel) {
   }
 }
 
+const SKIN_TO_PLAYER_IMG_ID = {
+  default: 'player',
+  redclassic: 'playerRedClassic',
+};
+
+function normalizeSkinId(id) {
+  return String(id || '')
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[_-]+/g, '');
+}
+
+const DEFAULT_SKIN = 'default';
+const STORAGE_KEY_EQUIPPED_SKIN = 'equippedSkin';
+
+function getEquippedSkin() {
+  const raw = localStorage.getItem(STORAGE_KEY_EQUIPPED_SKIN) || DEFAULT_SKIN;
+  const n = normalizeSkinId(raw);
+  return n === 'redclassic' ? 'redclassic' : 'default';
+}
+
+function setEquippedSkin(id) {
+  const n = normalizeSkinId(id);
+  localStorage.setItem(
+    STORAGE_KEY_EQUIPPED_SKIN,
+    n === 'redclassic' ? 'redclassic' : 'default'
+  );
+}
+
+function equipSkin(id) {
+  const owned = getOwnedSkinsArr().map(normalizeSkinId);
+  const n = normalizeSkinId(id);
+  if (!owned.includes(n)) return;
+
+  setEquippedSkin(n);
+
+  const isGamePage = !!document.getElementById('gameBoard');
+  if (isGamePage) location.reload();
+  else openInv('skins');
+}
+
 window.addEventListener('load', function () {
   const ASSETS = {
     bg: './images/game/background/blueSpace.png',
@@ -759,9 +800,14 @@ window.addEventListener('load', function () {
       this.shootingInterval = 200;
       this.lastFireTime = 0;
       this.weapon = localStorage.getItem('equippedWeapon') || 'laser';
-      this.image = document.getElementById('player');
+
+      const skinId = getEquippedSkin();
+      const imgId = SKIN_TO_PLAYER_IMG_ID[skinId] || 'player';
+      this.image =
+        document.getElementById(imgId) || document.getElementById('player');
+
       this.frameX = 0;
-      this.frameY = 0;
+      this.frameY = 1;
       this.frameTimer = 0;
       this.frameInterval = 80;
       this.spriteWidth = 128;
