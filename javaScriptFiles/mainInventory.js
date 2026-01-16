@@ -56,15 +56,18 @@ function openInv(type) {
       grid.innerHTML = `<div class="invEmpty">No weapons yet</div>`;
     } else {
       owned.forEach((id) => {
-        const w = WEAPONS[id];
+        const w = WEAPONS?.[id];
         const name = w?.name || id;
+        const img = w?.img || './images/skins/placeholder.png';
 
         const el = document.createElement('div');
         el.className = 'invOwnedCard';
         el.innerHTML = `
-          <div class="invOwnedIcon">🔫</div>
-          <div class="invOwnedName">${name}</div>
-        `;
+        <div class="invOwnedIcon">
+          <img src="${img}" draggable="false" />
+        </div>
+        <div class="invOwnedName">${name}</div>
+      `;
         grid.appendChild(el);
       });
     }
@@ -97,14 +100,4 @@ function renderInventoryOverview() {
   // === WEAPONS ===
   const weapons = getOwnedWeaponsArr();
   document.getElementById('invWeaponsCount').textContent = weapons.length;
-
-  const weaponsGrid = document.getElementById('invWeaponsGrid');
-  weaponsGrid.innerHTML = '';
-
-  weapons.slice(0, 4).forEach(() => {
-    const el = document.createElement('div');
-    el.className = 'invCard';
-    el.innerHTML = `<div class="invOwnedIcon">🔫</div>`;
-    weaponsGrid.appendChild(el);
-  });
 }

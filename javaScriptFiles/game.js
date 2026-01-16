@@ -761,7 +761,7 @@ window.addEventListener('load', function () {
       this.weapon = localStorage.getItem('equippedWeapon') || 'laser';
       this.image = document.getElementById('player');
       this.frameX = 0;
-      this.frameY = 1;
+      this.frameY = 0;
       this.frameTimer = 0;
       this.frameInterval = 80;
       this.spriteWidth = 128;

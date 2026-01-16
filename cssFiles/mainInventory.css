@@ -217,6 +217,8 @@
 }
 
 .invMini {
+  width: 170px;
+  height: 80px;
   border-radius: 18px;
   padding: 14px;
   border: 1px solid rgba(120, 220, 255, 0.28);

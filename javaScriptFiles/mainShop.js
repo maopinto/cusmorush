@@ -115,7 +115,7 @@ const shopData = {
     },
     {
       id: 'skin_neon',
-      name: 'Neon Runner',
+      name: 'Red Classic',
       desc: 'Electric neon trails',
       icon: '🟦',
       price: 1200,
