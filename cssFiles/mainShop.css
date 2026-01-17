@@ -398,6 +398,17 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.skinIconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.skinIconEmoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
 .itemName {
   margin-top: 10px;
   font-size: 13px;
@@ -446,6 +457,12 @@
   box-shadow: 0 1px 0 #000, 0 6px 10px rgba(0, 0, 0, 0.5);
 }
 
+.itemBtn:disabled {
+  background: linear-gradient(180deg, #eaeaea, #bdbdbd);
+  color: #444;
+  pointer-events: none;
+}
+
 .shopItemCard.owned .itemBtn {
   background: linear-gradient(180deg, #eaeaea, #bdbdbd);
   color: #444;
@@ -477,6 +494,105 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+#shopModal.modal-EPIC .shopModalBox {
+  background: radial-gradient(
+      circle at 25% 15%,
+      rgba(210, 150, 255, 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(140, 80, 255, 0.18),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #1a0c2b, #0a0420 55%, #000);
+  border: 2px solid rgba(200, 140, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(210, 160, 255, 0.25),
+    0 0 18px rgba(180, 110, 255, 0.45), 0 22px 44px rgba(0, 0, 0, 0.75),
+    inset 0 0 22px rgba(200, 140, 255, 0.12);
+  overflow: hidden;
+}
+
+#shopModal.modal-EPIC .shopModalBox::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -75%;
+  width: 55%;
+  height: 180%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(220, 170, 255, 0.22),
+    rgba(255, 255, 255, 0.45),
+    rgba(170, 110, 255, 0.22),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: epicModalSweep 5.2s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+#shopModal.modal-LEGENDARY .shopModalBox {
+  background: radial-gradient(
+      circle at 30% 20%,
+      rgba(255, 210, 120, 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(255, 255, 220, 0.14),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #1a1206, #060300 55%, #000);
+  border: 2px solid rgba(255, 215, 120, 0.95);
+  box-shadow: 0 0 0 1px rgba(255, 220, 140, 0.35),
+    0 0 22px rgba(255, 200, 90, 0.55), 0 22px 44px rgba(0, 0, 0, 0.75),
+    inset 0 0 22px rgba(255, 220, 120, 0.12);
+  overflow: hidden;
+}
+
+#shopModal.modal-LEGENDARY .shopModalBox::after {
+  content: '';
+  position: absolute;
+  top: -35%;
+  left: -70%;
+  width: 55%;
+  height: 170%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 230, 150, 0.35),
+    rgba(255, 255, 220, 0.65),
+    rgba(255, 200, 80, 0.35),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: legendaryModalSweep 4.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes legendaryModalSweep {
+  0% {
+    left: -70%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    left: 125%;
+    opacity: 1;
+  }
+  60% {
+    opacity: 0;
+  }
+  100% {
+    left: 125%;
+    opacity: 0;
+  }
 }
 
 .shopModal.hidden {
@@ -746,4 +862,176 @@
   font-weight: 900;
   letter-spacing: 1px;
   opacity: 0.8;
+}
+
+#skinOffersTimer {
+  justify-self: center;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0.9;
+}
+
+.skinMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.skinRarity {
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 2px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  position: relative;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
+  animation: rarityPulse 2.8s ease-in-out infinite;
+}
+
+.skinOwned {
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.65);
+  opacity: 0.85;
+}
+
+.rarity-COMMON {
+  color: rgba(220, 250, 255, 0.9);
+  box-shadow: 0 0 6px rgba(180, 230, 255, 0.3);
+}
+
+.rarity-RARE {
+  color: rgba(120, 220, 255, 1);
+  box-shadow: 0 0 8px rgba(120, 220, 255, 0.6),
+    0 0 16px rgba(80, 160, 255, 0.35);
+}
+
+.rarity-EPIC {
+  color: rgba(200, 140, 255, 1);
+  box-shadow: 0 0 10px rgba(190, 120, 255, 0.7),
+    0 0 22px rgba(120, 60, 255, 0.45);
+}
+
+.rarity-LEGENDARY {
+  color: rgba(255, 220, 120, 1);
+  position: relative;
+  overflow: hidden;
+  width: 95%;
+}
+
+/* ===== LEGENDARY CARD STYLE ===== */
+.rarity-card-LEGENDARY {
+  border: 2px solid rgba(255, 215, 120, 0.9);
+  background: radial-gradient(
+      circle at 30% 20%,
+      rgba(255, 210, 120, 0.18),
+      transparent 55%
+    ),
+    linear-gradient(180deg, rgba(40, 30, 10, 0.85), rgba(0, 0, 0, 0.65));
+  box-shadow: 0 0 0 1px rgba(255, 220, 140, 0.35),
+    0 0 18px rgba(255, 200, 90, 0.45), 0 18px 28px rgba(0, 0, 0, 0.65),
+    inset 0 0 18px rgba(255, 220, 120, 0.15);
+}
+
+/* פס זהב שעובר על כל הכרטיס */
+.rarity-card-LEGENDARY::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -70%;
+  width: 50%;
+  height: 160%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 230, 150, 0.35),
+    rgba(255, 255, 220, 0.6),
+    rgba(255, 200, 80, 0.35),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: legendaryCardSweep 4.5s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+@keyframes legendaryCardSweep {
+  0% {
+    left: -70%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    left: 120%;
+    opacity: 1;
+  }
+  60% {
+    opacity: 0;
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+.rarity-LEGENDARY::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 40%;
+  height: 140%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 230, 150, 0.9),
+    rgba(255, 255, 200, 1),
+    rgba(255, 200, 80, 0.9),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: legendaryShine 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes legendaryShine {
+  0% {
+    left: -60%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    left: 120%;
+    opacity: 1;
+  }
+  60% {
+    opacity: 0;
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+@keyframes rarityPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.15);
+  }
 }

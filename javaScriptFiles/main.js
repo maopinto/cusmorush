@@ -773,7 +773,11 @@ function saveCoins() {
 }
 
 function loadCoins() {
-  coins = Number(localStorage.getItem('coins')) || 50;
+  const raw = localStorage.getItem('coins');
+  coins = raw === null ? 50 : Number(raw);
+  if (!Number.isFinite(coins)) coins = 50;
+
+  localStorage.setItem('coins', String(coins));
   updateCoinsUI();
 }
 
@@ -782,9 +786,10 @@ function updateCoinsUI() {
 }
 
 function grantCoins(amount) {
-  let coins = Number(localStorage.getItem('coins')) || 0;
-  coins += amount;
-  localStorage.setItem('coins', coins);
+  coins = getCoins() + amount;
+  saveCoins();
+  updateCoinsUI();
+  flashCoins();
 }
 
 function flashCoins() {

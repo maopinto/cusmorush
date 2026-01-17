@@ -47,7 +47,6 @@ const shopData = {
       price: 150,
       badge: 'VALUE',
     },
-
     {
       id: 'daily_shield_boost',
       name: 'Shield Boost',
@@ -110,7 +109,7 @@ const shopData = {
       id: 'default',
       name: 'Classic',
       image: './images/shopAInventoryicons/skin1Icon.png',
-      icon: '🟦',
+      rarity: 'COMMON',
       price: 0,
     },
     {
@@ -118,13 +117,14 @@ const shopData = {
       name: 'Red Classic',
       image: './images/shopAInventoryicons/redSkunIcone.png',
       desc: 'Red classic',
-      icon: '🟦',
-      price: 1,
+      rarity: 'RARE',
+      price: 500,
     },
     {
       id: 'skin_void',
       name: 'Void Steel',
       desc: 'Dark metallic finish',
+      rarity: 'EPIC',
       icon: '⬛',
       price: 1600,
     },
@@ -132,6 +132,7 @@ const shopData = {
       id: 'skin_sakura',
       name: 'Sakura Drift',
       desc: 'Pink petals FX',
+      rarity: 'EPIC',
       icon: '🌸',
       price: 1400,
     },
@@ -139,39 +140,44 @@ const shopData = {
       id: 'skin_gold',
       name: 'Golden Core',
       desc: 'Gold shine aura',
+      rarity: 'LEGENDARY',
       icon: '🏆',
       price: 2200,
     },
   ],
   coinPacks: [
     {
-      id: 'coins_500',
-      name: '500 Coins',
-      desc: 'Starter pack',
+      id: 'coins_1000',
+      name: '250 Coins',
+      desc: 'Small boost',
+      rarity: 'RARE',
       icon: '🪙',
       price: 0,
-      add: 500,
+      add: 1000,
     },
     {
-      id: 'coins_1500',
-      name: '1500 Coins',
-      desc: 'Best value',
+      id: 'coins_3000',
+      name: '800 Coins',
+      desc: 'Good value',
+      rarity: 'RARE',
       icon: '💰',
       price: 0,
-      add: 1500,
+      add: 3000,
     },
     {
-      id: 'coins_4000',
-      name: '4000 Coins',
-      desc: 'Mega pack',
-      icon: '🚀',
+      id: 'coins_6000',
+      name: '2000 Coins',
+      desc: 'Big pack',
+      rarity: 'EPIC',
+      icon: '🏦',
       price: 0,
-      add: 4000,
+      add: 6000,
     },
     {
       id: 'coins_10000',
-      name: '10000 Coins',
-      desc: 'Ultra pack',
+      name: '6000 Coins',
+      desc: 'Mega pack',
+      rarity: 'LEGENDARY',
       icon: '👑',
       price: 0,
       add: 10000,
@@ -179,10 +185,24 @@ const shopData = {
   ],
 };
 
+function syncShopState() {
+  const arr = JSON.parse(localStorage.getItem('ownedSkins') || '[]');
+  if (!arr.includes('default')) {
+    arr.push('default');
+    localStorage.setItem('ownedSkins', JSON.stringify(arr));
+  }
+
+  SHOP.ownedSkins = new Set(arr);
+  SHOP.equippedSkin = localStorage.getItem('equippedSkin') || 'default';
+  SHOP.ownedFeatured = localStorage.getItem('ownedFeatured') === '1';
+}
+
 const K_DAILY_OWNED = 'ownedDaily';
 
 function getCoins() {
-  return Number(localStorage.getItem('coins') || '0');
+  const raw = localStorage.getItem('coins');
+  const n = raw === null ? 50 : Number(raw);
+  return Number.isFinite(n) ? n : 50;
 }
 
 function setCoins(v) {
@@ -223,6 +243,7 @@ function shopInit() {
   shopRenderDaily();
   shopRenderSkins();
   shopRenderCoins();
+  shopRenderSkinOffers();
 
   const modal = document.getElementById('shopModal');
   if (modal) modal.addEventListener('click', () => shopCloseModal());
@@ -376,38 +397,130 @@ function shopRenderDaily() {
   });
 }
 
-function shopRenderSkins() {
-  const grid = document.getElementById('skinsGrid');
+const SKIN_OFFERS_COUNT = 4;
+const K_SKIN_OFFERS_IDS = 'skinOffersSelectedIds';
+const K_SKIN_OFFERS_START = 'skinOffersCycleStart';
+const SKIN_OFFERS_ROTATE_MS = 86400000;
+
+function getSkinOffersCycleStart() {
+  let t = Number(localStorage.getItem(K_SKIN_OFFERS_START) || 0);
+  if (!t) {
+    t = Date.now();
+    localStorage.setItem(K_SKIN_OFFERS_START, String(t));
+  }
+  return t;
+}
+
+function setSkinOffersCycleStart(t) {
+  localStorage.setItem(K_SKIN_OFFERS_START, String(t));
+}
+
+function isSkinOwned(id) {
+  return id === 'default' || SHOP.ownedSkins.has(id);
+}
+
+function pickSkinOffersFresh() {
+  const allPaid = (shopData.skins || []).filter((s) => s.price > 0);
+
+  const notOwned = allPaid.filter((s) => !isSkinOwned(s.id));
+
+  const picked = pickNRandomUnique(notOwned, SKIN_OFFERS_COUNT);
+
+  if (picked.length < SKIN_OFFERS_COUNT) {
+    const need = SKIN_OFFERS_COUNT - picked.length;
+
+    const pickedIds = new Set(picked.map((x) => x.id));
+    const fillers = allPaid.filter((s) => !pickedIds.has(s.id));
+
+    picked.push(...pickNRandomUnique(fillers, need));
+  }
+
+  picked.sort((a, b) => {
+    const rank = { RARE: 0, EPIC: 1, LEGENDARY: 2, COMMON: 3 };
+    const ra = rank[(a.rarity || 'COMMON').toUpperCase()] ?? 99;
+    const rb = rank[(b.rarity || 'COMMON').toUpperCase()] ?? 99;
+    return ra - rb;
+  });
+
+  localStorage.setItem(
+    K_SKIN_OFFERS_IDS,
+    JSON.stringify(picked.map((x) => x.id))
+  );
+  setSkinOffersCycleStart(Date.now());
+  return picked;
+}
+
+function getSelectedSkinOffers() {
+  const skins = shopData.skins || [];
+  const saved = JSON.parse(localStorage.getItem(K_SKIN_OFFERS_IDS) || '[]');
+  const map = new Map(skins.map((x) => [x.id, x]));
+  const selected = saved.map((id) => map.get(id)).filter(Boolean);
+
+  if (
+    selected.length === SKIN_OFFERS_COUNT &&
+    selected.every((s) => s.price > 0)
+  )
+    return selected;
+
+  return pickSkinOffersFresh();
+}
+
+function updateSkinOffersTimer() {
+  const el = document.getElementById('skinOffersTimer');
+  if (!el) return;
+
+  const start = getSkinOffersCycleStart();
+  const now = Date.now();
+  const elapsed = now - start;
+  const remaining = SKIN_OFFERS_ROTATE_MS - (elapsed % SKIN_OFFERS_ROTATE_MS);
+
+  el.textContent = formatRemaining(remaining);
+}
+
+function shopRenderSkinOffers() {
+  syncShopState();
+
+  const grid = document.getElementById('skinOffersGrid');
   if (!grid) return;
 
   grid.innerHTML = '';
 
-  shopData.skins.forEach((s) => {
-    const owned = SHOP.ownedSkins.has(s.id);
-    const equipped = SHOP.equippedSkin === s.id;
+  const offers = getSelectedSkinOffers();
+
+  offers.forEach((s) => {
+    const owned = isSkinOwned(s.id);
 
     const el = document.createElement('div');
-    el.className = `shopItemCard ${owned ? 'owned' : ''}`.trim();
+    const rarityClass = `rarity-card-${(s.rarity || 'COMMON').toUpperCase()}`;
+    el.className = `shopItemCard ${rarityClass} ${owned ? 'owned' : ''}`.trim();
 
-    const status = equipped ? 'EQUIPPED' : owned ? 'OWNED' : '';
+    const status = owned ? 'OWNED' : '';
     const priceText = owned ? '—' : `${s.price} 🪙`;
-    const btnText = owned ? (equipped ? 'EQUIPPED' : 'EQUIP') : 'BUY';
+    const btnText = owned ? 'OWNED' : 'BUY';
+    const btnDisabled = owned;
+
+    const iconHtml = s.image
+      ? `<img class="skinIconImg" src="${s.image}" alt="${s.name}">`
+      : `<span class="skinIconEmoji">${s.icon || ''}</span>`;
+
+    const rarity = (s.rarity || 'COMMON').toUpperCase();
 
     el.innerHTML = `
       <div class="itemTopLine">
-        <div class="itemIcon">${s.icon}</div>
-        <div style="font-size:11px;font-weight:1000;letter-spacing:2px;color:rgba(255,255,255,0.75);text-transform:uppercase;">
-          ${status}
+        <div class="itemIcon">${iconHtml}</div>
+        <div class="skinMeta">
+          <div class="skinRarity rarity-${rarity}">${rarity}</div>
+          <div class="skinOwned">${status}</div>
         </div>
       </div>
 
       <div class="itemName">${s.name}</div>
-      <div class="itemDesc">${s.desc}</div>
+      <div class="itemDesc">${s.desc || ''}</div>
 
       <div class="itemBottomLine">
         <div class="itemPrice">${priceText}</div>
         <button class="itemBtn" ${
-          equipped ? 'disabled' : ''
+          btnDisabled ? 'disabled' : ''
         }>${btnText}</button>
       </div>
     `;
@@ -416,23 +529,105 @@ function shopRenderSkins() {
 
     btn.onclick = (e) => {
       e.stopPropagation();
-
-      if (owned) {
-        if (equipped) return;
-
-        SHOP.equippedSkin = s.id;
-        localStorage.setItem('equippedSkin', s.id);
-
-        showToast('Skin equipped!', 'success');
-        shopRenderSkins();
-        return;
-      }
-
+      if (owned) return;
       shopOpenModal({ ...s, type: 'skin' });
     };
 
     el.onclick = () => {
-      if (!owned) shopOpenModal({ ...s, type: 'skin' });
+      if (owned) return;
+      shopOpenModal({ ...s, type: 'skin' });
+    };
+
+    grid.appendChild(el);
+  });
+}
+
+function selectNewSkinOffers() {
+  pickSkinOffersFresh();
+  shopRenderSkinOffers();
+  updateSkinOffersTimer();
+}
+
+function startSkinOffersRotation() {
+  updateSkinOffersTimer();
+
+  clearInterval(startSkinOffersRotation._tick);
+  startSkinOffersRotation._tick = setInterval(updateSkinOffersTimer, 500);
+
+  const start = getSkinOffersCycleStart();
+  const now = Date.now();
+  const elapsed = now - start;
+  const remaining = SKIN_OFFERS_ROTATE_MS - (elapsed % SKIN_OFFERS_ROTATE_MS);
+
+  clearTimeout(startSkinOffersRotation._align);
+  startSkinOffersRotation._align = setTimeout(() => {
+    selectNewSkinOffers();
+
+    clearInterval(startSkinOffersRotation._swap);
+    startSkinOffersRotation._swap = setInterval(
+      selectNewSkinOffers,
+      SKIN_OFFERS_ROTATE_MS
+    );
+  }, remaining);
+}
+
+function shopRenderSkins() {
+  syncShopState();
+
+  const grid = document.getElementById('skinsGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  shopData.skins.forEach((s) => {
+    const owned =
+      s.id === 'default' || s.price === 0 || SHOP.ownedSkins.has(s.id);
+
+    const el = document.createElement('div');
+    const rarityClass = `rarity-card-${(s.rarity || 'COMMON').toUpperCase()}`;
+    el.className = `shopItemCard ${rarityClass} ${owned ? 'owned' : ''}`.trim();
+
+    const status = owned ? 'OWNED' : '';
+    const priceText = owned ? '—' : `${s.price} 🪙`;
+
+    const iconHtml = s.image
+      ? `<img class="skinIconImg" src="${s.image}" alt="${s.name}">`
+      : `<span class="skinIconEmoji">${s.icon || ''}</span>`;
+
+    const btnText = owned ? 'OWNED' : 'BUY';
+    const btnDisabled = owned;
+
+    const rarity = (s.rarity || 'COMMON').toUpperCase();
+
+    el.innerHTML = `
+  <div class="itemTopLine">
+    <div class="itemIcon">${iconHtml}</div>
+    <div class="skinMeta">
+      <div class="skinRarity rarity-${rarity}">${rarity}</div>
+      <div class="skinOwned">${status}</div>
+    </div>
+  </div>
+
+  <div class="itemName">${s.name}</div>
+  <div class="itemDesc">${s.desc || ''}</div>
+
+  <div class="itemBottomLine">
+    <div class="itemPrice">${priceText}</div>
+    <button class="itemBtn" ${btnDisabled ? 'disabled' : ''}>${btnText}</button>
+  </div>
+`;
+
+    const btn = el.querySelector('.itemBtn');
+
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      if (owned) return;
+      shopOpenModal({ ...s, type: 'skin' });
+    };
+
+    el.onclick = () => {
+      if (owned) return;
+      shopOpenModal({ ...s, type: 'skin' });
     };
 
     grid.appendChild(el);
@@ -441,43 +636,98 @@ function shopRenderSkins() {
 
 function shopRenderCoins() {
   const grid = document.getElementById('coinsGrid');
+  if (!grid) return;
+
   grid.innerHTML = '';
 
-  shopData.coinPacks.forEach((p) => {
+  (shopData.coinPacks || []).forEach((p) => {
+    const rarity = (p.rarity || 'COMMON').toUpperCase();
+    const rarityClass = `rarity-card-${rarity}`;
+
     const el = document.createElement('div');
-    el.className = 'shopItemCard locked';
+    el.className = `shopItemCard ${rarityClass}`.trim();
+
     el.innerHTML = `
       <div class="itemTopLine">
         <div class="itemIcon">${p.icon}</div>
-        <div style="font-size:11px;font-weight:1000;letter-spacing:2px;color:rgba(255,160,160,0.9);text-transform:uppercase;">
-          SOON
+        <div class="skinMeta">
+          <div class="skinRarity rarity-${rarity}">${rarity}</div>
         </div>
       </div>
+
       <div class="itemName">${p.name}</div>
-      <div class="itemDesc">Coming soon</div>
+      <div class="itemDesc">${p.desc}</div>
+
       <div class="itemBottomLine">
-        <div class="itemPrice">—</div>
-        <button class="itemBtn" disabled>LOCKED</button>
+        <div class="itemPrice">+${p.add} 🪙</div>
+        <button class="itemBtn">CLAIM</button>
       </div>
     `;
+
+    const open = () => shopOpenModal({ ...p, type: 'coin' });
+
+    el.querySelector('.itemBtn').onclick = (e) => {
+      e.stopPropagation();
+      open();
+    };
+    el.onclick = open;
+
     grid.appendChild(el);
   });
 }
 
 function shopOpenModal(item) {
   const modal = document.getElementById('shopModal');
+  if (!modal) return;
+
   modal.classList.remove('hidden');
 
-  document.getElementById('shopModalIcon').textContent = item.icon || '🛒';
-  document.getElementById('shopModalTitle').textContent = item.name || 'Item';
-  document.getElementById('shopModalDesc').textContent = item.desc || '';
-  document.getElementById('shopModalPrice').textContent = item.price ?? 0;
+  modal.classList.remove(
+    'modal-COMMON',
+    'modal-RARE',
+    'modal-EPIC',
+    'modal-LEGENDARY'
+  );
+  modal.classList.add(`modal-${(item.rarity || 'COMMON').toUpperCase()}`);
+
+  const box = modal.querySelector('.shopModalBox');
+  if (box) box.onclick = (e) => e.stopPropagation();
+
+  const closeBtn = document.getElementById('shopModalClose');
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      shopCloseModal();
+    };
+  }
+
+  modal.onclick = () => shopCloseModal();
+
+  const iconEl = document.getElementById('shopModalIcon');
+  const titleEl = document.getElementById('shopModalTitle');
+  const descEl = document.getElementById('shopModalDesc');
+  const priceEl = document.getElementById('shopModalPrice');
+
+  if (iconEl) iconEl.textContent = item.icon || '🛒';
+  if (titleEl) titleEl.textContent = item.name || 'Item';
+  if (descEl) descEl.textContent = item.desc || '';
+  if (priceEl) priceEl.textContent = item.price ?? 0;
+
+  if (priceEl)
+    priceEl.textContent =
+      item.type === 'coin' ? `+${item.add} 🪙` : item.price ?? 0;
 
   const buyBtn = document.getElementById('shopModalBuy');
+  if (!buyBtn) return;
+
+  buyBtn.disabled = false;
 
   if (item.type === 'coin') {
     buyBtn.textContent = 'CLAIM';
-  } else if (item.type === 'skin' && SHOP.ownedSkins.has(item.id)) {
+  } else if (
+    item.type === 'skin' &&
+    (item.id === 'default' || item.price === 0 || SHOP.ownedSkins.has(item.id))
+  ) {
     buyBtn.textContent = 'OWNED';
     buyBtn.disabled = true;
   } else if (item.type === 'featured' && SHOP.ownedFeatured) {
@@ -485,10 +735,12 @@ function shopOpenModal(item) {
     buyBtn.disabled = true;
   } else {
     buyBtn.textContent = 'BUY';
-    buyBtn.disabled = false;
   }
 
-  buyBtn.onclick = () => shopBuy(item);
+  buyBtn.onclick = () => {
+    if (buyBtn.disabled) return;
+    shopBuy(item);
+  };
 }
 
 function shopCloseModal() {
@@ -499,6 +751,13 @@ function shopCloseModal() {
 function shopBuy(item) {
   const price = Number(item.price || 0);
   const c = getCoins();
+
+  if (item.type === 'coin') {
+    setCoins(getCoins() + Number(item.add || 0));
+    showToast(`+${item.add} coins!`, 'success');
+    shopCloseModal();
+    return;
+  }
 
   if (price > c) {
     showToast('Not enough coins', 'error');
@@ -512,6 +771,7 @@ function shopBuy(item) {
     localStorage.setItem('ownedSkins', JSON.stringify([...SHOP.ownedSkins]));
     showToast('Skin purchased!', 'success');
     shopRenderSkins();
+    shopRenderSkinOffers();
   }
 
   if (item.type === 'featured') {
@@ -535,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   startDailyRotation();
   startFeaturedRotation();
+  startSkinOffersRotation();
 });
 
 function initShopBlueScroller() {

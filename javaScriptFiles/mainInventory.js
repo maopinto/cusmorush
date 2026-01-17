@@ -140,10 +140,20 @@ function closeInv() {
 document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('invModal');
   const closeBtn = document.getElementById('invModalClose');
+  const box = modal?.querySelector('.invModalBox');
 
-  modal?.addEventListener('click', closeInv);
-  closeBtn?.addEventListener('click', closeInv);
-  renderInventoryOverview();
+  if (!modal) return;
+
+  closeBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeInv();
+  });
+
+  box?.addEventListener('click', (e) => e.stopPropagation());
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeInv();
+  });
 });
 
 function renderInventoryOverview() {

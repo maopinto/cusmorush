@@ -389,13 +389,15 @@
             </div>
           </section>
 
-          <section class="shopSection" data-shop-target="Skins">
+          <section class="shopSection" data-shop-target="Skin Offers">
             <div class="sectionTop">
-              <div class="sectionTitle">SKINS</div>
-              <div class="sectionHint">Cosmetics</div>
+              <div class="sectionTitle">SKIN OFFERS</div>
+              <div id="skinOffersTimer" class="timer">--</div>
+              <div class="sectionHint">Refreshes daily</div>
             </div>
-            <div id="skinsGrid" class="shopGrid"></div>
+            <div id="skinOffersGrid" class="shopGrid"></div>
           </section>
+
 
           <section class="shopSection" data-shop-target="Coins">
             <div class="sectionTop">
@@ -517,7 +519,7 @@
         </div>
         <div id="invModal" class="invModal hidden">
           <div class="invModalBox" onclick="event.stopPropagation()">
-            <button id="invModalClose" class="invModalClose">✕</button>
+            <button id="invModalClose" class="shopModalClose">✕</button>
             <div id="invModalTitle" class="invModalTitle">TITLE</div>
             <div id="invModalGrid" class="invModalGrid"></div>
           </div>
