@@ -522,6 +522,41 @@
             <button id="invModalClose" class="shopModalClose">✕</button>
             <div id="invModalTitle" class="invModalTitle">TITLE</div>
             <div id="invModalGrid" class="invModalGrid"></div>
+            <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+
+              <div id="skinPreviewName" class="skinPreviewName"></div>
+
+              <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
+
+              <div class="skinPreviewImgWrap">
+                <img id="skinPreviewImg" draggable="false" />
+              </div>
+
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">RARITY</span>
+                  <span id="skinPreviewRarity" class="v rarityPill"></span>
+                </div>
+
+                <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="skinPreviewPrice" class="v"></span>
+                </div>
+
+                <div id="skinPreviewShopRow" class="skinMetaRow hidden">
+                  <span class="k">SHOP</span>
+                  <div class="v shopLine">
+                    <span id="skinPreviewShopText"></span>
+                    <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">
+                      GO TO SHOP
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="skinPreviewName" class="skinPreviewName skinName"></div>
+              <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+            </div>
           </div>
         </div>
       </div>
