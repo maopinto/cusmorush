@@ -840,3 +840,39 @@
 .invOwnedCard.locked .EquipBtn {
   display: none;
 }
+
+.invSectionPets {
+  border: 1px solid rgba(190, 120, 255, 0.28);
+}
+
+.invSectionPets::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(190, 120, 255, 0.22),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 80% 40%,
+      rgba(120, 220, 255, 0.18),
+      transparent 55%
+    );
+  opacity: 0.9;
+}
+
+.invSectionPets .invIcon {
+  filter: drop-shadow(0 0 10px rgba(190, 120, 255, 0.45));
+}
+
+.invSectionPets .invBtn {
+  background: linear-gradient(180deg, #b974ff, #6ddcff);
+  color: #08121f;
+}
+
+.invSectionPets .invBtn:hover {
+  filter: brightness(1.05);
+}

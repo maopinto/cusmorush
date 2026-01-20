@@ -60,7 +60,14 @@ function openInv(type) {
   if (!modal || !title || !grid) return;
   closeSkinPreview();
 
-  title.textContent = type === 'skins' ? 'SKINS' : 'WEAPONS';
+  title.textContent =
+    type === 'skins'
+      ? 'SKINS'
+      : type === 'weapons'
+        ? 'WEAPONS'
+        : type === 'pets'
+          ? 'PETS'
+          : 'INVENTORY';
   grid.innerHTML = '';
 
   if (type === 'skins') {
@@ -192,6 +199,70 @@ function openInv(type) {
     }
   }
 
+  if (type === 'pets') {
+    const allPetIds = Object.keys(PETS || {});
+    const ownedSet = getOwnedPetsSet();
+
+    const ownedList = allPetIds.filter((pid) =>
+      ownedSet.has(normalizeSkinId(pid))
+    );
+    const lockedList = allPetIds.filter(
+      (pid) => !ownedSet.has(normalizeSkinId(pid))
+    );
+
+    const renderPetCard = (pid, owned) => {
+      const p = PETS[pid] || {};
+      const name = p.name || pid;
+      const img = p.img || './images/skins/placeholder.png';
+      const equipped = getEquippedPet() === normalizeSkinId(pid);
+
+      const el = document.createElement('div');
+      el.className =
+        `invOwnedCard petCard ${owned ? 'owned' : 'locked'} ${equipped ? 'equipped' : ''}`.trim();
+
+      el.innerHTML = `
+      <div class="invOwnedIcon">
+        <img src="${img}" draggable="false" />
+      </div>
+      <div class="invOwnedName">${name}</div>
+      ${
+        owned
+          ? `<button class="EquipBtn" ${equipped ? 'disabled' : ''}>
+               ${equipped ? 'EQUIPPED' : 'EQUIP'}
+             </button>`
+          : ``
+      }
+    `;
+
+      if (owned) {
+        el.querySelector('.EquipBtn')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (equipped) return;
+          setEquippedPet(pid);
+          openInv('pets');
+          renderInventoryOverview?.();
+        });
+      }
+
+      grid.appendChild(el);
+    };
+
+    if (!allPetIds.length) {
+      grid.innerHTML = `<div class="invEmpty">No pets yet</div>`;
+    } else {
+      ownedList.forEach((pid) => renderPetCard(pid, true));
+
+      if (lockedList.length) {
+        const divider = document.createElement('div');
+        divider.className = 'invLockedDivider';
+        divider.textContent = 'NOT OWNED';
+        grid.appendChild(divider);
+
+        lockedList.forEach((pid) => renderPetCard(pid, false));
+      }
+    }
+  }
+
   modal.classList.remove('hidden');
 }
 
@@ -257,14 +328,44 @@ function openSkinPreview(s) {
       shopRow.classList.remove('hidden');
       shopText.textContent = 'AVAILABLE';
       goShopBtn.onclick = () => {
+        sessionStorage.setItem('shopJumpTo', 'skinOffers');
+        sessionStorage.setItem('shopHighlightSkin', id);
+
         closeSkinPreview();
         document.querySelector('[data-target="shopScreen"]')?.click();
-        setTimeout(() => {
-          const el =
-            document.getElementById('skinOffersGrid') ||
-            document.getElementById('skinsGrid');
-          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const scroller = document.getElementById('shopScroll');
+            const section = scroller?.querySelector(
+              '[data-shop-target="Skin Offers"]'
+            );
+            if (!scroller || !section) return;
+
+            scroller.scrollTo({
+              top: Math.max(0, section.offsetTop - 12),
+              behavior: 'smooth',
+            });
+
+            const targetId = (sessionStorage.getItem('shopHighlightSkin') || '')
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .replace(/[_-]+/g, '');
+
+            setTimeout(() => {
+              const card = scroller.querySelector(
+                `[data-skin-id="${targetId}"]`
+              );
+              if (!card) return;
+
+              scroller
+                .querySelectorAll('.shopHighlight')
+                .forEach((x) => x.classList.remove('shopHighlight'));
+              card.classList.add('shopHighlight');
+              setTimeout(() => card.classList.remove('shopHighlight'), 1800);
+            }, 250);
+          });
+        });
       };
     } else {
       shopRow.classList.add('hidden');
@@ -294,6 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const box = modal?.querySelector('.invModalBox');
 
   if (!modal) return;
+
+  if (!localStorage.getItem(STORAGE_KEY_OWNED_PETS)) {
+    localStorage.setItem(STORAGE_KEY_OWNED_PETS, JSON.stringify(['chimpo']));
+  }
+  if (!localStorage.getItem(STORAGE_KEY_EQUIPPED_PET)) {
+    localStorage.setItem(STORAGE_KEY_EQUIPPED_PET, 'chimpo');
+  }
 
   closeBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -336,7 +444,7 @@ function getOwnedWeaponsCount() {
 
 function renderInventoryOverview() {
   // ===== SKINS =====
-  const allSkins = getAllSkinsArr().length + 1;
+  const allSkins = getAllSkinsArr().length;
 
   const skinsCount = document.getElementById('invSkinsCount');
   if (skinsCount) {
@@ -351,4 +459,39 @@ function renderInventoryOverview() {
   if (weaponsCount) {
     weaponsCount.textContent = `${ownedWeapons}/${allWeapons}`;
   }
+
+  // ===== pets =====
+  const allPets = Object.keys(PETS || {}).length;
+  const ownedPets = getOwnedPetsArr().length;
+
+  const petsCount = document.getElementById('invPetsCount');
+  if (petsCount) petsCount.textContent = `${ownedPets}/${allPets}`;
+}
+
+const STORAGE_KEY_OWNED_PETS = 'ownedPets';
+const STORAGE_KEY_EQUIPPED_PET = 'equippedPet';
+
+function getOwnedPetsArr() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY_OWNED_PETS) || '[]');
+}
+
+function getOwnedPetsSet() {
+  return new Set(getOwnedPetsArr().map(normalizeSkinId));
+}
+
+function isPetOwned(id) {
+  const n = normalizeSkinId(id);
+  return n === DEFAULT_PET || getOwnedPetsSet().has(n);
+}
+
+function getEquippedPet() {
+  const raw = localStorage.getItem(STORAGE_KEY_EQUIPPED_PET) || DEFAULT_PET;
+  return normalizeSkinId(raw) || DEFAULT_PET;
+}
+
+function setEquippedPet(id) {
+  localStorage.setItem(
+    STORAGE_KEY_EQUIPPED_PET,
+    normalizeSkinId(id) || DEFAULT_PET
+  );
 }

@@ -3,7 +3,6 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Main Lobby</title>
   <link rel="icon" href="./images/logo.png" />
   <link rel="stylesheet" href="./cssFiles/main.css" />
@@ -478,103 +477,109 @@
             <button class="invBtn" onclick="openInv('weapons')">OPEN</button>
           </div>
 
-          <!-- MINI ROW -->
-          <div class="invRow2">
-            <div class="invMini">
-              <div class="invMiniTop">
-                <span class="invMiniIcon">🐾</span>
-                <span class="invMiniTitle">Pets</span>
-                <span class="invMiniPill" id="invPetsCount">0</span>
+          <!-- PETS -->
+          <div class="invSection invSectionPets" data-inv="pets">
+            <div class="invHead">
+              <div class="invIcon">🐾</div>
+              <div class="invText">
+                <div class="invName">Pets</div>
+                <div class="invSub">Companions & helpers</div>
               </div>
-              <div class="invMiniSub">Companions & helpers</div>
+              <div class="invPill" id="invPetsCount">0</div>
             </div>
 
-            <div class="invMini">
-              <div class="invMiniTop">
-                <span class="invMiniIcon">⚡</span>
-                <span class="invMiniTitle">Supers</span>
-                <span class="invMiniPill" id="invSupersCount">0</span>
-              </div>
-              <div class="invMiniSub">Special abilities</div>
-            </div>
+            <div class="invGrid" id="invPetsGrid"></div>
 
-            <div class="invMini">
-              <div class="invMiniTop">
-                <span class="invMiniIcon">🧩</span>
-                <span class="invMiniTitle">Upgrades</span>
-                <span class="invMiniPill" id="invUpgradesCount">0</span>
-              </div>
-              <div class="invMiniSub">Permanent boosts</div>
-            </div>
-
-            <div class="invMini">
-              <div class="invMiniTop">
-                <span class="invMiniIcon">🎁</span>
-                <span class="invMiniTitle">Boosts</span>
-                <span class="invMiniPill" id="invBoostsCount">0</span>
-              </div>
-              <div class="invMiniSub">Consumables</div>
-            </div>
+            <button class="invBtn" onclick="openInv('pets')">OPEN</button>
           </div>
-        </div>
-        <div id="invModal" class="invModal hidden">
-          <div class="invModalBox" onclick="event.stopPropagation()">
-            <button id="invModalClose" class="shopModalClose">✕</button>
-            <div id="invModalTitle" class="invModalTitle">TITLE</div>
-            <div id="invModalGrid" class="invModalGrid"></div>
-            <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
 
-              <div id="skinPreviewName" class="skinPreviewName"></div>
 
-              <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
-
-              <div class="skinPreviewImgWrap">
-                <img id="skinPreviewImg" draggable="false" />
-              </div>
-
-              <div class="skinPreviewMeta">
-                <div class="skinMetaRow">
-                  <span class="k">RARITY</span>
-                  <span id="skinPreviewRarity" class="v rarityPill"></span>
-                </div>
-
-                <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
-                  <span class="k">PRICE</span>
-                  <span id="skinPreviewPrice" class="v"></span>
-                </div>
-
-                <div id="skinPreviewShopRow" class="skinMetaRow hidden">
-                  <span class="k">SHOP</span>
-                  <div class="v shopLine">
-                    <span id="skinPreviewShopText"></span>
-                    <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">
-                      GO TO SHOP
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div id="skinPreviewName" class="skinPreviewName skinName"></div>
-              <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+          <div class="invMini">
+            <div class="invMiniTop">
+              <span class="invMiniIcon">⚡</span>
+              <span class="invMiniTitle">Supers</span>
+              <span class="invMiniPill" id="invSupersCount">0</span>
             </div>
+            <div class="invMiniSub">Special abilities</div>
+          </div>
+
+          <div class="invMini">
+            <div class="invMiniTop">
+              <span class="invMiniIcon">🧩</span>
+              <span class="invMiniTitle">Upgrades</span>
+              <span class="invMiniPill" id="invUpgradesCount">0</span>
+            </div>
+            <div class="invMiniSub">Permanent boosts</div>
+          </div>
+
+          <div class="invMini">
+            <div class="invMiniTop">
+              <span class="invMiniIcon">🎁</span>
+              <span class="invMiniTitle">Boosts</span>
+              <span class="invMiniPill" id="invBoostsCount">0</span>
+            </div>
+            <div class="invMiniSub">Consumables</div>
           </div>
         </div>
       </div>
+      <div id="invModal" class="invModal hidden">
+        <div class="invModalBox" onclick="event.stopPropagation()">
+          <button id="invModalClose" class="shopModalClose">✕</button>
+          <div id="invModalTitle" class="invModalTitle">TITLE</div>
+          <div id="invModalGrid" class="invModalGrid"></div>
+          <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
 
+            <div id="skinPreviewName" class="skinPreviewName"></div>
 
-      <!-- ================= BOTTOM NAV ================= -->
-      <div id="bottomBtns">
-        <button class="bottomButton" data-target="shopScreen">Shop</button>
-        <button class="bottomButton" data-target="loadoutScreen">Loadout</button>
-        <button id="battle" class="bottomButton" data-target="homeScreen">
-          Battle!
-        </button>
-        <button class="bottomButton" data-target="inventoryScreen">
-          Inventory
-        </button>
+            <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
+
+            <div class="skinPreviewImgWrap">
+              <img id="skinPreviewImg" draggable="false" />
+            </div>
+
+            <div class="skinPreviewMeta">
+              <div class="skinMetaRow">
+                <span class="k">RARITY</span>
+                <span id="skinPreviewRarity" class="v rarityPill"></span>
+              </div>
+
+              <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
+                <span class="k">PRICE</span>
+                <span id="skinPreviewPrice" class="v"></span>
+              </div>
+
+              <div id="skinPreviewShopRow" class="skinMetaRow hidden">
+                <span class="k">SHOP</span>
+                <div class="v shopLine">
+                  <span id="skinPreviewShopText"></span>
+                  <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">
+                    GO TO SHOP
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="skinPreviewName" class="skinPreviewName skinName"></div>
+            <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="toast" class="toast"></div>
+
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <div id="bottomBtns">
+      <button class="bottomButton" data-target="shopScreen">Shop</button>
+      <button class="bottomButton" data-target="loadoutScreen">Loadout</button>
+      <button id="battle" class="bottomButton" data-target="homeScreen">
+        Battle!
+      </button>
+      <button class="bottomButton" data-target="inventoryScreen">
+        Inventory
+      </button>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
   </div>
 </body>
 

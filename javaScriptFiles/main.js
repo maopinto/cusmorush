@@ -63,6 +63,7 @@ const PETS = {
     name: 'Chimpo',
     price: 300,
     icon: '🐶',
+    img: './images/shopAInventoryicons/petsSIcone/Chimpo.png',
     stats: {
       LIVES: 3,
       DAMAGE: 8,
@@ -539,6 +540,19 @@ document.addEventListener('DOMContentLoaded', () => {
     e.stopPropagation();
     openMap(e);
   });
+  const shopBtn = document.querySelector('[data-target="shopScreen"]');
+
+  if (shopBtn) {
+    shopBtn.addEventListener('click', () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (typeof shopOnEnter === 'function') {
+            shopOnEnter();
+          }
+        });
+      });
+    });
+  }
 });
 
 // ---------- PAGE SWITCH ----------
