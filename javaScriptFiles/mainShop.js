@@ -192,6 +192,70 @@ const shopData = {
   ],
 };
 
+const STORAGE_KEY_DAILY_GIFT_CLAIM = 'dailyGiftLastClaim';
+const STORAGE_KEY_DAILY_GIFT_TODAY = 'dailyGiftToday';
+
+const DAILY_GIFT_POOL = [
+  {
+    type: 'coins',
+    amount: 80,
+    weight: 30,
+    name: 'Small Coin Pack',
+    icon: '🪙',
+  },
+  { type: 'coins', amount: 150, weight: 22, name: 'Coin Pack', icon: '💰' },
+  { type: 'coins', amount: 300, weight: 10, name: 'Big Coin Pack', icon: '🏦' },
+
+  {
+    type: 'boost',
+    id: 'boost_xp',
+    weight: 12,
+    name: 'XP Boost',
+    icon: '📈',
+    duration: 30,
+  },
+  {
+    type: 'boost',
+    id: 'boost_shield',
+    weight: 9,
+    name: 'Shield Boost',
+    icon: '🛡️',
+    battles: 1,
+  },
+  {
+    type: 'boost',
+    id: 'boost_fire',
+    weight: 9,
+    name: 'Rapid Fire',
+    icon: '🔥',
+    battles: 2,
+  },
+  {
+    type: 'boost',
+    id: 'boost_laser',
+    weight: 8,
+    name: 'Laser Boost',
+    icon: '⚡',
+    battles: 1,
+  },
+  {
+    type: 'boost',
+    id: 'boost_revive',
+    weight: 4,
+    name: 'Instant Revive',
+    icon: '💖',
+    uses: 1,
+  },
+
+  {
+    type: 'daily',
+    id: 'daily_random_box',
+    weight: 6,
+    name: 'Mystery Box',
+    icon: '🎁',
+  },
+];
+
 function syncShopState() {
   const arr = JSON.parse(localStorage.getItem('ownedSkins') || '[]');
   if (!arr.includes('default')) {
@@ -403,6 +467,180 @@ function shopRenderDaily() {
 
     row.appendChild(el);
   });
+}
+
+const DAILY_GIFT_POOL_VERSION = 1;
+const STORAGE_KEY_DAILY_GIFT_VERSION = 'dailyGiftPoolVersion';
+
+function getDailyGiftForToday() {
+  const ver = Number(localStorage.getItem(STORAGE_KEY_DAILY_GIFT_VERSION) || 0);
+  if (ver !== DAILY_GIFT_POOL_VERSION) {
+    localStorage.setItem(
+      STORAGE_KEY_DAILY_GIFT_VERSION,
+      String(DAILY_GIFT_POOL_VERSION)
+    );
+    localStorage.removeItem(STORAGE_KEY_DAILY_GIFT_TODAY);
+    localStorage.removeItem(STORAGE_KEY_DAILY_GIFT_CLAIM);
+  }
+
+  const raw = localStorage.getItem(STORAGE_KEY_DAILY_GIFT_TODAY);
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    if (parsed?.day === getTodayKey() && parsed?.gift) return parsed.gift;
+  }
+
+  const gift = weightedPick(DAILY_GIFT_POOL);
+  localStorage.setItem(
+    STORAGE_KEY_DAILY_GIFT_TODAY,
+    JSON.stringify({ day: getTodayKey(), gift })
+  );
+  return gift;
+}
+
+function getTodayKey() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function isDailyGiftClaimed() {
+  return localStorage.getItem(STORAGE_KEY_DAILY_GIFT_CLAIM) === getTodayKey();
+}
+
+function setDailyGiftClaimed() {
+  localStorage.setItem(STORAGE_KEY_DAILY_GIFT_CLAIM, getTodayKey());
+}
+
+function weightedPick(list) {
+  const total = list.reduce((s, x) => s + (x.weight || 1), 0);
+  let r = Math.random() * total;
+  for (const item of list) {
+    r -= item.weight || 1;
+    if (r <= 0) return item;
+  }
+  return list[list.length - 1];
+}
+
+function renderDailyGiftCard() {
+  const gift = getDailyGiftForToday();
+
+  const nameEl = document.getElementById('freeGiftName');
+  const descEl = document.getElementById('freeGiftDesc');
+  const valEl = document.getElementById('freeGiftValue');
+  const iconEl = document.getElementById('freeGiftIcon');
+
+  if (!nameEl || !descEl || !valEl || !iconEl) return;
+
+  nameEl.textContent = gift.name || 'Daily Gift';
+  iconEl.textContent = gift.icon || '🎁';
+
+  if (gift.type === 'coins') {
+    valEl.textContent = `+${gift.amount} 🪙`;
+    descEl.textContent = 'Free coins for today';
+    return;
+  }
+
+  if (gift.type === 'boost') {
+    valEl.textContent = 'FREE';
+    descEl.textContent = 'Unlock a boost item';
+    return;
+  }
+
+  if (gift.type === 'daily') {
+    valEl.textContent = 'FREE';
+    descEl.textContent = 'Unlock a daily shop item';
+    return;
+  }
+
+  valEl.textContent = 'FREE';
+  descEl.textContent = 'Claim your reward';
+}
+
+const K_OWNED_BOOSTS = 'ownedBoosts';
+
+function getOwnedBoosts() {
+  return new Set(JSON.parse(localStorage.getItem(K_OWNED_BOOSTS) || '[]'));
+}
+
+function saveOwnedBoosts(set) {
+  localStorage.setItem(K_OWNED_BOOSTS, JSON.stringify([...set]));
+}
+
+function claimDailyGift() {
+  if (isDailyGiftClaimed()) {
+    updateDailyGiftUI();
+    return;
+  }
+
+  const gift = getDailyGiftForToday();
+
+  if (gift.type === 'coins') {
+    setCoins(getCoins() + Number(gift.amount || 0));
+    setDailyGiftClaimed();
+    showToast(`Daily gift: +${gift.amount} coins`, 'success');
+    renderDailyGiftCard();
+    updateDailyGiftUI();
+    return;
+  }
+
+  if (gift.type === 'boost') {
+    const boosts = getOwnedBoosts();
+
+    if (!boosts.has(gift.id)) {
+      boosts.add(gift.id);
+      saveOwnedBoosts(boosts);
+      setDailyGiftClaimed();
+      showToast(`Boost unlocked: ${gift.name}`, 'success');
+      renderDailyGiftCard();
+      updateDailyGiftUI();
+      return;
+    }
+
+    setCoins(getCoins() + 120);
+    setDailyGiftClaimed();
+    showToast(`Already owned. Bonus: +120 coins`, 'success');
+    renderDailyGiftCard();
+    updateDailyGiftUI();
+    return;
+  }
+
+  if (gift.type === 'daily') {
+    const owned = getOwnedDaily();
+    owned.add(gift.id);
+    saveOwnedDaily(owned);
+
+    setDailyGiftClaimed();
+    showToast(`Unlocked: ${gift.name}`, 'success');
+    shopRenderDaily();
+    renderDailyGiftCard();
+    updateDailyGiftUI();
+    return;
+  }
+
+  setCoins(getCoins() + 100);
+  setDailyGiftClaimed();
+  showToast(`Daily gift claimed! +100 coins`, 'success');
+  renderDailyGiftCard();
+  updateDailyGiftUI();
+}
+
+function updateDailyGiftUI() {
+  const btn = document.getElementById('freeGiftBtn');
+  if (!btn) return;
+
+  const claimed = isDailyGiftClaimed();
+
+  btn.textContent = claimed ? 'CLAIMED' : 'CLAIM';
+  btn.disabled = claimed;
+
+  const gift = getDailyGiftForToday();
+  const valEl = document.getElementById('freeGiftValue');
+  if (valEl) {
+    if (gift?.type === 'coins') valEl.textContent = `+${gift.amount} 🪙`;
+    else valEl.textContent = claimed ? 'CLAIMED' : 'FREE';
+  }
 }
 
 const SKIN_OFFERS_COUNT = 4;
@@ -807,6 +1045,17 @@ document.addEventListener('DOMContentLoaded', () => {
   shopInit();
   initShopBlueScroller();
   initShopDotsNav();
+
+  const btn = document.getElementById('freeGiftBtn');
+  if (btn)
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      claimDailyGift();
+    });
+
+  renderDailyGiftCard();
+  updateDailyGiftUI();
+  setInterval(updateDailyGiftUI, 1000);
 
   startDailyRotation();
   startFeaturedRotation();

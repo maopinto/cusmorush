@@ -26,6 +26,8 @@
           <div id="coinsDiv"></div>
         </div>
 
+        <button id="socialBtn"></button>
+
         <button id="profileSettingsBtn" onclick="openProfileDiv(event)"></button>
 
         <div id="profileSettingsDiv">
@@ -363,6 +365,32 @@
             </div>
             <div id="dailyOffersRow" class="cardsRow"></div>
           </section>
+
+          <section class="shopSection" id="freeGiftSection">
+            <div class="sectionTop">
+              <div class="sectionTitle">FREE GIFT</div>
+              <div id="freeGiftTimer" class="timer">--</div>
+              <div class="sectionHint">Every day</div>
+            </div>
+
+            <div class="freeGiftCard" id="freeGiftCard">
+              <div class="freeGiftGlow"></div>
+
+              <div class="freeGiftLeft">
+                <div class="freeGiftTag">DAILY</div>
+                <div class="freeGiftName" id="freeGiftName">Daily Coins</div>
+                <div class="freeGiftDesc" id="freeGiftDesc">Claim your free reward</div>
+
+                <div class="freeGiftBottom">
+                  <div class="pricePill"><span id="freeGiftValue">+150</span> 🪙</div>
+                  <button id="freeGiftBtn" class="buyPillBtn">CLAIM</button>
+                </div>
+              </div>
+
+              <div class="freeGiftIconDecor" id="freeGiftIcon">🎁</div>
+            </div>
+          </section>
+
 
           <section class="shopSection" data-shop-target="Featured">
             <div class="sectionTop">

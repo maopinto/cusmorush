@@ -661,7 +661,7 @@ button {
 
 #socialBtn {
   position: absolute;
-  bottom: 25px;
+  bottom: 20%;
   right: 12px;
 
   width: 48px;
@@ -684,8 +684,8 @@ button {
 
 #socialDiv {
   position: absolute;
-  bottom: 90px;
-  right: 12px;
+  bottom: 230px;
+  right: 8px;
 
   width: 300px;
   height: 180px;

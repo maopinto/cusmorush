@@ -63,7 +63,7 @@ const PETS = {
     name: 'Chimpo',
     price: 300,
     icon: '🐶',
-    img: './images/shopAInventoryicons/petsSIcone/Chimpo.png',
+    img: './images/shopAInventoryicons/petsSIcone/ChimpoIcone.png',
     stats: {
       LIVES: 3,
       DAMAGE: 8,
@@ -79,6 +79,7 @@ const PETS = {
     name: 'Siren',
     price: 2500,
     icon: '🧠',
+    img: './images/shopAInventoryicons/petsSIcone/sirenIcone.png',
     stats: {
       LIVES: 2,
       ABILITY: 'Mind Control',
@@ -423,11 +424,8 @@ function openProfileDiv(e) {
   if (!profile) return;
 
   const isOpen = profile.classList.contains('open');
-
-  // סגור הכל קודם
   closeAll();
 
-  // אם היה סגור – פתח
   if (!isOpen) {
     profile.classList.add('show', 'open');
   }
@@ -928,7 +926,7 @@ function buyPet(id) {
   if (!pet) return;
 
   if (isPetOwned(id)) {
-    alert('You already own this pet!');
+    showToast('Already owned!', 'error');
     return;
   }
 
@@ -936,7 +934,7 @@ function buyPet(id) {
   updatePetUI();
 
   if (coins < pet.price) {
-    alert('Not enough coins!');
+    showToast('Not enough coins!');
     return;
   }
 
@@ -950,7 +948,12 @@ function buyPet(id) {
 
   updatePetUI();
 
-  alert(`You bought ${pet.name}!`);
+  showToast(`You bought ${pet.name}!`);
+  const card = document.querySelector(`.petCard[data-pet="${id}"]`);
+  if (card) {
+    card.classList.add('purchasedFx');
+    setTimeout(() => card.classList.remove('purchasedFx'), 600);
+  }
 }
 
 function updatePetUI() {
