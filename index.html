@@ -391,6 +391,14 @@
             </div>
           </section>
 
+          <section class="shopSection" data-shop-target="Skin Offers">
+            <div class="sectionTop">
+              <div class="sectionTitle">SKIN OFFERS</div>
+              <div id="skinOffersTimer" class="timer">--</div>
+              <div class="sectionHint">Refreshes daily</div>
+            </div>
+            <div id="skinOffersGrid" class="shopGrid"></div>
+          </section>
 
           <section class="shopSection" data-shop-target="Featured">
             <div class="sectionTop">
@@ -415,16 +423,6 @@
               </div>
             </div>
           </section>
-
-          <section class="shopSection" data-shop-target="Skin Offers">
-            <div class="sectionTop">
-              <div class="sectionTitle">SKIN OFFERS</div>
-              <div id="skinOffersTimer" class="timer">--</div>
-              <div class="sectionHint">Refreshes daily</div>
-            </div>
-            <div id="skinOffersGrid" class="shopGrid"></div>
-          </section>
-
 
           <section class="shopSection" data-shop-target="Coins">
             <div class="sectionTop">
@@ -473,21 +471,6 @@
         <h1 class="pageText" id="inventoryTitle">INVENTORY</h1>
 
         <div class="invWrap">
-          <!-- SKINS -->
-          <div class="invSection" data-inv="skins">
-            <div class="invHead">
-              <div class="invIcon">🟦</div>
-              <div class="invText">
-                <div class="invName">Skins</div>
-                <div class="invSub">Cosmetics you own</div>
-              </div>
-              <div class="invPill" id="invSkinsCount">0</div>
-            </div>
-
-            <div class="invGrid" id="invSkinsGrid"></div>
-
-            <button class="invBtn" onclick="openInv('skins')">OPEN</button>
-          </div>
 
           <!-- WEAPONS -->
           <div class="invSection" data-inv="weapons">
@@ -521,6 +504,22 @@
             <button class="invBtn" onclick="openInv('pets')">OPEN</button>
           </div>
 
+          <!-- SKINS -->
+          <div class="invSection" data-inv="skins">
+            <div class="invHead">
+              <div class="invIcon">🟦</div>
+              <div class="invText">
+                <div class="invName">Skins</div>
+                <div class="invSub">Cosmetics you own</div>
+              </div>
+              <div class="invPill" id="invSkinsCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invSkinsGrid"></div>
+
+            <button class="invBtn" onclick="openInv('skins')">OPEN</button>
+          </div>
+
 
           <div class="invMini">
             <div class="invMiniTop">
@@ -550,15 +549,15 @@
           </div>
         </div>
       </div>
+
       <div id="invModal" class="invModal hidden">
         <div class="invModalBox" onclick="event.stopPropagation()">
           <button id="invModalClose" class="shopModalClose">✕</button>
           <div id="invModalTitle" class="invModalTitle">TITLE</div>
           <div id="invModalGrid" class="invModalGrid"></div>
+
           <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
-
-            <div id="skinPreviewName" class="skinPreviewName"></div>
-
+            <div id="skinPreviewName" class="skinPreviewName skinName"></div>
             <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
 
             <div class="skinPreviewImgWrap">
@@ -580,18 +579,52 @@
                 <span class="k">SHOP</span>
                 <div class="v shopLine">
                   <span id="skinPreviewShopText"></span>
-                  <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">
-                    GO TO SHOP
-                  </button>
+                  <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
                 </div>
               </div>
             </div>
 
-            <div id="skinPreviewName" class="skinPreviewName skinName"></div>
             <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+          </div>
+
+          <div id="petPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+            <div id="petPreviewName" class="skinPreviewName skinName"></div>
+            <button id="petPreviewClose" class="skinPreviewClose">✕</button>
+
+            <div class="skinPreviewImgWrap">
+              <img id="petPreviewImg" draggable="false" />
+            </div>
+
+            <div class="skinPreviewMeta">
+              <div class="skinMetaRow">
+                <span class="k">TYPE</span>
+                <span id="petPreviewType" class="v"></span>
+              </div>
+
+              <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">
+                GO TO PET SHOP
+              </button>
+
+
+              <div id="petPreviewPriceRow" class="skinMetaRow hidden">
+                <span class="k">PRICE</span>
+                <span id="petPreviewPrice" class="v"></span>
+              </div>
+
+              <div id="petPreviewShopRow" class="skinMetaRow hidden">
+                <span class="k">SHOP</span>
+                <div class="v shopLine">
+                  <span id="petPreviewShopText"></span>
+                  <button id="petPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                </div>
+              </div>
+            </div>
+
+            <button id="petPreviewEquip" class="skinPreviewEquip">EQUIP</button>
           </div>
         </div>
       </div>
+
     </div>
 
 

@@ -176,7 +176,8 @@ function openInv(type) {
       if (owned) {
         el.querySelector('.EquipBtn')?.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (!equipped) equipWeaponFromInventory(id);
+          if (equipped) return;
+          equipWeaponFromInventory(id);
         });
       }
 
@@ -200,6 +201,8 @@ function openInv(type) {
   }
 
   if (type === 'pets') {
+    closeSkinPreview();
+    closePetPreview();
     const allPetIds = Object.keys(PETS || {});
     const ownedSet = getOwnedPetsSet();
 
@@ -245,6 +248,11 @@ function openInv(type) {
       }
 
       grid.appendChild(el);
+
+      el.onclick = (e) => {
+        e.stopPropagation();
+        openPetPreview({ ...p, id: pid });
+      };
     };
 
     if (!allPetIds.length) {
@@ -432,6 +440,14 @@ document.addEventListener('DOMContentLoaded', () => {
     ?.addEventListener('click', () => {
       renderInventoryOverview();
     });
+  document.getElementById('petPreviewClose')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closePetPreview();
+  });
+
+  document.getElementById('petPreview')?.addEventListener('click', (e) => {
+    if (e.currentTarget === e.target) closePetPreview();
+  });
 });
 
 function getOwnedSkinsCount() {
@@ -494,4 +510,101 @@ function setEquippedPet(id) {
     STORAGE_KEY_EQUIPPED_PET,
     normalizeSkinId(id) || DEFAULT_PET
   );
+}
+
+function closePetPreview() {
+  document.getElementById('petPreview')?.classList.add('hidden');
+}
+
+function openPetPreview(p) {
+  const wrap = document.getElementById('petPreview');
+  const img = document.getElementById('petPreviewImg');
+  const nameEl = document.getElementById('petPreviewName');
+  const typeEl = document.getElementById('petPreviewType');
+  const equipBtn = document.getElementById('petPreviewEquip');
+
+  const priceRow = document.getElementById('petPreviewPriceRow');
+  const priceEl = document.getElementById('petPreviewPrice');
+
+  const shopRow = document.getElementById('petPreviewShopRow');
+  const shopText = document.getElementById('petPreviewShopText');
+  const goShopBtn = document.getElementById('petPreviewGoShop');
+
+  const goBuyBtn = document.getElementById('petPreviewGoBuy');
+  if (!wrap || !img || !nameEl || !equipBtn || !typeEl || !goBuyBtn) return;
+
+  const id = normalizeSkinId(p.id || p.petId || p.key || p.name);
+  const owned = isPetOwned(id);
+  const equipped = getEquippedPet() === id;
+
+  wrap.classList.remove('hidden');
+
+  img.src = p.img || './images/skins/placeholder.png';
+  nameEl.textContent = p.name || id;
+
+  typeEl.textContent = (p.type || 'PET').toString().toUpperCase();
+  goBuyBtn.onclick = (e) => {
+    e.stopPropagation();
+
+    sessionStorage.setItem('petShopHighlight', id);
+
+    closePetPreview();
+    closeInv();
+
+    document.querySelector('[data-target="loadoutScreen"]')?.click();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (typeof openPetShop === 'function') openPetShop();
+        else document.getElementById('petShoopDiv')?.classList.remove('hidden');
+
+        requestAnimationFrame(() => highlightPetInShop());
+      });
+    });
+  };
+
+  const statsText = p.stats
+    ? Object.entries(p.stats)
+        .map(([k, v]) => `${k}:${v}`)
+        .join('  ')
+    : p.desc || '—';
+
+  if (priceRow && priceEl) {
+    if (!owned && p.price != null) {
+      priceRow.classList.remove('hidden');
+      priceEl.textContent = `${Number(p.price || 0)} 🪙`;
+    } else {
+      priceRow.classList.add('hidden');
+    }
+  }
+
+  if (shopRow && shopText && goShopBtn) {
+    const inShop = !!(shopData?.pets || []).some(
+      (x) => normalizeSkinId(x.id) === id
+    );
+
+    if (!owned && inShop) {
+      shopRow.classList.remove('hidden');
+      shopText.textContent = 'AVAILABLE';
+      goShopBtn.onclick = () => {
+        sessionStorage.setItem('shopJumpTo', 'pets');
+        closePetPreview();
+        document.querySelector('[data-target="shopScreen"]')?.click();
+      };
+    } else {
+      shopRow.classList.add('hidden');
+    }
+  }
+
+  equipBtn.textContent = equipped ? 'EQUIPPED' : 'EQUIP';
+  equipBtn.disabled = equipped || !owned;
+  equipBtn.classList.toggle('hidden', !owned);
+
+  equipBtn.onclick = () => {
+    if (!owned || equipped) return;
+    setEquippedPet(id);
+    openInv('pets');
+    renderInventoryOverview?.();
+    closePetPreview();
+  };
 }

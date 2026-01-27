@@ -155,7 +155,7 @@ const shopData = {
   coinPacks: [
     {
       id: 'coins_1000',
-      name: '250 Coins',
+      name: '1000 Coins',
       desc: 'Small boost',
       rarity: 'RARE',
       icon: '🪙',
@@ -164,7 +164,7 @@ const shopData = {
     },
     {
       id: 'coins_3000',
-      name: '800 Coins',
+      name: '3000 Coins',
       desc: 'Good value',
       rarity: 'RARE',
       icon: '💰',
@@ -173,7 +173,7 @@ const shopData = {
     },
     {
       id: 'coins_6000',
-      name: '2000 Coins',
+      name: '6000 Coins',
       desc: 'Big pack',
       rarity: 'EPIC',
       icon: '🏦',
@@ -182,7 +182,7 @@ const shopData = {
     },
     {
       id: 'coins_10000',
-      name: '6000 Coins',
+      name: '1000 Coins',
       desc: 'Mega pack',
       rarity: 'LEGENDARY',
       icon: '👑',

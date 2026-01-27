@@ -930,11 +930,8 @@ function buyPet(id) {
     return;
   }
 
-  setEquippedPet(id);
-  updatePetUI();
-
   if (coins < pet.price) {
-    showToast('Not enough coins!');
+    showToast('Not enough coins!', 'error');
     return;
   }
 
@@ -946,9 +943,11 @@ function buyPet(id) {
   owned.push(id);
   saveOwnedPets(owned);
 
+  setEquippedPet(id);
   updatePetUI();
 
-  showToast(`You bought ${pet.name}!`);
+  showToast(`You bought ${pet.name}!`, 'success');
+
   const card = document.querySelector(`.petCard[data-pet="${id}"]`);
   if (card) {
     card.classList.add('purchasedFx');
@@ -1407,4 +1406,24 @@ function toggleSocial(e) {
 function enterFullscreen() {
   const el = document.documentElement;
   if (el.requestFullscreen) el.requestFullscreen();
+}
+
+function highlightPetInShop() {
+  const raw = sessionStorage.getItem('petShopHighlight');
+  if (!raw) return;
+
+  const key = String(raw);
+  const card = document.querySelector(`.petCard[data-pet="${key}"]`);
+  if (!card) return;
+
+  document.querySelectorAll('.petCard.petHighlight').forEach((x) => {
+    x.classList.remove('petHighlight');
+  });
+
+  card.classList.add('petHighlight');
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  setTimeout(() => card.classList.remove('petHighlight'), 1800);
+
+  sessionStorage.removeItem('petShopHighlight');
 }

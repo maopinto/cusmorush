@@ -1229,3 +1229,57 @@
   color: #444;
   pointer-events: none;
 }
+
+.petHighlight {
+  outline: 2px solid rgba(255, 255, 255, 0.95);
+  outline-offset: 2px;
+
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.35),
+    0 0 14px 4px rgba(0, 200, 255, 0.6),
+    0 0 22px 6px rgba(255, 0, 200, 0.45);
+
+  position: relative;
+  z-index: 30;
+}
+
+.petHighlight::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes petPulseSoft {
+  0% {
+    box-shadow:
+      0 0 0 4px rgba(255, 255, 255, 0.35),
+      0 0 14px 4px rgba(0, 200, 255, 0.55),
+      0 0 22px 6px rgba(255, 0, 200, 0.4);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(255, 255, 255, 0.45),
+      0 0 18px 5px rgba(0, 220, 255, 0.75),
+      0 0 26px 7px rgba(255, 0, 200, 0.55);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 4px rgba(255, 255, 255, 0.35),
+      0 0 14px 4px rgba(0, 200, 255, 0.55),
+      0 0 22px 6px rgba(255, 0, 200, 0.4);
+  }
+}
+
+.petHighlight {
+  animation: petPulseSoft 0.9s ease-in-out infinite;
+}

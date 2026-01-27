@@ -1545,6 +1545,53 @@ button {
   padding-bottom: calc(var(--nav-h) + var(--safe-b));
 }
 
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  min-width: 220px;
+  max-width: 80%;
+  padding: 14px 20px;
+
+  background: linear-gradient(180deg, #0c1a3a, #020816);
+  border: 1px solid rgba(120, 200, 255, 0.6);
+  border-radius: 14px;
+
+  color: #eaf6ff;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+
+  box-shadow:
+    0 0 18px rgba(120, 200, 255, 0.6),
+    0 10px 30px rgba(0, 0, 0, 0.7);
+
+  opacity: 0;
+  pointer-events: none;
+  z-index: 99999;
+
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.error {
+  border-color: rgba(255, 80, 80, 0.8);
+  box-shadow: 0 0 20px rgba(255, 80, 80, 0.7);
+}
+
+.toast.success {
+  border-color: rgba(80, 255, 160, 0.8);
+  box-shadow: 0 0 20px rgba(80, 255, 160, 0.7);
+}
+
+
 @media screen and (orientation: portrait) {
   body {
     background: #ccc;
