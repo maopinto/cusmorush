@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./cssFiles/mainShop.css">
   <link rel="stylesheet" href="./cssFiles/mainLoadout.css">
   <link rel="stylesheet" href="./cssFiles/mainInventory.css">
+  <script defer src="./javaScriptFiles/i18n.js"></script>
   <script defer src="./javaScriptFiles/main.js"></script>
   <script defer src="./javaScriptFiles/mainShop.js"></script>
   <script defer src="./javaScriptFiles/mainInventory.js"></script>
@@ -26,49 +27,47 @@
           <div id="coinsDiv"></div>
         </div>
 
-        <button id="socialBtn"></button>
-
         <button id="profileSettingsBtn" onclick="openProfileDiv(event)"></button>
 
-        <div id="profileSettingsDiv">
+        <div id="profileSettingsDiv" class="uiModal uiModalAnchorTopLeft">
           <div class="profileInfo">
             <span class="profileLine"><strong>Profile Name:</strong> maor</span>
             <span class="profileLine"><strong>Days Played:</strong> 1</span>
           </div>
 
-          <button class="profileSettingsInsideDivBtn">Change Name</button>
-          <button class="profileSettingsInsideDivBtn">Profile Icon</button>
-          <button class="profileSettingsInsideDivBtn">Account</button>
+          <button class="profileSettingsInsideDivBtn"><span>Change Name</span></button>
+          <button class="profileSettingsInsideDivBtn"><span>Profile Icon</span></button>
+          <button class="profileSettingsInsideDivBtn"><span>Account</span></button>
         </div>
 
         <button id="settingsBtn"></button>
 
-        <div id="settingsDiv">
-          <span id="settingsTitle">Settings</span>
+        <div id="settingsDiv" class="uiModal uiModalCenter">
+          <span id="settingsTitle" data-i18n="settings.title">Settings</span>
 
           <label class="settingRow">
             <input type="checkbox" id="musicToggle" />
             <span class="toggle"></span>
-            <span class="settingText">Music</span>
+            <span class="settingText" data-i18n="settings.music">Music</span>
           </label>
 
           <label class="settingRow">
             <input type="checkbox" id="audioToggle" />
             <span class="toggle"></span>
-            <span class="settingText">Audio</span>
+            <span class="settingText" data-i18n="settings.audio">Audio</span>
           </label>
 
           <label class="volumeRow">
-            <span class="volumeText">Music Volume</span>
+            <span class="volumeText" data-i18n="settings.musicVolume">Music Volume</span>
             <input type="range" id="musicVolume" min="0" max="100" value="70" />
           </label>
 
           <label class="volumeRow">
-            <span class="volumeText">Audio Volume</span>
+            <span class="volumeText" data-i18n="settings.audioVolume">Audio Volume</span>
             <input type="range" id="audioVolume" min="0" max="100" value="80" />
           </label>
 
-          <button id="languageBtn" class="settingsActionBtn">Language</button>
+          <button id="languageBtn" class="settingsActionBtn" data-i18n="settings.language">Language</button>
         </div>
 
         <div id="languageMenu">
@@ -79,11 +78,9 @@
 
         <button id="socialBtn" onclick="toggleSocial(event)">🌐</button>
 
-        <div id="socialDiv">
+        <div id="socialDiv" class="uiModal uiModalAnchorBottomRight">
 
-          <div class="socialHeader">
-            JOIN THE COMMUNITY
-          </div>
+          <div class="socialHeader" data-i18n="social.title">JOIN THE COMMUNITY</div>
 
           <div class="socialGrid">
 
@@ -117,7 +114,7 @@
       </div>
 
       <!-- ================= MAP ================= -->
-      <div id="mapDiv">
+      <div id="mapDiv" class="uiModal uiModalCenterTall">
         <h2 id="mapTitle">LEVELS</h2>
         <button id="closeMapDiv" onclick="closeMap()">✕
         </button>
@@ -352,14 +349,14 @@
             <span id="shopCoinsText"></span>
             <div id="shopCoinsIcon"></div>
           </div>
-          <div class="shopTitle">SHOP</div>
-          <div class="shopSub">Grab deals • Upgrade style • Power up</div>
+          <div class="shopTitle" data-i18n="shop.title">SHOP</div>
+          <div class="shopSub" data-i18n="shop.sub">Grab deals • Upgrade style • Power up</div>
         </div>
 
         <div id="shopScroll">
           <section class="shopSection" data-shop-target="Daily">
             <div class="sectionTop">
-              <div class="sectionTitle">DAILY OFFERS</div>
+              <div class="sectionTitle" data-i18n="shop.dailyOffers">DAILY OFFERS</div>
               <div class="sectionHint">Refreshes daily</div>
               <div id="dailyTimer" class="timer"></div>
             </div>
@@ -368,7 +365,7 @@
 
           <section class="shopSection" id="freeGiftSection">
             <div class="sectionTop">
-              <div class="sectionTitle">FREE GIFT</div>
+              <div class="sectionTitle" data-i18n="shop.freeGift">FREE GIFT</div>
               <div id="freeGiftTimer" class="timer">--</div>
               <div class="sectionHint">Every day</div>
             </div>
@@ -393,7 +390,7 @@
 
           <section class="shopSection" data-shop-target="Skin Offers">
             <div class="sectionTop">
-              <div class="sectionTitle">SKIN OFFERS</div>
+              <div class="sectionTitle" data-i18n="shop.skinOffers">SKIN OFFERS</div>
               <div id="skinOffersTimer" class="timer">--</div>
               <div class="sectionHint">Refreshes daily</div>
             </div>
@@ -402,7 +399,8 @@
 
           <section class="shopSection" data-shop-target="Featured">
             <div class="sectionTop">
-              <div class="sectionTitle">FEATURED</div>
+              <div class="sectionTitle" data-i18n="shop.featured">FEATURED
+              </div>
               <div id="featuredTimer" class="timer"></div>
               <div class="sectionHint">Limited</div>
             </div>
@@ -426,7 +424,7 @@
 
           <section class="shopSection" data-shop-target="Coins">
             <div class="sectionTop">
-              <div class="sectionTitle">COINS</div>
+              <div class="sectionTitle" data-i18n="shop.coins">COINS</div>
               <div class="sectionHint">Best value packs</div>
             </div>
             <div id="coinsGrid" class="shopGrid"></div>
@@ -468,7 +466,7 @@
 
       <!-- ================= INVENTORY ================= -->
       <div id="inventoryScreen" class="page">
-        <h1 class="pageText" id="inventoryTitle">INVENTORY</h1>
+        <h1 id="inventoryTitle" class="pageText" data-i18n="inventory.title">INVENTORY</h1>
 
         <div class="invWrap">
 
@@ -630,14 +628,10 @@
 
     <!-- ================= BOTTOM NAV ================= -->
     <div id="bottomBtns">
-      <button class="bottomButton" data-target="shopScreen">Shop</button>
-      <button class="bottomButton" data-target="loadoutScreen">Loadout</button>
-      <button id="battle" class="bottomButton" data-target="homeScreen">
-        Battle!
-      </button>
-      <button class="bottomButton" data-target="inventoryScreen">
-        Inventory
-      </button>
+      <button class="bottomButton" data-target="shopScreen" data-i18n="nav.shop">Shop</button>
+      <button class="bottomButton" data-target="loadoutScreen" data-i18n="nav.loadout">Loadout</button>
+      <button id="battle" class="bottomButton" data-target="homeScreen" data-i18n="nav.battle">Battle!</button>
+      <button class="bottomButton" data-target="inventoryScreen" data-i18n="nav.inventory">Inventory</button>
     </div>
   </div>
   <div id="toast" class="toast"></div>

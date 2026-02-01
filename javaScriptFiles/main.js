@@ -1,3 +1,7 @@
+// coins x
+let coins = Number(localStorage.getItem('coins')) || 50;
+const maxCoins = 999999;
+
 document.addEventListener(
   'touchmove',
   (e) => {
@@ -17,28 +21,43 @@ document.addEventListener(
   { passive: false }
 );
 
-const TRANSLATIONS = {
-  en: {
-    settings: 'Settings',
-    music: 'Music',
-    audio: 'Audio',
-    language: 'Language',
-  },
+function rerenderLanguageDependentUI() {
+  updateEquipUI?.();
+  updatePetUI?.();
+  updateSuperEquipUI?.();
+  updateLevelsMap?.();
+  renderInventoryOverview?.();
+  shopOnEnter?.();
+}
 
-  he: {
-    settings: 'הגדרות',
-    music: 'מוזיקה',
-    audio: 'צלילים',
-    language: 'שפה',
-  },
+function rerenderLanguageDependentUI(lang) {
+  document.documentElement.lang = lang;
 
-  es: {
-    settings: 'Ajustes',
-    music: 'Música',
-    audio: 'Audio',
-    language: 'Idioma',
-  },
-};
+  const isRTL = lang === 'he';
+  document.body.dir = isRTL ? 'rtl' : 'ltr';
+  document.body.style.direction = isRTL ? 'rtl' : 'ltr';
+
+  requestAnimationFrame(() => {
+    window.updatePetUI?.();
+    window.updateSuperEquipUI?.();
+    window.updateLevelsMap?.();
+    window.updateEquipUI?.();
+    window.renderInventoryOverview?.();
+
+    window.shopRenderFeatured?.();
+    window.shopRenderDaily?.();
+    window.shopRenderSkinOffers?.();
+    window.shopRenderSkins?.();
+    window.shopRenderCoins?.();
+    window.renderDailyGiftCard?.();
+    window.updateDailyGiftUI?.();
+    window.updateFeaturedTimer?.();
+    window.updateDailyTimer?.();
+    window.updateSkinOffersTimer?.();
+
+    window.shopOnEnter?.();
+  });
+}
 
 const WEAPONS = {
   laser: {
@@ -270,12 +289,13 @@ function playMapClick() {
   mapClickSound.currentTime = 0;
   mapClickSound.play().catch(console.warn);
 }
-
 function openBuyWeapon(id) {
   const weapon = WEAPONS[id];
   if (!weapon) return;
 
   selectedWeaponId = id;
+
+  const lang = getLang();
 
   const popup = document.getElementById('buyWeaponPopup');
   const buyBtn = document.getElementById('buyConfirmBtn');
@@ -283,37 +303,41 @@ function openBuyWeapon(id) {
   document.getElementById('buyWeaponName').textContent = weapon.name;
   document.getElementById('buyWeaponImg').src = weapon.img;
 
-  // ---------- DEFAULT WEAPON ----------
-  if (id === DEFAULT_WEAPON || isWeaponOwned(id)) {
-    document.getElementById('buyWeaponPrice').textContent =
-      id === DEFAULT_WEAPON ? 'FREE' : 'OWNED';
+  const owned = id === DEFAULT_WEAPON || isWeaponOwned(id);
 
-    buyBtn.textContent = equippedWeapon === id ? 'EQUIPPED' : 'EQUIP';
+  document.getElementById('buyWeaponPrice').textContent = owned
+    ? id === DEFAULT_WEAPON
+      ? t(lang, 'ui.free')
+      : t(lang, 'ui.owned')
+    : String(weapon.price);
 
-    buyBtn.disabled = equippedWeapon === id;
-    buyBtn.className = equippedWeapon === id ? 'owned' : '';
+  if (owned) {
+    const equipped = getEquippedWeapon() === id;
 
-    popup.classList.add('open');
-    return;
+    buyBtn.textContent = equipped
+      ? t(lang, 'ui.equipped')
+      : t(lang, 'ui.equip');
+    buyBtn.disabled = equipped;
+    buyBtn.className = equipped ? 'owned' : '';
+  } else {
+    buyBtn.textContent = t(lang, 'ui.buy');
+    buyBtn.disabled = false;
+    buyBtn.className = '';
   }
-
-  // ---------- NOT OWNED ----------
-  document.getElementById('buyWeaponPrice').textContent = weapon.price;
-  buyBtn.textContent = 'BUY';
-  buyBtn.disabled = false;
-  buyBtn.className = '';
 
   popup.classList.add('open');
 }
 
 function updateEquipUI() {
+  const lang = getLang();
+
   document.querySelectorAll('.weaponItem').forEach((item) => {
     const id = item.dataset.weapon;
     const btn = item.querySelector('.equipBtn');
     if (!btn) return;
 
     if (id !== DEFAULT_WEAPON && !isWeaponOwned(id)) {
-      btn.textContent = 'LOCKED';
+      btn.textContent = t(lang, 'ui.locked');
       btn.disabled = true;
       btn.classList.add('locked');
       btn.classList.remove('equipped');
@@ -321,53 +345,28 @@ function updateEquipUI() {
     }
 
     if (id === getEquippedWeapon()) {
-      btn.textContent = 'EQUIPPED';
+      btn.textContent = t(lang, 'ui.equipped');
       btn.disabled = true;
       btn.classList.add('equipped');
       btn.classList.remove('locked');
       return;
     }
 
-    btn.textContent = 'EQIPPED';
+    btn.textContent = t(lang, 'ui.equip');
     btn.disabled = false;
     btn.classList.remove('equipped', 'locked');
   });
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  loadCoins?.();
+
+  const savedLang = getLang();
+  applyLanguage(savedLang);
+});
+
 // לקרוא פעם אחת בטעינה
 updateEquipUI();
-
-document.getElementById('buyConfirmBtn').addEventListener('click', () => {
-  if (!selectedWeaponId) return;
-
-  // EQUIP
-  if (selectedWeaponId === DEFAULT_WEAPON || isWeaponOwned(selectedWeaponId)) {
-    setEquippedWeapon(selectedWeaponId);
-    updateEquipUI();
-    document.getElementById('buyWeaponPopup').classList.remove('open');
-    return;
-  }
-
-  // BUY
-  const weapon = WEAPONS[selectedWeaponId];
-  if (coins < weapon.price) {
-    showToast('Not enough coins!', 'error');
-    return;
-  }
-
-  coins -= weapon.price;
-  saveCoins();
-  updateCoinsUI();
-
-  const owned = getOwnedWeapons();
-  owned.push(selectedWeaponId);
-  saveOwnedWeapons(owned);
-
-  setEquippedWeapon(selectedWeaponId);
-  updateEquipUI();
-
-  document.getElementById('buyWeaponPopup').classList.remove('open');
-});
 
 function equipWeapon(id) {
   if (id !== DEFAULT_WEAPON && !isWeaponOwned(id)) return;
@@ -724,61 +723,11 @@ audioVolume.addEventListener('input', () => {
   }
 });
 
-const languageBtn = document.getElementById('languageBtn');
-const languageMenu = document.getElementById('languageMenu');
-const languageOptions = document.querySelectorAll('.languageOption');
-
-languageBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  languageMenu.classList.toggle('open');
-});
-
-document.addEventListener('click', () => {
-  languageMenu.classList.remove('open');
-});
-
-languageMenu.addEventListener('click', (e) => {
-  e.stopPropagation();
-});
-
-languageOptions.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang;
-
-    localStorage.setItem('language', lang);
-    console.log('🌍 Language set to:', lang);
-
-    languageMenu.classList.remove('open');
-
-    const savedLang = localStorage.getItem('language') || 'en';
-    applyLanguage(savedLang);
-    console.log('🌍 Current language:', savedLang);
-  });
-});
-
-// language
-function applyLanguage(lang) {
-  const t = TRANSLATIONS[lang];
-  if (!t) return;
-
-  document.getElementById('settingsTitle').textContent = t.settings;
-
-  const settingTexts = document.querySelectorAll('.settingText');
-  settingTexts[0].textContent = t.music;
-  settingTexts[1].textContent = t.audio;
-
-  languageBtn.textContent = t.language;
-
-  document.body.style.direction = lang === 'he' ? 'rtl' : 'ltr';
-}
-
 // ---------- LEVEL NAV ----------
 function goToLevel(level) {
   window.location.href = `game.html?level=${level}`;
 }
 // ---------- COINS ----------
-let coins = Number(localStorage.getItem('coins')) || 50;
-const maxCoins = 999999;
 
 function saveCoins() {
   localStorage.setItem('coins', coins);
@@ -786,8 +735,8 @@ function saveCoins() {
 
 function loadCoins() {
   const raw = localStorage.getItem('coins');
-  coins = raw === null ? 50 : Number(raw);
-  if (!Number.isFinite(coins)) coins = 50;
+  const n = raw === null ? 50 : Number(raw);
+  coins = Number.isFinite(n) ? n : 50;
 
   localStorage.setItem('coins', String(coins));
   updateCoinsUI();
@@ -845,7 +794,7 @@ document.getElementById('buyConfirmBtn').addEventListener('click', () => {
   if (owned.includes(selectedWeaponId)) return;
 
   if (coins < weapon.price) {
-    showToast('Not enough coins!', 'error');
+    showToast(t(getLang(), 'toast.noCoins'), 'error');
     return;
   }
 
@@ -903,6 +852,8 @@ document.querySelectorAll('.upgradeWeapon.locked').forEach((btn) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadCoins();
+  const savedLang = localStorage.getItem('language') || 'en';
+  applyLanguage(savedLang);
 });
 
 function openPetShop() {
@@ -1114,6 +1065,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const descEl = document.getElementById('superInfoDesc');
   const statsEl = document.getElementById('superStats');
 
+  initLanguageUI();
+  updateEquipUI();
+
   document.querySelectorAll('.selectSuperBtn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1278,35 +1232,6 @@ function confirmBuySuper() {
 function closeBuySuperConfirm() {
   pendingSuperBuy = null;
   document.getElementById('buySuperConfirm')?.classList.remove('open');
-}
-
-function confirmBuySuper() {
-  coins = Number(localStorage.getItem('coins')) || 0;
-
-  if (!pendingSuperBuy) return;
-
-  const data = SUPERS[pendingSuperBuy];
-  if (!data) return;
-
-  if (coins < data.price) {
-    showToast('Not enough coins!', 'error');
-    return;
-  }
-
-  coins -= data.price;
-  saveCoins();
-  updateCoinsUI();
-
-  const owned = getOwnedSupers();
-  owned.push(pendingSuperBuy);
-  saveOwnedSupers(owned);
-
-  showToast(`${data.title} unlocked!`, 'success');
-  playEquipSound();
-
-  pendingSuperBuy = null;
-  closeBuySuperConfirm();
-  updateSuperEquipUI();
 }
 
 function closeBuySuperConfirm() {

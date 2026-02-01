@@ -1,4 +1,11 @@
 // item shop script
+function shopT(key, params = {}) {
+  const lang = localStorage.getItem('language') || 'en';
+  const str = TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.en?.[key] ?? key;
+
+  return str.replace(/\{(\w+)\}/g, (_, k) => params[k] ?? `{${k}}`);
+}
+
 const SHOP = {
   ownedSkins: new Set(JSON.parse(localStorage.getItem('ownedSkins') || '[]')),
   equippedSkin: localStorage.getItem('equippedSkin') || '',
@@ -201,7 +208,6 @@ const DAILY_GIFT_POOL = [
     amount: 80,
     weight: 30,
     name: 'Small Coin Pack',
-    icon: '🪙',
   },
   { type: 'coins', amount: 150, weight: 22, name: 'Coin Pack', icon: '💰' },
   { type: 'coins', amount: 300, weight: 10, name: 'Big Coin Pack', icon: '🏦' },
@@ -255,6 +261,352 @@ const DAILY_GIFT_POOL = [
     icon: '🎁',
   },
 ];
+
+const SHOP_I18N = {
+  en: {
+    featured: {
+      galaxyPass: {
+        name: 'Galaxy Pass',
+        desc: 'Unlock a premium reward track + bonus coins',
+      },
+      galaxySkin: {
+        name: 'Galaxy Skin',
+        desc: 'Get this skin before it leaves',
+      },
+    },
+
+    dailyPool: {
+      daily_laser_boost: {
+        name: 'Laser Boost',
+        desc: '+15% laser dmg (1 run)',
+        badge: 'HOT',
+      },
+      daily_pet_food: {
+        name: 'Pet Treat',
+        desc: 'Pet bonus for 3 battles',
+        badge: 'NEW',
+      },
+      daily_coin_bundle: {
+        name: 'Mini Coins',
+        desc: '+350 coins',
+        badge: 'VALUE',
+      },
+      daily_shield_boost: {
+        name: 'Shield Boost',
+        desc: '+20% shield strength (1 run)',
+        badge: 'HOT',
+      },
+      daily_fire_rate: {
+        name: 'Rapid Fire',
+        desc: '+25% fire rate (2 battles)',
+        badge: 'LIMIT',
+      },
+      daily_revive: {
+        name: 'Instant Revive',
+        desc: 'Revive once on death',
+        badge: 'RARE',
+      },
+      daily_xp_boost: {
+        name: 'XP Boost',
+        desc: '+50% XP for 30 minutes',
+        badge: 'XP',
+      },
+      daily_super_charge: {
+        name: 'Super Charge',
+        desc: 'Start battle with full super',
+        badge: 'POWER',
+      },
+      daily_random_box: {
+        name: 'Mystery Box',
+        desc: 'Random reward',
+        badge: '???',
+      },
+      daily_coin_rush: {
+        name: 'Coin Rush',
+        desc: 'Double coins for 2 battles',
+        badge: 'VALUE',
+      },
+    },
+
+    skins: {
+      default: { name: 'Classic', desc: '' },
+      redclassic: { name: 'Red Classic', desc: 'Red classic' },
+      skin_void: { name: 'Void Steel', desc: 'Dark metallic finish' },
+      skin_sakura: { name: 'Sakura Drift', desc: 'Pink petals FX' },
+      skin_gold: { name: 'Golden Core', desc: 'Gold shine aura' },
+    },
+
+    coinPacks: {
+      coins_1000: { name: '1000 Coins', desc: 'Small boost' },
+      coins_3000: { name: '3000 Coins', desc: 'Good value' },
+      coins_6000: { name: '6000 Coins', desc: 'Big pack' },
+      coins_10000: { name: '10000 Coins', desc: 'Mega pack' },
+    },
+
+    dailyGiftPool: {
+      small_coin_pack: { name: 'Small Coin Pack' },
+      coin_pack: { name: 'Coin Pack' },
+      big_coin_pack: { name: 'Big Coin Pack' },
+
+      boost_xp: { name: 'XP Boost' },
+      boost_shield: { name: 'Shield Boost' },
+      boost_fire: { name: 'Rapid Fire' },
+      boost_laser: { name: 'Laser Boost' },
+      boost_revive: { name: 'Instant Revive' },
+
+      daily_random_box: { name: 'Mystery Box' },
+    },
+
+    ui: {
+      freeCoinsToday: 'Free coins for today',
+      unlockBoost: 'Unlock a boost item',
+      unlockDaily: 'Unlock a daily shop item',
+    },
+  },
+
+  he: {
+    featured: {
+      galaxyPass: {
+        name: 'גלקסי פאס',
+        desc: 'פותח מסלול פרסים פרימיום + בונוס מטבעות',
+      },
+      galaxySkin: { name: 'סקין גלקסי', desc: 'קחו את הסקין לפני שהוא נעלם' },
+    },
+
+    dailyPool: {
+      daily_laser_boost: {
+        name: 'בוסט לייזר',
+        desc: '+15% נזק לייזר (לריצה אחת)',
+        badge: 'חם',
+      },
+      daily_pet_food: {
+        name: 'חטיף לחיה',
+        desc: 'בונוס לחיה ל־3 קרבות',
+        badge: 'חדש',
+      },
+      daily_coin_bundle: {
+        name: 'מטבעות מיני',
+        desc: '+350 מטבעות',
+        badge: 'שווה',
+      },
+      daily_shield_boost: {
+        name: 'בוסט מגן',
+        desc: '+20% חוזק מגן (לריצה אחת)',
+        badge: 'חם',
+      },
+      daily_fire_rate: {
+        name: 'אש מהירה',
+        desc: '+25% קצב ירי (2 קרבות)',
+        badge: 'מוגבל',
+      },
+      daily_revive: {
+        name: 'החייאה מיידית',
+        desc: 'החייאה פעם אחת במוות',
+        badge: 'נדיר',
+      },
+      daily_xp_boost: {
+        name: 'בוסט XP',
+        desc: '+50% ניסיון ל־30 דקות',
+        badge: 'XP',
+      },
+      daily_super_charge: {
+        name: 'טעינת סופר',
+        desc: 'מתחילים קרב עם סופר מלא',
+        badge: 'כוח',
+      },
+      daily_random_box: {
+        name: 'קופסת הפתעה',
+        desc: 'פרס אקראי',
+        badge: '???',
+      },
+      daily_coin_rush: {
+        name: 'שיטפון מטבעות',
+        desc: 'כפול מטבעות ל־2 קרבות',
+        badge: 'שווה',
+      },
+    },
+
+    skins: {
+      default: { name: 'קלאסי', desc: '' },
+      redclassic: { name: 'קלאסי אדום', desc: 'קלאסי בצבע אדום' },
+      skin_void: { name: 'פלדה אפלה', desc: 'גימור מתכתי כהה' },
+      skin_sakura: { name: 'סאקורה דריפט', desc: 'אפקט עלי כותרת ורודים' },
+      skin_gold: { name: 'ליבה זהובה', desc: 'הילה זוהרת זהב' },
+    },
+
+    coinPacks: {
+      coins_1000: { name: '1000 מטבעות', desc: 'חיזוק קטן' },
+      coins_3000: { name: '3000 מטבעות', desc: 'תמורה טובה' },
+      coins_6000: { name: '6000 מטבעות', desc: 'חבילה גדולה' },
+      coins_10000: { name: '10000 מטבעות', desc: 'חבילה ענקית' },
+    },
+
+    dailyGiftPool: {
+      small_coin_pack: { name: 'חבילת מטבעות קטנה' },
+      coin_pack: { name: 'חבילת מטבעות' },
+      big_coin_pack: { name: 'חבילת מטבעות גדולה' },
+
+      boost_xp: { name: 'בוסט XP' },
+      boost_shield: { name: 'בוסט מגן' },
+      boost_fire: { name: 'אש מהירה' },
+      boost_laser: { name: 'בוסט לייזר' },
+      boost_revive: { name: 'החייאה מיידית' },
+
+      daily_random_box: { name: 'קופסת הפתעה' },
+    },
+
+    ui: {
+      freeCoinsToday: 'מטבעות חינם להיום',
+      unlockBoost: 'פותח פריט בוסט',
+      unlockDaily: 'פותח פריט דיילי מהחנות',
+    },
+  },
+
+  es: {
+    featured: {
+      galaxyPass: {
+        name: 'Pase Galaxia',
+        desc: 'Desbloquea recompensas premium + monedas extra',
+      },
+      galaxySkin: {
+        name: 'Skin Galaxia',
+        desc: 'Consigue esta skin antes de que desaparezca',
+      },
+    },
+
+    dailyPool: {
+      daily_laser_boost: {
+        name: 'Mejora Láser',
+        desc: '+15% daño láser (1 partida)',
+        badge: 'TOP',
+      },
+      daily_pet_food: {
+        name: 'Premio Mascota',
+        desc: 'Bono para mascota por 3 batallas',
+        badge: 'NUEVO',
+      },
+      daily_coin_bundle: {
+        name: 'Monedas Mini',
+        desc: '+350 monedas',
+        badge: 'VALOR',
+      },
+      daily_shield_boost: {
+        name: 'Mejora Escudo',
+        desc: '+20% fuerza de escudo (1 partida)',
+        badge: 'TOP',
+      },
+      daily_fire_rate: {
+        name: 'Fuego Rápido',
+        desc: '+25% cadencia (2 batallas)',
+        badge: 'LÍMITE',
+      },
+      daily_revive: {
+        name: 'Revivir Instantáneo',
+        desc: 'Revive una vez al morir',
+        badge: 'RARO',
+      },
+      daily_xp_boost: {
+        name: 'Mejora XP',
+        desc: '+50% XP por 30 min',
+        badge: 'XP',
+      },
+      daily_super_charge: {
+        name: 'Carga Súper',
+        desc: 'Empieza con el súper lleno',
+        badge: 'PODER',
+      },
+      daily_random_box: {
+        name: 'Caja Misteriosa',
+        desc: 'Recompensa aleatoria',
+        badge: '???',
+      },
+      daily_coin_rush: {
+        name: 'Lluvia de Monedas',
+        desc: 'Doble monedas por 2 batallas',
+        badge: 'VALOR',
+      },
+    },
+
+    skins: {
+      default: { name: 'Clásico', desc: '' },
+      redclassic: { name: 'Clásico Rojo', desc: 'Clásico en rojo' },
+      skin_void: { name: 'Acero Vacío', desc: 'Acabado metálico oscuro' },
+      skin_sakura: { name: 'Deriva Sakura', desc: 'FX de pétalos rosas' },
+      skin_gold: { name: 'Núcleo Dorado', desc: 'Aura brillante dorada' },
+    },
+
+    coinPacks: {
+      coins_1000: { name: '1000 Monedas', desc: 'Impulso pequeño' },
+      coins_3000: { name: '3000 Monedas', desc: 'Buena relación' },
+      coins_6000: { name: '6000 Monedas', desc: 'Paquete grande' },
+      coins_10000: { name: '10000 Monedas', desc: 'Paquete mega' },
+    },
+
+    dailyGiftPool: {
+      small_coin_pack: { name: 'Paquete pequeño de monedas' },
+      coin_pack: { name: 'Paquete de monedas' },
+      big_coin_pack: { name: 'Paquete grande de monedas' },
+
+      boost_xp: { name: 'Mejora XP' },
+      boost_shield: { name: 'Mejora Escudo' },
+      boost_fire: { name: 'Fuego Rápido' },
+      boost_laser: { name: 'Mejora Láser' },
+      boost_revive: { name: 'Revivir Instantáneo' },
+
+      daily_random_box: { name: 'Caja Misteriosa' },
+    },
+
+    ui: {
+      freeCoinsToday: 'Monedas gratis de hoy',
+      unlockBoost: 'Desbloquea un boost',
+      unlockDaily: 'Desbloquea un ítem diario',
+    },
+  },
+};
+
+function shopT(lang, group, id, field) {
+  return (
+    SHOP_I18N[lang]?.[group]?.[id]?.[field] ??
+    SHOP_I18N.en?.[group]?.[id]?.[field] ??
+    null
+  );
+}
+
+function shopApplyLangToData(lang) {
+  shopData.featured.forEach((x) => {
+    x.name = shopT(lang, 'featured', x.id, 'name') ?? x.name;
+    x.desc = shopT(lang, 'featured', x.id, 'desc') ?? x.desc;
+  });
+
+  shopData.dailyPool.forEach((x) => {
+    x.name = shopT(lang, 'dailyPool', x.id, 'name') ?? x.name;
+    x.desc = shopT(lang, 'dailyPool', x.id, 'desc') ?? x.desc;
+    x.badge = shopT(lang, 'dailyPool', x.id, 'badge') ?? x.badge;
+  });
+
+  shopData.skins.forEach((x) => {
+    x.name = shopT(lang, 'skins', x.id, 'name') ?? x.name;
+    x.desc = shopT(lang, 'skins', x.id, 'desc') ?? x.desc;
+  });
+
+  shopData.coinPacks.forEach((x) => {
+    x.name = shopT(lang, 'coinPacks', x.id, 'name') ?? x.name;
+    x.desc = shopT(lang, 'coinPacks', x.id, 'desc') ?? x.desc;
+  });
+
+  DAILY_GIFT_POOL.forEach((x) => {
+    const key =
+      x.type === 'coins'
+        ? x.amount === 80
+          ? 'small_coin_pack'
+          : x.amount === 150
+            ? 'coin_pack'
+            : 'big_coin_pack'
+        : x.id;
+
+    x.name = shopT(lang, 'dailyGiftPool', key, 'name') ?? x.name;
+  });
+}
 
 function syncShopState() {
   const arr = JSON.parse(localStorage.getItem('ownedSkins') || '[]');
@@ -339,7 +691,9 @@ function shopRenderFeatured() {
   document.getElementById('featuredPrice').textContent = f.price;
 
   const btn = document.getElementById('featuredBuyBtn');
-  btn.textContent = SHOP.ownedFeatured ? 'OWNED' : 'GET';
+  btn.textContent = SHOP.ownedFeatured
+    ? shopT('shop.owned')
+    : shopT('shop.get');
   btn.disabled = SHOP.ownedFeatured;
 
   btn.onclick = () => {
@@ -382,7 +736,9 @@ function updateFeaturedTimer() {
   const elapsed = now - start;
   const remaining = FEATURED_ROTATE_MS - (elapsed % FEATURED_ROTATE_MS);
 
-  el.textContent = `NEW FEATURED IN ${formatRemaining(remaining)}`;
+  el.textContent = shopT('shop.newFeaturedIn', {
+    time: formatRemaining(remaining),
+  });
 }
 
 function rotateFeatured() {
@@ -448,7 +804,7 @@ function shopRenderDaily() {
       <div class="offerBottom">
         <div class="priceChip">${owned ? '—' : `${item.price} 🪙`}</div>
         <button class="buyMiniBtn" ${owned ? 'disabled' : ''}>
-          ${owned ? 'OWNED' : 'BUY'}
+          ${owned ? shopT('shop.owned') : shopT('shop.buy')}
         </button>
       </div>
     `;
@@ -533,29 +889,29 @@ function renderDailyGiftCard() {
 
   if (!nameEl || !descEl || !valEl || !iconEl) return;
 
-  nameEl.textContent = gift.name || 'Daily Gift';
+  nameEl.textContent = gift.name || shopT('shop.gift.dailyGift');
   iconEl.textContent = gift.icon || '🎁';
 
   if (gift.type === 'coins') {
     valEl.textContent = `+${gift.amount} 🪙`;
-    descEl.textContent = 'Free coins for today';
+    descEl.textContent = shopT('shop.gift.freeCoinsToday');
     return;
   }
 
   if (gift.type === 'boost') {
-    valEl.textContent = 'FREE';
-    descEl.textContent = 'Unlock a boost item';
+    valEl.textContent = shopT('shop.free');
+    descEl.textContent = shopT('shop.gift.unlockBoost');
     return;
   }
 
   if (gift.type === 'daily') {
-    valEl.textContent = 'FREE';
-    descEl.textContent = 'Unlock a daily shop item';
+    valEl.textContent = shopT('shop.free');
+    descEl.textContent = shopT('shop.gift.unlockDaily');
     return;
   }
 
-  valEl.textContent = 'FREE';
-  descEl.textContent = 'Claim your reward';
+  valEl.textContent = shopT('shop.free');
+  descEl.textContent = shopT('shop.gift.claimYourReward');
 }
 
 const K_OWNED_BOOSTS = 'ownedBoosts';
@@ -579,7 +935,7 @@ function claimDailyGift() {
   if (gift.type === 'coins') {
     setCoins(getCoins() + Number(gift.amount || 0));
     setDailyGiftClaimed();
-    showToast(`Daily gift: +${gift.amount} coins`, 'success');
+    showToast(shopT('shop.dailyGiftCoins', { coins: gift.amount }), 'success');
     renderDailyGiftCard();
     updateDailyGiftUI();
     return;
@@ -628,19 +984,23 @@ function claimDailyGift() {
 
 function updateDailyGiftUI() {
   const btn = document.getElementById('freeGiftBtn');
+  const valEl = document.getElementById('freeGiftValue');
   if (!btn) return;
 
   const claimed = isDailyGiftClaimed();
+  const gift = getDailyGiftForToday();
 
-  btn.textContent = claimed ? 'CLAIMED' : 'CLAIM';
+  btn.textContent = claimed ? shopT('ui.claimed') : shopT('ui.claim');
   btn.disabled = claimed;
 
-  const gift = getDailyGiftForToday();
-  const valEl = document.getElementById('freeGiftValue');
-  if (valEl) {
-    if (gift?.type === 'coins') valEl.textContent = `+${gift.amount} 🪙`;
-    else valEl.textContent = claimed ? 'CLAIMED' : 'FREE';
+  if (!valEl) return;
+
+  if (gift?.type === 'coins') {
+    valEl.textContent = `+${gift.amount} 🪙`;
+    return;
   }
+
+  valEl.textContent = claimed ? shopT('ui.claimed') : shopT('ui.free');
 }
 
 const SKIN_OFFERS_COUNT = 4;
@@ -935,24 +1295,24 @@ function shopOpenModal(item) {
 
   modal.classList.remove('hidden');
 
+  const rarity = (item.rarity || 'COMMON').toUpperCase();
   modal.classList.remove(
     'modal-COMMON',
     'modal-RARE',
     'modal-EPIC',
     'modal-LEGENDARY'
   );
-  modal.classList.add(`modal-${(item.rarity || 'COMMON').toUpperCase()}`);
+  modal.classList.add(`modal-${rarity}`);
 
   const box = modal.querySelector('.shopModalBox');
   if (box) box.onclick = (e) => e.stopPropagation();
 
   const closeBtn = document.getElementById('shopModalClose');
-  if (closeBtn) {
+  if (closeBtn)
     closeBtn.onclick = (e) => {
       e.stopPropagation();
       shopCloseModal();
     };
-  }
 
   modal.onclick = () => shopCloseModal();
 
@@ -962,33 +1322,31 @@ function shopOpenModal(item) {
   const priceEl = document.getElementById('shopModalPrice');
 
   if (iconEl) iconEl.textContent = item.icon || '🛒';
-  if (titleEl) titleEl.textContent = item.name || 'Item';
+  if (titleEl) titleEl.textContent = item.name || shopT('ui.item');
   if (descEl) descEl.textContent = item.desc || '';
-  if (priceEl) priceEl.textContent = item.price ?? 0;
 
-  if (priceEl)
+  if (priceEl) {
     priceEl.textContent =
-      item.type === 'coin' ? `+${item.add} 🪙` : (item.price ?? 0);
+      item.type === 'coin' ? `+${item.add} 🪙` : String(item.price ?? 0);
+  }
 
   const buyBtn = document.getElementById('shopModalBuy');
   if (!buyBtn) return;
 
-  buyBtn.disabled = false;
-
-  if (item.type === 'coin') {
-    buyBtn.textContent = 'CLAIM';
-  } else if (
+  const skinOwned =
     item.type === 'skin' &&
-    (item.id === 'default' || item.price === 0 || SHOP.ownedSkins.has(item.id))
-  ) {
-    buyBtn.textContent = 'OWNED';
-    buyBtn.disabled = true;
-  } else if (item.type === 'featured' && SHOP.ownedFeatured) {
-    buyBtn.textContent = 'OWNED';
-    buyBtn.disabled = true;
-  } else {
-    buyBtn.textContent = 'BUY';
-  }
+    (item.id === 'default' || item.price === 0 || SHOP.ownedSkins.has(item.id));
+
+  const featuredOwned = item.type === 'featured' && SHOP.ownedFeatured;
+
+  buyBtn.disabled = skinOwned || featuredOwned;
+
+  buyBtn.textContent =
+    item.type === 'coin'
+      ? shopT('ui.claim')
+      : buyBtn.disabled
+        ? shopT('ui.owned')
+        : shopT('ui.buy');
 
   buyBtn.onclick = () => {
     if (buyBtn.disabled) return;
@@ -1013,7 +1371,7 @@ function shopBuy(item) {
   }
 
   if (price > c) {
-    showToast('Not enough coins', 'error');
+    showToast(shopT('shop.notEnoughCoins'), 'error');
     return;
   }
 
