@@ -96,14 +96,13 @@
   position: absolute;
   top: 45%;
   left: 35%;
-  transform: translate(-50%, -50%);
-
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-
   gap: 25px;
   padding-left: 70px;
+  transform: translate(-50%, -50%);
 }
 
 .loadoutBtn {
@@ -1903,4 +1902,32 @@
   background: linear-gradient(180deg, #00d4ff, #0066ff);
   color: white;
   box-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
+}
+
+[dir='rtl'] #loadoutBtnDiv {
+  left: auto;
+  right: 4;
+  width: fit-content;
+
+  transform: translateY(-50%);
+
+  padding-left: 0;
+  padding-right: 0;
+
+  align-items: flex-end;
+}
+
+[dir='rtl'] .loadoutItem {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .itemText {
+  direction: rtl;
+  text-align: right;
+  letter-spacing: normal;
+}
+
+[dir='rtl'] #loadoutPageTitle {
+  letter-spacing: normal;
+  text-transform: none;
 }

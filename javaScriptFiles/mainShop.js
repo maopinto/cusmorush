@@ -564,7 +564,7 @@ const SHOP_I18N = {
   },
 };
 
-function shopT(lang, group, id, field) {
+function shopTData(lang, group, id, field) {
   return (
     SHOP_I18N[lang]?.[group]?.[id]?.[field] ??
     SHOP_I18N.en?.[group]?.[id]?.[field] ??
@@ -574,24 +574,24 @@ function shopT(lang, group, id, field) {
 
 function shopApplyLangToData(lang) {
   shopData.featured.forEach((x) => {
-    x.name = shopT(lang, 'featured', x.id, 'name') ?? x.name;
-    x.desc = shopT(lang, 'featured', x.id, 'desc') ?? x.desc;
+    x.name = shopTData(lang, 'featured', x.id, 'name') ?? x.name;
+    x.desc = shopTData(lang, 'featured', x.id, 'desc') ?? x.desc;
   });
 
   shopData.dailyPool.forEach((x) => {
-    x.name = shopT(lang, 'dailyPool', x.id, 'name') ?? x.name;
-    x.desc = shopT(lang, 'dailyPool', x.id, 'desc') ?? x.desc;
-    x.badge = shopT(lang, 'dailyPool', x.id, 'badge') ?? x.badge;
+    x.name = shopTData(lang, 'dailyPool', x.id, 'name') ?? x.name;
+    x.desc = shopTData(lang, 'dailyPool', x.id, 'desc') ?? x.desc;
+    x.badge = shopTData(lang, 'dailyPool', x.id, 'badge') ?? x.badge;
   });
 
   shopData.skins.forEach((x) => {
-    x.name = shopT(lang, 'skins', x.id, 'name') ?? x.name;
-    x.desc = shopT(lang, 'skins', x.id, 'desc') ?? x.desc;
+    x.name = shopTData(lang, 'skins', x.id, 'name') ?? x.name;
+    x.desc = shopTData(lang, 'skins', x.id, 'desc') ?? x.desc;
   });
 
   shopData.coinPacks.forEach((x) => {
-    x.name = shopT(lang, 'coinPacks', x.id, 'name') ?? x.name;
-    x.desc = shopT(lang, 'coinPacks', x.id, 'desc') ?? x.desc;
+    x.name = shopTData(lang, 'coinPacks', x.id, 'name') ?? x.name;
+    x.desc = shopTData(lang, 'coinPacks', x.id, 'desc') ?? x.desc;
   });
 
   DAILY_GIFT_POOL.forEach((x) => {
@@ -604,7 +604,7 @@ function shopApplyLangToData(lang) {
             : 'big_coin_pack'
         : x.id;
 
-    x.name = shopT(lang, 'dailyGiftPool', key, 'name') ?? x.name;
+    x.name = shopTData(lang, 'dailyGiftPool', key, 'name') ?? x.name;
   });
 }
 
@@ -691,9 +691,7 @@ function shopRenderFeatured() {
   document.getElementById('featuredPrice').textContent = f.price;
 
   const btn = document.getElementById('featuredBuyBtn');
-  btn.textContent = SHOP.ownedFeatured
-    ? shopT('shop.owned')
-    : shopT('shop.get');
+  btn.textContent = SHOP.ownedFeatured ? shopT('ui.owned') : shopT('ui.get');
   btn.disabled = SHOP.ownedFeatured;
 
   btn.onclick = () => {
@@ -804,7 +802,7 @@ function shopRenderDaily() {
       <div class="offerBottom">
         <div class="priceChip">${owned ? '—' : `${item.price} 🪙`}</div>
         <button class="buyMiniBtn" ${owned ? 'disabled' : ''}>
-          ${owned ? shopT('shop.owned') : shopT('shop.buy')}
+          ${owned ? shopT('ui.owned') : shopT('ui.buy')}
         </button>
       </div>
     `;
@@ -1362,7 +1360,7 @@ function shopCloseModal() {
 function shopBuy(item) {
   const price = Number(item.price || 0);
   const c = getCoins();
-
+  shopT;
   if (item.type === 'coin') {
     setCoins(getCoins() + Number(item.add || 0));
     showToast(`+${item.add} coins!`, 'success');
@@ -1400,20 +1398,30 @@ function shopBuy(item) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const lang = localStorage.getItem('language') || 'en';
+
+  syncShopState();
+  shopApplyLangToData(lang);
+
   shopInit();
+  shopOnEnter();
+
   initShopBlueScroller();
   initShopDotsNav();
 
-  const btn = document.getElementById('freeGiftBtn');
-  if (btn)
-    btn.addEventListener('click', (e) => {
+  const giftBtn = document.getElementById('freeGiftBtn');
+  if (giftBtn) {
+    giftBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       claimDailyGift();
     });
+  }
 
   renderDailyGiftCard();
   updateDailyGiftUI();
-  setInterval(updateDailyGiftUI, 1000);
+
+  clearInterval(window.__giftUiTick);
+  window.__giftUiTick = setInterval(updateDailyGiftUI, 1000);
 
   startDailyRotation();
   startFeaturedRotation();

@@ -110,12 +110,12 @@
 
 
         <div id="centerCherecter"></div>
-        <button id="startGameBtn" onclick="openMap(event)" data-sound="map">BATTLE</button>
+        <button id="startGameBtn" onclick="openMap(event)" data-sound="map" data-i18n="home.battle">BATTLE</button>
       </div>
 
       <!-- ================= MAP ================= -->
       <div id="mapDiv" class="uiModal uiModalCenterTall">
-        <h2 id="mapTitle">LEVELS</h2>
+        <h2 id="mapTitle" data-i18n="map.title">LEVELS</h2>
         <button id="closeMapDiv" onclick="closeMap()">✕
         </button>
 
@@ -155,35 +155,35 @@
 
       <!-- ================= LOADOUT SCREEN ================= -->
       <div id="loadoutScreen" class="page">
-        <h1 class="pageText" id="loadoutPageTitle">LOADOUT</h1>
+        <h1 class="pageText" id="loadoutPageTitle" data-i18n="loadout.title">LOADOUT</h1>
 
         <div id="loadoutBtnDiv">
           <div class="loadoutItem">
             <button class="loadoutBtn" onclick="openWeaponDiv(event)">
               <img src="./images/logosImage/weaponlogo.png" class="itemIconInside" />
             </button>
-            <span class="itemText">Weapons</span>
+            <span class="itemText" data-i18n="loadout.weapons">Weapons</span>
           </div>
 
           <div class="loadoutItem">
             <button class="loadoutBtn" onclick="openPetShop()">
               <img src="./images/logosImage/petIcone.png" class="itemIconInside" />
             </button>
-            <span class="itemText">Pets</span>
+            <span class="itemText" data-i18n="loadout.pets">Pets</span>
           </div>
 
           <div class="loadoutItem">
             <button class="loadoutBtn" onclick="toggleSuperShop(event)">
               <img src="./images/logosImage/superIcone.png" class="itemIconInside" />
             </button>
-            <span class="itemText">Super</span>
+            <span class="itemText" data-i18n="loadout.super">Super</span>
           </div>
 
           <div class="loadoutItem">
             <button class="loadoutBtn">
               <img src="./images/logosImage/upgreatIcone.png" class="itemIconInside" />
             </button>
-            <span class="itemText">Upgrade</span>
+            <span class="itemText" data-i18n="loadout.upgrade">Upgrade</span>
           </div>
         </div>
 
@@ -200,7 +200,7 @@
                 <img src="./images/logosImage/weaponImg/leserIcone.png" class="itemIconInside" />
               </button>
 
-              <button class="equipBtn" data-sound="equip" onclick="equipWeapon('laser')">
+              <button class="equipBtn" data-sound="equip" data-i18n="ui.equip" onclick="equipWeapon('laser')">
                 EQUIP
               </button>
             </div>
@@ -210,7 +210,7 @@
                 <img src="./images/logosImage/weaponImg/missileIcone.png" class="itemIconInside" />
               </button>
 
-              <button class="equipBtn" data-sound="equip" onclick="equipWeapon('missile')">
+              <button class="equipBtn" data-sound="equip" data-i18n="ui.equip" onclick="equipWeapon('missile')">
                 EQUIP
               </button>
             </div>
@@ -220,7 +220,7 @@
                 <img src="./images/logosImage/weaponImg/triangleShooter.png" class="itemIconInside" />
               </button>
 
-              <button class="equipBtn" data-sound="equip" onclick="equipWeapon('triangleShooter')">
+              <button class="equipBtn" data-sound="equip" data-i18n="ui.equip" onclick="equipWeapon('triangleShooter')">
                 EQUIP
               </button>
             </div>
@@ -234,18 +234,16 @@
             </button>
 
             <div class="comingSoonOverlay" id="comingSoonOverlay">
-              <div class="comingSoonText" id="comingSoonText">
-                Coming Soon..
-              </div>
+              <div class="comingSoonText" id="comingSoonText" data-i18n="ui.comingSoon">Coming Soon..</div>
             </div>
           </div>
 
           <div id="buyWeaponPopup" onclick="event.stopPropagation()">
-            <div class="buyTitle" id="buyWeaponName">WEAPON</div>
+            <div class="buyTitle" id="buyWeaponName" data-i18n="ui.weapon">WEAPON</div>
             <img id="buyWeaponImg" />
             <div class="buyPrice"><span id="buyWeaponPrice">0</span> 🪙</div>
-            <button id="buyConfirmBtn">BUY</button>
-            <button id="buyCancelBtn">CLOSE</button>
+            <button id="buyConfirmBtn" data-i18n="ui.buy">BUY</button>
+            <button id="buyCancelBtn" data-i18n="ui.close">CLOSE</button>
           </div>
         </div>
       </div>
@@ -254,21 +252,21 @@
         <div class="petShopBox">
           <button class="closePetShopBtn">✕</button>
 
-          <h2 class="petTitle">🐾 PET SHOP</h2>
+          <h2 class="petTitle" data-i18n="pets.title">🐾 PET SHOP</h2>
 
           <div class="petGrid">
             <div class="petCard" data-pet="dog">
               <div class="petIcon">🐶</div>
               <div class="petName">Chimpo</div>
               <div class="petPrice">1000 🪙</div>
-              <button class="petBuyBtn" onclick="buyPet('dog')">BUY</button>
+              <button class="petBuyBtn" data-i18n="ui.buy" onclick="buyPet('dog')">BUY</button>
             </div>
 
             <div class="petCard" data-pet="siren">
               <div class="petIcon">🐱</div>
               <div class="petName">Siren</div>
               <div class="petPrice">2500 🪙</div>
-              <button class="petBuyBtn" onclick="buyPet('siren')">BUY</button>
+              <button class="petBuyBtn" data-i18n="ui.buy" onclick="buyPet('siren')">BUY</button>
             </div>
           </div>
 
@@ -287,7 +285,7 @@
 
       <div id="superShopDiv" data-sound="super">
         <div class="superShopHeader">
-          <div class="superTitle">SUPER SHOP</div>
+          <div class="superTitle" data-i18n="loadout.super">SUPER SHOP</div>
           <button class="closeSuperShopDiv" onclick="closeSuperShop()">✕</button>
         </div>
         <div class="superShopBody">
@@ -297,7 +295,7 @@
             <div class="superCard" data-super="waveShield">
               <button class="selectSuperBtn" data-super="waveShield"></button>
               <button class="superEquipBtn" data-sound="equip">
-                <span class="label">EQUIP</span>
+                <span class="label" data-i18n="ui.equip"></span>
                 <span class="check">✓</span>
               </button>
             </div>
@@ -324,20 +322,14 @@
 
         <div id="buySuperConfirm" class="buySuperConfirm">
           <div class="buySuperBox">
-            <div class="buySuperTitle">BUY SUPER?</div>
-            <div class="buySuperText">
+            <div class="buySuperTitle" data-i18n="ui.buy">BUY</div>
+
+            <div class="buySuperText" data-i18n="shop.confirmSuper">
               Are you sure you want to buy this super?
             </div>
 
-            <div class="buySuperActions">
-              <button class="buyCancelBtn" onclick="closeBuySuperConfirm()">
-                CANCEL
-              </button>
-
-              <button class="confirmBox" onclick="confirmBuySuper()">
-                BUY
-              </button>
-            </div>
+            <button class="buyCancelBtn" data-i18n="ui.cancel"></button>
+            <button class="confirmBox" data-i18n="ui.buy"></button>
           </div>
         </div>
       </div>
@@ -357,7 +349,7 @@
           <section class="shopSection" data-shop-target="Daily">
             <div class="sectionTop">
               <div class="sectionTitle" data-i18n="shop.dailyOffers">DAILY OFFERS</div>
-              <div class="sectionHint">Refreshes daily</div>
+              <div class="sectionHint" data-i18n="shop.refreshesDaily">Refreshes daily</div>
               <div id="dailyTimer" class="timer"></div>
             </div>
             <div id="dailyOffersRow" class="cardsRow"></div>
@@ -367,14 +359,15 @@
             <div class="sectionTop">
               <div class="sectionTitle" data-i18n="shop.freeGift">FREE GIFT</div>
               <div id="freeGiftTimer" class="timer">--</div>
-              <div class="sectionHint">Every day</div>
+              <div class="sectionHint" data-i18n="shop.everyDay">Every day
+              </div>
             </div>
 
             <div class="freeGiftCard" id="freeGiftCard">
               <div class="freeGiftGlow"></div>
 
               <div class="freeGiftLeft">
-                <div class="freeGiftTag">DAILY</div>
+                <div class="freeGiftTag" data-i18n="shop.gift.tag">DAILY</div>
                 <div class="freeGiftName" id="freeGiftName">Daily Coins</div>
                 <div class="freeGiftDesc" id="freeGiftDesc">Claim your free reward</div>
 
@@ -392,7 +385,7 @@
             <div class="sectionTop">
               <div class="sectionTitle" data-i18n="shop.skinOffers">SKIN OFFERS</div>
               <div id="skinOffersTimer" class="timer">--</div>
-              <div class="sectionHint">Refreshes daily</div>
+              <div class="sectionHint" data-i18n="shop.refreshesDaily">Refreshes daily</div>
             </div>
             <div id="skinOffersGrid" class="shopGrid"></div>
           </section>
@@ -402,13 +395,13 @@
               <div class="sectionTitle" data-i18n="shop.featured">FEATURED
               </div>
               <div id="featuredTimer" class="timer"></div>
-              <div class="sectionHint">Limited</div>
+              <div class="sectionHint" data-i18n="shop.limited">Limited</div>
             </div>
 
             <div id="featuredCard" class="featuredCard">
               <div class="featuredGlow"></div>
               <div class="featuredLeft">
-                <div class="featuredTag">SPECIAL DROP</div>
+                <div class="featuredTag" data-i18n="shop.featuredTag">SPECIAL DROP</div>
                 <div id="featuredName" class="featuredName">Galaxy Pass</div>
                 <div id="featuredDesc" class="featuredDesc">Unlock a premium reward track + bonus coins</div>
                 <div class="featuredBottom">
@@ -425,7 +418,7 @@
           <section class="shopSection" data-shop-target="Coins">
             <div class="sectionTop">
               <div class="sectionTitle" data-i18n="shop.coins">COINS</div>
-              <div class="sectionHint">Best value packs</div>
+              <div class="sectionHint" data-i18n="shop.bestValue">Best value packs</div>
             </div>
             <div id="coinsGrid" class="shopGrid"></div>
           </section>
@@ -450,8 +443,8 @@
             <div class="shopModalTop">
               <div id="shopModalIcon" class="shopModalIcon">🛒</div>
               <div class="shopModalText">
-                <div id="shopModalTitle" class="shopModalTitle">Item</div>
-                <div id="shopModalDesc" class="shopModalDesc">Description</div>
+                <div id="shopModalTitle" class="shopModalTitle" data-i18n="ui.item">Item</div>
+                <div id="shopModalDesc" class="shopModalDesc" data-i18n="ui.desc">Description</div>
               </div>
             </div>
 

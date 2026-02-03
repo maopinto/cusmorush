@@ -853,7 +853,6 @@ document.querySelectorAll('.upgradeWeapon.locked').forEach((btn) => {
 document.addEventListener('DOMContentLoaded', () => {
   loadCoins();
   const savedLang = localStorage.getItem('language') || 'en';
-  applyLanguage(savedLang);
 });
 
 function openPetShop() {
@@ -873,16 +872,15 @@ function isPetOwned(id) {
 }
 
 function buyPet(id) {
-  const pet = PETS[id];
-  if (!pet) return;
+  const lang = getLang();
 
   if (isPetOwned(id)) {
-    showToast('Already owned!', 'error');
+    showToast(t(lang, 'toast.alreadyOwned'), 'error');
     return;
   }
 
   if (coins < pet.price) {
-    showToast('Not enough coins!', 'error');
+    showToast(t(lang, 'toast.noCoins'), 'error');
     return;
   }
 
@@ -907,27 +905,28 @@ function buyPet(id) {
 }
 
 function updatePetUI() {
+  const lang = getLang();
+
   document.querySelectorAll('.petCard').forEach((card) => {
     const id = card.dataset.pet;
     const btn = card.querySelector('.petBuyBtn');
     const price = card.querySelector('.petPrice');
 
     if (!isPetOwned(id)) {
-      btn.textContent = 'BUY';
+      btn.textContent = t(lang, 'ui.buy');
       btn.className = 'petBuyBtn';
       btn.onclick = () => buyPet(id);
       price.textContent = `${PETS[id].price} 🪙`;
       return;
     }
 
-    // ✅ Owned
     price.textContent = '';
 
     if (getEquippedPet() === id) {
-      btn.textContent = 'UNEQUIP';
+      btn.textContent = t(lang, 'pets.unequip');
       btn.className = 'petBuyBtn equipped';
     } else {
-      btn.textContent = 'EQUIP';
+      btn.textContent = t(lang, 'pets.equip');
       btn.className = 'petBuyBtn';
     }
 
@@ -993,9 +992,16 @@ function openPetInfo(petKey) {
   const pet = PETS[petKey];
   if (!pet) return;
 
-  document.getElementById('petInfoTitle').textContent = pet.name + ' Info';
+  const lang = getLang();
 
-  document.getElementById('petInfoDesc').textContent = 'Support companion';
+  document.getElementById('petInfoTitle').textContent = t(lang, 'pets.info', {
+    name: pet.name,
+  });
+
+  document.getElementById('petInfoDesc').textContent = t(
+    lang,
+    'pets.supportCompanion'
+  );
 
   const statsUl = document.getElementById('petInfoStats');
   statsUl.innerHTML = '';
@@ -1005,14 +1011,10 @@ function openPetInfo(petKey) {
   });
 
   document.getElementById('petInfoLongDesc').textContent =
-    pet.description || 'No description available.';
+    pet.description || '';
 
   document.getElementById('petInfoOverlay').classList.remove('hidden');
 }
-
-document.getElementById('closePetInfo').onclick = () => {
-  document.getElementById('petInfoOverlay').classList.add('hidden');
-};
 
 function addPetStat(label, value) {
   const li = document.createElement('li');
@@ -1122,6 +1124,7 @@ function setEquippedSuper(id) {
 }
 
 function updateSuperEquipUI() {
+  const lang = getLang();
   const equipped = getEquippedSuper();
 
   document.querySelectorAll('.superCard').forEach((card) => {
@@ -1130,11 +1133,10 @@ function updateSuperEquipUI() {
     if (!btn || !SUPERS[id]) return;
 
     const label = btn.querySelector('.label');
-
     btn.onclick = null;
 
     if (!isSuperOwned(id)) {
-      label.textContent = `BUY (${SUPERS[id].price} 🪙)`;
+      label.textContent = `${t(lang, 'ui.buy')} (${SUPERS[id].price} 🪙)`;
       btn.className = 'superEquipBtn buy';
       btn.disabled = false;
 
@@ -1146,13 +1148,13 @@ function updateSuperEquipUI() {
     }
 
     if (equipped === id) {
-      label.textContent = 'EQUIPPED';
+      label.textContent = t(lang, 'ui.equipped');
       btn.className = 'superEquipBtn equipped';
       btn.disabled = true;
       return;
     }
 
-    label.textContent = 'EQUIP';
+    label.textContent = t(lang, 'ui.equip');
     btn.className = 'superEquipBtn';
     btn.disabled = false;
 

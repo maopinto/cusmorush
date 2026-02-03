@@ -1,6 +1,7 @@
 const TRANSLATIONS = {
+  /* ======================= ENGLISH ======================= */
   en: {
-    // Settings
+    /* Settings */
     'settings.title': 'Settings',
     'settings.music': 'Music',
     'settings.audio': 'Audio',
@@ -8,31 +9,22 @@ const TRANSLATIONS = {
     'settings.audioVolume': 'Audio Volume',
     'settings.musicVolume': 'Music Volume',
 
-    // Titles / Sections
+    /* Screens */
     'map.title': 'LEVELS',
     'loadout.title': 'LOADOUT',
     'inventory.title': 'INVENTORY',
     'social.title': 'JOIN THE COMMUNITY',
 
-    // Home
+    /* Home */
     'home.battle': 'BATTLE',
 
-    // Shop sections
-    'shop.title': 'SHOP',
-    'shop.sub': 'Grab deals • Upgrade style • Power up',
-    'shop.dailyOffers': 'DAILY OFFERS',
-    'shop.freeGift': 'FREE GIFT',
-    'shop.skinOffers': 'SKIN OFFERS',
-    'shop.featured': 'FEATURED',
-    'shop.coins': 'COINS',
-
-    // Nav
+    /* Navigation */
     'nav.shop': 'Shop',
     'nav.loadout': 'Loadout',
     'nav.battle': 'Battle!',
     'nav.inventory': 'Inventory',
 
-    // UI (generic buttons/status)
+    /* Generic UI */
     'ui.free': 'FREE',
     'ui.owned': 'OWNED',
     'ui.buy': 'BUY',
@@ -42,15 +34,34 @@ const TRANSLATIONS = {
     'ui.equip': 'EQUIP',
     'ui.equipped': 'EQUIPPED',
     'ui.locked': 'LOCKED',
+    'ui.open': 'OPEN',
+    'ui.close': 'CLOSE',
+    'ui.cancel': 'CANCEL',
+    'ui.item': 'Item',
+    'ui.desc': 'Description',
+    'ui.weapon': 'WEAPON',
+    'ui.price': 'PRICE',
+    'ui.comingSoon': 'Coming Soon...',
 
-    // Toasts (generic)
+    /* Toasts */
     'toast.noCoins': 'Not enough coins!',
     'toast.alreadyOwned': 'Already owned!',
 
-    // Shop texts (specific)
+    /* Shop */
+    'shop.title': 'SHOP',
+    'shop.sub': 'Grab deals • Upgrade style • Power up',
+    'shop.dailyOffers': 'DAILY OFFERS',
+    'shop.freeGift': 'FREE GIFT',
+    'shop.skinOffers': 'SKIN OFFERS',
+    'shop.featured': 'FEATURED',
+    'shop.coins': 'COINS',
     'shop.refreshesDaily': 'Refreshes daily',
     'shop.everyDay': 'Every day',
     'shop.limited': 'Limited',
+    'shop.bestValue': 'Best value packs',
+    'shop.featuredTag': 'SPECIAL DROP',
+
+    /* Shop Dynamic */
     'shop.newFeaturedIn': 'NEW FEATURED IN {time}',
     'shop.notEnoughCoins': 'Not enough coins',
     'shop.skinPurchased': 'Skin purchased!',
@@ -60,17 +71,32 @@ const TRANSLATIONS = {
     'shop.dailyGiftCoins': 'Daily gift: +{coins} coins',
     'shop.boostUnlocked': 'Boost unlocked: {name}',
     'shop.unlocked': 'Unlocked: {name}',
+    'shop.confirmSuper': 'Are you sure you want to buy this super?',
 
-    // Daily gift card text (missing in your current dict, used in code)
+    /* Daily Gift */
     'shop.gift.title': 'Daily Gift',
+    'shop.gift.tag': 'DAILY',
     'shop.gift.freeCoinsToday': 'Free coins for today',
     'shop.gift.unlockBoost': 'Unlock a boost item',
     'shop.gift.unlockDaily': 'Unlock a daily shop item',
     'shop.gift.claimYourReward': 'Claim your reward',
+
+    /* Loadout */
+    'loadout.weapons': 'Weapons',
+    'loadout.pets': 'Pets',
+    'loadout.super': 'Super',
+    'loadout.upgrade': 'Upgrade',
+
+    /* Pets */
+    'pets.title': 'PET SHOP',
+    'pets.equip': 'EQUIP',
+    'pets.unequip': 'UNEQUIP',
+    'pets.supportCompanion': 'Support companion',
+    'pets.info': '{name} Info',
   },
 
+  /* ======================= HEBREW ======================= */
   he: {
-    // Settings
     'settings.title': 'הגדרות',
     'settings.music': 'מוזיקה',
     'settings.audio': 'צלילים',
@@ -78,31 +104,18 @@ const TRANSLATIONS = {
     'settings.audioVolume': 'עוצמת צלילים',
     'settings.musicVolume': 'עוצמת מוזיקה',
 
-    // Titles / Sections
     'map.title': 'שלבים',
     'loadout.title': 'ציוד',
     'inventory.title': 'מלאי',
     'social.title': 'הצטרפו לקהילה',
 
-    // Home
     'home.battle': 'קרב',
 
-    // Shop sections
-    'shop.title': 'חנות',
-    'shop.sub': 'דילים • סטייל • שדרוגים',
-    'shop.dailyOffers': 'דילים יומיים',
-    'shop.freeGift': 'מתנה חינם',
-    'shop.skinOffers': 'סקינים',
-    'shop.featured': 'מומלצים',
-    'shop.coins': 'מטבעות',
-
-    // Nav
     'nav.shop': 'חנות',
     'nav.loadout': 'ציוד',
     'nav.battle': 'קרב!',
     'nav.inventory': 'מלאי',
 
-    // UI (generic buttons/status)
     'ui.free': 'חינם',
     'ui.owned': 'בבעלותך',
     'ui.buy': 'קנה',
@@ -112,35 +125,63 @@ const TRANSLATIONS = {
     'ui.equip': 'צייד',
     'ui.equipped': 'מצויד',
     'ui.locked': 'נעול',
+    'ui.open': 'פתח',
+    'ui.close': 'סגור',
+    'ui.cancel': 'בטל',
+    'ui.item': 'פריט',
+    'ui.desc': 'תיאור',
+    'ui.weapon': 'נשק',
+    'ui.price': 'מחיר',
+    'ui.comingSoon': 'בקרוב...',
 
-    // Toasts (generic)
     'toast.noCoins': 'אין מספיק מטבעות!',
     'toast.alreadyOwned': 'כבר בבעלותך!',
 
-    // Shop texts (specific)
+    'shop.title': 'חנות',
+    'shop.sub': 'דילים • סטייל • שדרוגים',
+    'shop.dailyOffers': 'דילים יומיים',
+    'shop.freeGift': 'מתנה חינם',
+    'shop.skinOffers': 'סקינים',
+    'shop.featured': 'מומלצים',
+    'shop.coins': 'מטבעות',
     'shop.refreshesDaily': 'מתחלף מדי יום',
     'shop.everyDay': 'כל יום',
     'shop.limited': 'מוגבל',
+    'shop.bestValue': 'הכי משתלם',
+    'shop.featuredTag': 'השקה מיוחדת',
+
     'shop.newFeaturedIn': 'חדש בעוד {time}',
     'shop.notEnoughCoins': 'אין מספיק מטבעות',
     'shop.skinPurchased': 'סקין נרכש!',
-    'shop.featuredUnlocked': 'הפריט המומלץ נפתח!',
+    'shop.featuredUnlocked': 'נפתח!',
     'shop.dealPurchased': 'הדיל נרכש!',
-    'shop.alreadyOwnedBonus': 'כבר בבעלות. בונוס: +{coins} מטבעות',
-    'shop.dailyGiftCoins': 'מתנה יומית: +{coins} מטבעות',
+    'shop.alreadyOwnedBonus': 'כבר בבעלות. בונוס: +{coins}',
+    'shop.dailyGiftCoins': 'מתנה יומית: +{coins}',
     'shop.boostUnlocked': 'בוסט נפתח: {name}',
     'shop.unlocked': 'נפתח: {name}',
+    'shop.confirmSuper': 'בטוח שברצונך לרכוש את הסופר הזה?',
 
-    // Daily gift card text
     'shop.gift.title': 'מתנה יומית',
+    'shop.gift.tag': 'יומי',
     'shop.gift.freeCoinsToday': 'מטבעות חינם להיום',
-    'shop.gift.unlockBoost': 'פותח פריט בוסט',
-    'shop.gift.unlockDaily': 'פותח פריט יומי מהחנות',
-    'shop.gift.claimYourReward': 'קח את הפרס שלך',
+    'shop.gift.unlockBoost': 'פותח בוסט',
+    'shop.gift.unlockDaily': 'פותח פריט יומי',
+    'shop.gift.claimYourReward': 'קח את הפרס',
+
+    'loadout.weapons': 'נשקים',
+    'loadout.pets': 'חיות מחמד',
+    'loadout.super': 'סופר',
+    'loadout.upgrade': 'שדרוג',
+
+    'pets.title': 'חנות חיות',
+    'pets.equip': 'צייד',
+    'pets.unequip': 'הסר',
+    'pets.supportCompanion': 'בן לוויה תומך',
+    'pets.info': 'מידע על {name}',
   },
 
+  /* ======================= SPANISH ======================= */
   es: {
-    // Settings
     'settings.title': 'Ajustes',
     'settings.music': 'Música',
     'settings.audio': 'Audio',
@@ -148,31 +189,18 @@ const TRANSLATIONS = {
     'settings.audioVolume': 'Volumen de sonido',
     'settings.musicVolume': 'Volumen de música',
 
-    // Titles / Sections
     'map.title': 'NIVELES',
     'loadout.title': 'EQUIPO',
     'inventory.title': 'INVENTARIO',
     'social.title': 'ÚNETE A LA COMUNIDAD',
 
-    // Home
     'home.battle': 'BATALLA',
 
-    // Shop sections
-    'shop.title': 'TIENDA',
-    'shop.sub': 'Ofertas • Estilo • Mejora',
-    'shop.dailyOffers': 'OFERTAS DIARIAS',
-    'shop.freeGift': 'REGALO GRATIS',
-    'shop.skinOffers': 'SKINS',
-    'shop.featured': 'DESTACADO',
-    'shop.coins': 'MONEDAS',
-
-    // Nav
     'nav.shop': 'Tienda',
     'nav.loadout': 'Equipo',
     'nav.battle': '¡Batalla!',
     'nav.inventory': 'Inventario',
 
-    // UI (generic buttons/status)
     'ui.free': 'GRATIS',
     'ui.owned': 'OBTENIDO',
     'ui.buy': 'COMPRAR',
@@ -182,31 +210,59 @@ const TRANSLATIONS = {
     'ui.equip': 'EQUIPAR',
     'ui.equipped': 'EQUIPADO',
     'ui.locked': 'BLOQUEADO',
+    'ui.open': 'ABRIR',
+    'ui.close': 'CERRAR',
+    'ui.cancel': 'CANCELAR',
+    'ui.item': 'Ítem',
+    'ui.desc': 'Descripción',
+    'ui.weapon': 'ARMA',
+    'ui.price': 'PRECIO',
+    'ui.comingSoon': 'Próximamente...',
 
-    // Toasts (generic)
     'toast.noCoins': '¡No hay suficientes monedas!',
     'toast.alreadyOwned': '¡Ya lo tienes!',
 
-    // Shop texts (specific)
+    'shop.title': 'TIENDA',
+    'shop.sub': 'Ofertas • Estilo • Mejora',
+    'shop.dailyOffers': 'OFERTAS DIARIAS',
+    'shop.freeGift': 'REGALO GRATIS',
+    'shop.skinOffers': 'SKINS',
+    'shop.featured': 'DESTACADO',
+    'shop.coins': 'MONEDAS',
     'shop.refreshesDaily': 'Se renueva a diario',
     'shop.everyDay': 'Cada día',
     'shop.limited': 'Limitado',
+    'shop.bestValue': 'Mejor valor',
+    'shop.featuredTag': 'LANZAMIENTO ESPECIAL',
+
     'shop.newFeaturedIn': 'NUEVO EN {time}',
     'shop.notEnoughCoins': 'No tienes suficientes monedas',
     'shop.skinPurchased': '¡Skin comprada!',
-    'shop.featuredUnlocked': '¡Destacado desbloqueado!',
+    'shop.featuredUnlocked': '¡Desbloqueado!',
     'shop.dealPurchased': '¡Oferta comprada!',
-    'shop.alreadyOwnedBonus': 'Ya lo tienes. Bonus: +{coins} monedas',
-    'shop.dailyGiftCoins': 'Regalo diario: +{coins} monedas',
+    'shop.alreadyOwnedBonus': 'Ya lo tienes. Bonus: +{coins}',
+    'shop.dailyGiftCoins': 'Regalo diario: +{coins}',
     'shop.boostUnlocked': 'Boost desbloqueado: {name}',
     'shop.unlocked': 'Desbloqueado: {name}',
+    'shop.confirmSuper': '¿Seguro que quieres comprar este súper?',
 
-    // Daily gift card text
     'shop.gift.title': 'Regalo diario',
+    'shop.gift.tag': 'DIARIO',
     'shop.gift.freeCoinsToday': 'Monedas gratis de hoy',
-    'shop.gift.unlockBoost': 'Desbloquea un boost',
-    'shop.gift.unlockDaily': 'Desbloquea un ítem diario',
+    'shop.gift.unlockBoost': 'Desbloquea boost',
+    'shop.gift.unlockDaily': 'Desbloquea ítem diario',
     'shop.gift.claimYourReward': 'Reclama tu recompensa',
+
+    'loadout.weapons': 'Armas',
+    'loadout.pets': 'Mascotas',
+    'loadout.super': 'Súper',
+    'loadout.upgrade': 'Mejoras',
+
+    'pets.title': 'TIENDA DE MASCOTAS',
+    'pets.equip': 'EQUIPAR',
+    'pets.unequip': 'QUITAR',
+    'pets.supportCompanion': 'Compañero de apoyo',
+    'pets.info': 'Información de {name}',
   },
 };
 
