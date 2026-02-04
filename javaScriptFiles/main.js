@@ -114,10 +114,9 @@ const PETS = {
 
 const SUPERS = {
   waveShield: {
-    title: 'WAVE SHIELD',
+    titleKey: 'super.waveShield.title',
+    descKey: 'super.waveShield.desc',
     price: 0,
-    description:
-      'Generates a powerful energy wave that blocks incoming damage and reflects part of it back to enemies.',
     stats: {
       Duration: '6s',
       Cooldown: '20s',
@@ -126,10 +125,9 @@ const SUPERS = {
   },
 
   superLaser: {
-    title: 'SUPER LASER',
+    titleKey: 'super.superLaser.title',
+    descKey: 'super.superLaser.desc',
     price: 1500,
-    description:
-      'Channels a long-range laser beam that deals high damage over time.',
     stats: {
       Duration: '5s',
       Damage: '0.5 Per second',
@@ -1000,7 +998,8 @@ function openPetInfo(petKey) {
 
   document.getElementById('petInfoDesc').textContent = t(
     lang,
-    'pets.supportCompanion'
+    `pets.${petKey}.short`,
+    {}
   );
 
   const statsUl = document.getElementById('petInfoStats');
@@ -1010,18 +1009,31 @@ function openPetInfo(petKey) {
     addPetStat(label, value);
   });
 
-  document.getElementById('petInfoLongDesc').textContent =
-    pet.description || '';
+  document.getElementById('petInfoLongDesc').textContent = t(
+    lang,
+    `pets.${petKey}.long`,
+    {}
+  );
 
   document.getElementById('petInfoOverlay').classList.remove('hidden');
+
+  document.getElementById('petInfoTitle').textContent = t(
+    getLang(),
+    'pets.info',
+    {
+      name: pet.name,
+    }
+  );
 }
 
 function addPetStat(label, value) {
+  const lang = getLang();
+
   const li = document.createElement('li');
 
   const spanLabel = document.createElement('span');
   spanLabel.className = 'statLabel';
-  spanLabel.textContent = label;
+  spanLabel.textContent = t(lang, `pets.stat.${label}`);
 
   const spanValue = document.createElement('span');
   spanValue.className = 'statValue';
@@ -1083,18 +1095,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = SUPERS[key];
       if (!data) return;
 
-      titleEl.textContent = data.title;
-      descEl.textContent = data.description;
+      const lang = getLang();
+
+      titleEl.textContent = t(lang, data.titleKey);
+      descEl.textContent = t(lang, data.descKey);
 
       statsEl.innerHTML = '';
+
       Object.entries(data.stats).forEach(([label, value]) => {
         const row = document.createElement('div');
         row.className = 'statRow';
 
         row.innerHTML = `
-          <span class="statLabel">${label}</span>
-          <span class="statValue">${value}</span>
-        `;
+    <span class="statLabel">${t(lang, `super.stat.${label}`)}</span>
+    <span class="statValue">${value}</span>
+  `;
 
         statsEl.appendChild(row);
       });

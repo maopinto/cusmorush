@@ -468,15 +468,15 @@
             <div class="invHead">
               <div class="invIcon">🔫</div>
               <div class="invText">
-                <div class="invName">Weapons</div>
-                <div class="invSub">Your unlocked weapons</div>
+                <div class="invName" data-i18n="inv.section.weapons.title">Weapons</div>
+                <div class="invSub" data-i18n="inv.section.weapons.sub">Your unlocked weapons</div>
               </div>
               <div class="invPill" id="invWeaponsCount">0</div>
             </div>
 
             <div class="invGrid" id="invWeaponsGrid"></div>
 
-            <button class="invBtn" onclick="openInv('weapons')">OPEN</button>
+            <button class="invBtn" onclick="openInv('weapons')" data-i18n="ui.open">OPEN</button>
           </div>
 
           <!-- PETS -->
@@ -484,15 +484,15 @@
             <div class="invHead">
               <div class="invIcon">🐾</div>
               <div class="invText">
-                <div class="invName">Pets</div>
-                <div class="invSub">Companions & helpers</div>
+                <div class="invName" data-i18n="inv.section.pets.title">Pets</div>
+                <div class="invSub" data-i18n="inv.section.pets.sub">Companions & helpers</div>
               </div>
               <div class="invPill" id="invPetsCount">0</div>
             </div>
 
             <div class="invGrid" id="invPetsGrid"></div>
 
-            <button class="invBtn" onclick="openInv('pets')">OPEN</button>
+            <button class="invBtn" onclick="openInv('pets')" data-i18n="ui.open">OPEN</button>
           </div>
 
           <!-- SKINS -->
@@ -500,43 +500,51 @@
             <div class="invHead">
               <div class="invIcon">🟦</div>
               <div class="invText">
-                <div class="invName">Skins</div>
-                <div class="invSub">Cosmetics you own</div>
+                <div class="invName" data-i18n="inv.section.skins.title">Skins</div>
+                <div class="invSub" data-i18n="inv.section.skins.sub">Cosmetics you own</div>
               </div>
               <div class="invPill" id="invSkinsCount">0</div>
             </div>
 
             <div class="invGrid" id="invSkinsGrid"></div>
 
-            <button class="invBtn" onclick="openInv('skins')">OPEN</button>
+            <button class="invBtn" onclick="openInv('skins')" data-i18n="ui.open">OPEN</button>
           </div>
 
 
-          <div class="invMini">
-            <div class="invMiniTop">
-              <span class="invMiniIcon">⚡</span>
-              <span class="invMiniTitle">Supers</span>
-              <span class="invMiniPill" id="invSupersCount">0</span>
+          <!-- SUPERS -->
+          <div class="invSection" data-inv="supers">
+            <div class="invHead">
+              <div class="invIcon">⚡</div>
+              <div class="invText">
+                <div class="invName" data-i18n="inv.section.supers.title">Supers</div>
+                <div class="invSub" data-i18n="inv.section.supers.sub">Special abilities</div>
+              </div>
+              <div class="invPill" id="invSupersCount">0</div>
             </div>
-            <div class="invMiniSub">Special abilities</div>
+
+            <div class="invGrid" id="invSupersGrid"></div>
+
+            <button class="invBtn" onclick="openInv('supers')" data-i18n="ui.open">OPEN</button>
           </div>
+
 
           <div class="invMini">
             <div class="invMiniTop">
               <span class="invMiniIcon">🧩</span>
-              <span class="invMiniTitle">Upgrades</span>
+              <span class="invMiniTitle" data-i18n="inv.mini.upgrades.title">Upgrades</span>
               <span class="invMiniPill" id="invUpgradesCount">0</span>
             </div>
-            <div class="invMiniSub">Permanent boosts</div>
+            <div class="invMiniSub" data-i18n="inv.mini.upgrades.sub">Permanent boosts</div>
           </div>
 
           <div class="invMini">
             <div class="invMiniTop">
               <span class="invMiniIcon">🎁</span>
-              <span class="invMiniTitle">Boosts</span>
+              <span class="invMiniTitle" data-i18n="inv.mini.boosts.title">Boosts</span>
               <span class="invMiniPill" id="invBoostsCount">0</span>
             </div>
-            <div class="invMiniSub">Consumables</div>
+            <div class="invMiniSub" data-i18n="inv.mini.boosts.sub">Consumables</div>
           </div>
         </div>
       </div>
@@ -612,6 +620,34 @@
             </div>
 
             <button id="petPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+          </div>
+
+          <div id="superPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+            <div id="superPreviewName" class="skinPreviewName skinName"></div>
+            <button id="superPreviewClose" class="skinPreviewClose">✕</button>
+
+            <div class="skinPreviewImgWrap">
+              <img id="superPreviewImg" draggable="false" />
+            </div>
+
+            <div class="skinPreviewMeta">
+              <div class="skinMetaRow">
+                <span class="k" data-i18n="ui.desc">Description</span>
+                <span id="superPreviewDesc" class="v"></span>
+              </div>
+
+              <div id="superPreviewStats" class="skinMetaRow">
+                <span class="k">STATS</span>
+                <span id="superPreviewStatsText" class="v"></span>
+              </div>
+
+              <div id="superPreviewPriceRow" class="skinMetaRow hidden">
+                <span class="k" data-i18n="ui.price">PRICE</span>
+                <span id="superPreviewPrice" class="v"></span>
+              </div>
+            </div>
+
+            <button id="superPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
           </div>
         </div>
       </div>

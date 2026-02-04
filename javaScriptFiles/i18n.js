@@ -93,6 +93,68 @@ const TRANSLATIONS = {
     'pets.unequip': 'UNEQUIP',
     'pets.supportCompanion': 'Support companion',
     'pets.info': '{name} Info',
+    'pets.stat.LIVES': 'Lives',
+    'pets.stat.DAMAGE': 'Damage',
+    'pets.stat.SHOOT_RATE': 'Shoot Rate',
+    'pets.stat.ABILITY': 'Ability',
+    'pets.stat.EFFECT': 'Effect',
+    'pets.stat.RATE': 'Rate',
+
+    'pets.dog.short': 'Support companion',
+    'pets.dog.long':
+      'Chimpo is an autonomous companion unit that assists the player in battle.\n\n' +
+      'It automatically targets the closest enemy and fires consistently over time. ' +
+      'Perfect for early-game support and survivability.',
+
+    'pets.siren.short': 'Support companion',
+    'pets.siren.long':
+      'Siren does not deal damage directly.\n\n' +
+      'It manipulates enemy minds, forcing them to turn against each other.\n' +
+      'Extremely effective in crowded waves.',
+
+    /* suepers */
+    'super.waveShield.title': 'WAVE SHIELD',
+    'super.waveShield.desc':
+      'Generates a powerful energy wave that blocks incoming damage and reflects part of it back to enemies.',
+
+    'super.superLaser.title': 'SUPER LASER',
+    'super.superLaser.desc':
+      'Channels a long-range laser beam that deals high damage over time.',
+
+    'super.stat.Duration': 'Duration',
+    'super.stat.Cooldown': 'Cooldown',
+    'super.stat.Reflect': 'Reflect',
+    'super.stat.Damage': 'Damage',
+    'super.stat.Pierce': 'Pierce',
+
+    /* INVENTORY*/
+    'inv.section.weapons.title': 'Weapons',
+    'inv.section.weapons.sub': 'Your unlocked weapons',
+    'inv.section.pets.title': 'Pets',
+    'inv.section.pets.sub': 'Companions & helpers',
+    'inv.section.skins.title': 'Skins',
+    'inv.section.skins.sub': 'Cosmetics you own',
+
+    'inv.mini.supers.title': 'Supers',
+    'inv.mini.supers.sub': 'Special abilities',
+    'inv.mini.upgrades.title': 'Upgrades',
+    'inv.mini.upgrades.sub': 'Permanent boosts',
+    'inv.mini.boosts.title': 'Boosts',
+    'inv.mini.boosts.sub': 'Consumables',
+
+    'inv.modal.skins': 'SKINS',
+    'inv.modal.weapons': 'WEAPONS',
+    'inv.modal.pets': 'PETS',
+
+    'inv.empty.skins': 'No skins',
+    'inv.empty.weapons': 'No weapons yet',
+    'inv.empty.pets': 'No pets yet',
+
+    'inv.notOwned': 'NOT OWNED',
+    'inv.available': 'AVAILABLE',
+    'inv.goToPetShop': 'GO TO PET SHOP',
+    'inv.section.supers.title': 'Supers',
+    'inv.section.supers.sub': 'Special abilities',
   },
 
   /* ======================= HEBREW ======================= */
@@ -178,6 +240,68 @@ const TRANSLATIONS = {
     'pets.unequip': 'הסר',
     'pets.supportCompanion': 'בן לוויה תומך',
     'pets.info': 'מידע על {name}',
+    'pets.stat.LIVES': 'חיים',
+    'pets.stat.DAMAGE': 'נזק',
+    'pets.stat.SHOOT_RATE': 'קצב ירי',
+    'pets.stat.ABILITY': 'יכולת',
+    'pets.stat.EFFECT': 'אפקט',
+    'pets.stat.RATE': 'קצב',
+
+    'pets.dog.short': 'בן לוויה תומך',
+    'pets.dog.long':
+      'צ׳ימפו הוא בן לוויה אוטונומי שמסייע לך בקרב.\n\n' +
+      'הוא מכוון אוטומטית לאויב הקרוב ויורה בקצב קבוע לאורך זמן. ' +
+      'מעולה לתמיכה בשלבים הראשונים ולהישרדות.',
+
+    'pets.siren.short': 'בן לוויה תומך',
+    'pets.siren.long':
+      'סירנה לא גורמת נזק ישיר.\n\n' +
+      'היא משתלטת על התודעה של אויבים וגורמת להם לתקוף אחד את השני.\n' +
+      'יעילה במיוחד בגלים צפופים.',
+
+    /* suepers */
+    'super.waveShield.title': 'מגן גל',
+    'super.waveShield.desc':
+      'יוצר גל אנרגיה שחוסם נזק נכנס ומחזיר חלק ממנו לאויבים.',
+
+    'super.superLaser.title': 'סופר לייזר',
+    'super.superLaser.desc':
+      'יורה קרן לייזר לטווח ארוך שגורמת לנזק גבוה לאורך זמן.',
+
+    'super.stat.Duration': 'משך',
+    'super.stat.Cooldown': 'קירור',
+    'super.stat.Reflect': 'החזרה',
+    'super.stat.Damage': 'נזק',
+    'super.stat.Pierce': 'חדירה',
+
+    /* INVENTORY*/
+    'inv.section.weapons.title': 'נשקים',
+    'inv.section.weapons.sub': 'הנשקים שפתחת',
+    'inv.section.pets.title': 'חיות מחמד',
+    'inv.section.pets.sub': 'מלווים ועוזרים',
+    'inv.section.skins.title': 'סקינים',
+    'inv.section.skins.sub': 'קוסמטיקה שבבעלותך',
+
+    'inv.mini.supers.title': 'סופרים',
+    'inv.mini.supers.sub': 'יכולות מיוחדות',
+    'inv.mini.upgrades.title': 'שדרוגים',
+    'inv.mini.upgrades.sub': 'בונוסים קבועים',
+    'inv.mini.boosts.title': 'בוסטים',
+    'inv.mini.boosts.sub': 'פריטים מתכלים',
+
+    'inv.modal.skins': 'סקינים',
+    'inv.modal.weapons': 'נשקים',
+    'inv.modal.pets': 'חיות מחמד',
+
+    'inv.empty.skins': 'אין סקינים',
+    'inv.empty.weapons': 'אין נשקים עדיין',
+    'inv.empty.pets': 'אין חיות מחמד עדיין',
+
+    'inv.notOwned': 'לא בבעלות',
+    'inv.available': 'זמין בחנות',
+    'inv.goToPetShop': 'לכו לחנות חיות',
+    'inv.section.supers.title': 'סופרים',
+    'inv.section.supers.sub': 'יכולות מיוחדות',
   },
 
   /* ======================= SPANISH ======================= */
@@ -263,6 +387,68 @@ const TRANSLATIONS = {
     'pets.unequip': 'QUITAR',
     'pets.supportCompanion': 'Compañero de apoyo',
     'pets.info': 'Información de {name}',
+    'pets.stat.LIVES': 'Vidas',
+    'pets.stat.DAMAGE': 'Daño',
+    'pets.stat.SHOOT_RATE': 'Cadencia',
+    'pets.stat.ABILITY': 'Habilidad',
+    'pets.stat.EFFECT': 'Efecto',
+    'pets.stat.RATE': 'Frecuencia',
+
+    'pets.dog.short': 'Compañero de apoyo',
+    'pets.dog.long':
+      'Chimpo es un compañero autónomo que ayuda al jugador en batalla.\n\n' +
+      'Apunta automáticamente al enemigo más cercano y dispara de forma constante. ' +
+      'Perfecto para apoyo temprano y supervivencia.',
+
+    'pets.siren.short': 'Compañero de apoyo',
+    'pets.siren.long':
+      'Siren no hace daño directo.\n\n' +
+      'Manipula la mente de los enemigos para que se ataquen entre sí.\n' +
+      'Muy eficaz en oleadas con muchos enemigos.',
+
+    /* suepers */
+    'super.waveShield.title': 'ESCUDO DE ONDA',
+    'super.waveShield.desc':
+      'Genera una onda de energía que bloquea el daño entrante y refleja parte a los enemigos.',
+
+    'super.superLaser.title': 'SÚPER LÁSER',
+    'super.superLaser.desc':
+      'Canaliza un rayo láser de largo alcance que inflige mucho daño con el tiempo.',
+
+    'super.stat.Duration': 'Duración',
+    'super.stat.Cooldown': 'Enfriamiento',
+    'super.stat.Reflect': 'Reflejo',
+    'super.stat.Damage': 'Daño',
+    'super.stat.Pierce': 'Perforación',
+
+    /* INVENTORY*/
+    'inv.section.weapons.title': 'Armas',
+    'inv.section.weapons.sub': 'Tus armas desbloqueadas',
+    'inv.section.pets.title': 'Mascotas',
+    'inv.section.pets.sub': 'Compañeros y ayudantes',
+    'inv.section.skins.title': 'Skins',
+    'inv.section.skins.sub': 'Cosméticos que tienes',
+
+    'inv.mini.supers.title': 'Súpers',
+    'inv.mini.supers.sub': 'Habilidades especiales',
+    'inv.mini.upgrades.title': 'Mejoras',
+    'inv.mini.upgrades.sub': 'Bonos permanentes',
+    'inv.mini.boosts.title': 'Boosts',
+    'inv.mini.boosts.sub': 'Consumibles',
+
+    'inv.modal.skins': 'SKINS',
+    'inv.modal.weapons': 'ARMAS',
+    'inv.modal.pets': 'MASCOTAS',
+
+    'inv.empty.skins': 'No hay skins',
+    'inv.empty.weapons': 'Aún no hay armas',
+    'inv.empty.pets': 'Aún no hay mascotas',
+
+    'inv.notOwned': 'NO OBTENIDO',
+    'inv.available': 'DISPONIBLE',
+    'inv.goToPetShop': 'IR A TIENDA DE MASCOTAS',
+    'inv.section.supers.title': 'Súpers',
+    'inv.section.supers.sub': 'Habilidades especiales',
   },
 };
 
@@ -270,9 +456,17 @@ function getLang() {
   return localStorage.getItem('language') || 'en';
 }
 
-function t(lang, key) {
-  return TRANSLATIONS[lang]?.[key] ?? TRANSLATIONS.en?.[key] ?? key;
+function t(lang, key, params = null) {
+  const str = TRANSLATIONS?.[lang]?.[key] ?? TRANSLATIONS?.en?.[key] ?? key;
+
+  if (!params) return str;
+
+  return str.replace(/\{(\w+)\}/g, (_, k) =>
+    params[k] !== undefined ? String(params[k]) : `{${k}}`
+  );
 }
+
+window.getLang = getLang;
 
 function applyLanguage(lang) {
   const nextLang = TRANSLATIONS[lang] ? lang : 'en';
@@ -309,6 +503,7 @@ function applyLanguage(lang) {
   }
 
   shopOnEnter?.();
+  invRerenderIfOpen?.();
 }
 
 function initLanguageUI() {
@@ -341,7 +536,12 @@ function initLanguageUI() {
   applyLanguage(getLang());
 }
 
+window.TRANSLATIONS = TRANSLATIONS;
 window.getLang = getLang;
 window.t = t;
 window.applyLanguage = applyLanguage;
 window.initLanguageUI = initLanguageUI;
+
+window.getLang = function () {
+  return localStorage.getItem('language') || 'en';
+};

@@ -841,6 +841,10 @@
   display: none;
 }
 
+.invOwnedCard.superCard {
+  border-color: rgba(255, 220, 120, 0.55);
+}
+
 .invSectionPets {
   border: 1px solid rgba(190, 120, 255, 0.28);
 }
