@@ -116,6 +116,7 @@ const SUPERS = {
   waveShield: {
     titleKey: 'super.waveShield.title',
     descKey: 'super.waveShield.desc',
+    img: './images/logosImage/superLogosImage/waveShield.png',
     price: 0,
     stats: {
       Duration: '6s',
@@ -127,6 +128,7 @@ const SUPERS = {
   superLaser: {
     titleKey: 'super.superLaser.title',
     descKey: 'super.superLaser.desc',
+    img: './images/logosImage/superLogosImage/superLaser.png',
     price: 1500,
     stats: {
       Duration: '5s',

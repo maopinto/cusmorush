@@ -82,6 +82,8 @@ function setEquippedSuper(id) {
 }
 
 function openInv(type) {
+  closePetPreview?.();
+  closeSuperPreview?.();
   invOpenType = type;
 
   const modal = document.getElementById('invModal');
@@ -98,7 +100,9 @@ function openInv(type) {
         ? invT('inv.modal.weapons')
         : type === 'pets'
           ? invT('inv.modal.pets')
-          : invT('inventory.title');
+          : type === 'supers'
+            ? invT('inv.modal.supers')
+            : invT('inventory.title');
   grid.innerHTML = '';
 
   if (type === 'skins') {
@@ -307,25 +311,32 @@ function openInv(type) {
   }
 
   if (type === 'supers') {
-    const allSuperIds = Object.keys(SUPERS || {});
+    const allSuperKeys = Object.keys(SUPERS || {});
+
     const ownedSet = new Set(
       JSON.parse(localStorage.getItem('ownedSupers') || '[]').map(
         normalizeSkinId
       )
     );
 
-    const isOwned = (sid) => {
-      const n = normalizeSkinId(sid);
-      return ownedSet.has(n) || (SUPERS?.[sid]?.price ?? 0) === 0;
+    const isOwned = (key) => {
+      const n = normalizeSkinId(key);
+      return ownedSet.has(n) || (SUPERS?.[key]?.price ?? 0) === 0;
     };
 
-    const ownedList = allSuperIds.filter((id) => isOwned(id));
-    const lockedList = allSuperIds.filter((id) => !isOwned(id));
+    const ownedList = allSuperKeys.filter(isOwned);
+    const lockedList = allSuperKeys.filter((k) => !isOwned(k));
 
-    const renderSuperCard = (id, owned) => {
-      const s = SUPERS[id] || {};
-      const name = s.title || id;
-      const equipped = (localStorage.getItem('equippedSuper') || '') === id;
+    const renderSuperCard = (key, owned) => {
+      const sKey = key;
+      const s = SUPERS[sKey] || {};
+
+      const imgSrc = s.img || './images/logosImage/superIcone.png';
+      const name = s.title || sKey;
+
+      const equipped =
+        normalizeSkinId(localStorage.getItem('equippedSuper')) ===
+        normalizeSkinId(sKey);
 
       const el = document.createElement('div');
       el.className =
@@ -336,45 +347,41 @@ function openInv(type) {
           ? invT('ui.equipped')
           : invT('ui.equip')
         : '';
+
       const btnDisabled = owned && equipped;
 
       el.innerHTML = `
       <div class="invOwnedBody">
         <div class="invOwnedIcon">
-          <img src="./images/logosImage/superIcone.png" draggable="false" />
+          <img src="${imgSrc}" draggable="false" />
         </div>
         <div class="invOwnedName">${name}</div>
       </div>
-
-      ${
-        owned
-          ? `<button class="EquipBtn" ${btnDisabled ? 'disabled' : ''}>${btnText}</button>`
-          : ``
-      }
+      ${owned ? `<button class="EquipBtn" ${btnDisabled ? 'disabled' : ''}>${btnText}</button>` : ``}
     `;
 
       if (owned) {
         el.querySelector('.EquipBtn')?.addEventListener('click', (e) => {
           e.stopPropagation();
           if (btnDisabled) return;
-          localStorage.setItem('equippedSuper', id);
+          localStorage.setItem('equippedSuper', sKey);
           openInv('supers');
           renderInventoryOverview?.();
         });
       }
 
-      el.onclick = (e) => {
+      el.addEventListener('click', (e) => {
         e.stopPropagation();
-        openSuperPreview({ ...s, id });
-      };
+        openSuperPreview({ ...s, id: sKey });
+      });
 
       grid.appendChild(el);
     };
 
-    if (!allSuperIds.length) {
+    if (!allSuperKeys.length) {
       grid.innerHTML = `<div class="invEmpty">${invT('inv.empty.supers')}</div>`;
     } else {
-      ownedList.forEach((id) => renderSuperCard(id, true));
+      ownedList.forEach((k) => renderSuperCard(k, true));
 
       if (lockedList.length) {
         const divider = document.createElement('div');
@@ -382,10 +389,15 @@ function openInv(type) {
         divider.textContent = invT('inv.notOwned');
         grid.appendChild(divider);
 
-        lockedList.forEach((id) => renderSuperCard(id, false));
+        lockedList.forEach((k) => renderSuperCard(k, false));
       }
     }
   }
+
+  const box = modal.querySelector('.invModalBox');
+  title.classList.toggle('supersTheme', type === 'supers');
+  box?.classList.toggle('supersTheme', type === 'supers');
+  modal.classList.toggle('isSupers', type === 'supers');
 
   modal.classList.remove('hidden');
 }
@@ -517,8 +529,16 @@ function closeInv() {
   closeSkinPreview();
   closePetPreview?.();
   closeSuperPreview?.();
-  closeSuperPreview();
-  document.getElementById('invModal')?.classList.add('hidden');
+
+  const modal = document.getElementById('invModal');
+  const title = document.getElementById('invModalTitle');
+  const box = modal?.querySelector('.invModalBox');
+
+  title?.classList.remove('supersTheme');
+  box?.classList.remove('supersTheme');
+  modal?.classList.remove('isSupers');
+
+  modal?.classList.add('hidden');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -758,49 +778,6 @@ function closeSuperPreview() {
 
 function openSuperPreview(s) {
   const wrap = document.getElementById('superPreview');
-  if (!wrap) return;
-
-  const owned = isSuperOwned(s.id);
-  const equipped = getEquippedSuper() === normalizeSkinId(s.id);
-
-  wrap.classList.remove('hidden');
-
-  document.getElementById('superPreviewName').textContent = s.title;
-  document.getElementById('superPreviewImg').src = s.img;
-  document.getElementById('superPreviewDesc').textContent = s.description;
-
-  document.getElementById('superPreviewStats').textContent = Object.entries(
-    s.stats || {}
-  )
-    .map(([k, v]) => `${k}: ${v}`)
-    .join(' • ');
-
-  const priceRow = document.getElementById('superPreviewPriceRow');
-  const priceEl = document.getElementById('superPreviewPrice');
-
-  if (!owned) {
-    priceRow.classList.remove('hidden');
-    priceEl.textContent = `${s.price} 🪙`;
-  } else {
-    priceRow.classList.add('hidden');
-  }
-
-  const equipBtn = document.getElementById('superPreviewEquip');
-  equipBtn.textContent = equipped ? invT('ui.equipped') : invT('ui.equip');
-  equipBtn.disabled = equipped || !owned;
-  equipBtn.classList.toggle('hidden', !owned);
-
-  equipBtn.onclick = () => {
-    if (!owned || equipped) return;
-    setEquippedSuper(s.id);
-    openInv('supers');
-    renderInventoryOverview();
-    closeSuperPreview();
-  };
-}
-
-function openSuperPreview(s) {
-  const wrap = document.getElementById('superPreview');
   const img = document.getElementById('superPreviewImg');
   const nameEl = document.getElementById('superPreviewName');
   const descEl = document.getElementById('superPreviewDesc');
@@ -817,11 +794,13 @@ function openSuperPreview(s) {
   );
   const owned = ownedSet.has(normalizeSkinId(id)) || (s.price ?? 0) === 0;
 
-  const equipped = (localStorage.getItem('equippedSuper') || '') === id;
+  const equipped =
+    normalizeSkinId(localStorage.getItem('equippedSuper')) ===
+    normalizeSkinId(id);
 
   wrap.classList.remove('hidden');
 
-  img.src = './images/logosImage/superIcone.png';
+  img.src = s.img || './images/logosImage/superIcone.png';
   nameEl.textContent = s.title || id;
   descEl.textContent = s.description || '';
 
@@ -847,10 +826,72 @@ function openSuperPreview(s) {
 
   equipBtn.onclick = () => {
     if (!owned || equipped) return;
-    localStorage.setItem('equippedSuper', id);
+    setEquippedSuper(id);
     openInv('supers');
     renderInventoryOverview?.();
     closeSuperPreview();
+  };
+  let goShopBtn = document.getElementById('superPreviewGoShop');
+  if (!goShopBtn) {
+    goShopBtn = document.createElement('button');
+    goShopBtn.id = 'superPreviewGoShop';
+    goShopBtn.className = 'superGoShopBtn';
+    goShopBtn.type = 'button';
+    goShopBtn.textContent = invT('ui.goToShop') || 'GO TO SHOP';
+
+    const anchor =
+      document.getElementById('superPreviewPriceRow') ||
+      document.getElementById('superPreviewStatsText') ||
+      document.getElementById('superPreviewStats') ||
+      descEl;
+
+    (anchor?.parentNode || wrap).insertBefore(
+      goShopBtn,
+      anchor?.nextSibling || null
+    );
+  }
+
+  goShopBtn.onclick = (e) => {
+    e.stopPropagation();
+
+    const rawId = String(s.id || '');
+    const normId = normalizeSkinId(rawId);
+
+    closeSuperPreview?.();
+    closeInv?.();
+
+    document.querySelector('[data-target="loadoutScreen"]')?.click();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (typeof toggleSuperShop === 'function') {
+          toggleSuperShop({ stopPropagation() {} });
+        } else {
+          document.getElementById('superShopDiv')?.classList.remove('hidden');
+        }
+
+        requestAnimationFrame(() => {
+          const card =
+            document.querySelector(`.superCard[data-super="${rawId}"]`) ||
+            Array.from(
+              document.querySelectorAll('.superCard[data-super]')
+            ).find(
+              (el) => normalizeSkinId(el.getAttribute('data-super')) === normId
+            );
+
+          if (!card) return;
+
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          document
+            .querySelectorAll('.superCard.shopHighlight')
+            .forEach((x) => x.classList.remove('shopHighlight'));
+
+          card.classList.add('shopHighlight');
+          setTimeout(() => card.classList.remove('shopHighlight'), 1800);
+        });
+      });
+    });
   };
 }
 

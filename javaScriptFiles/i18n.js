@@ -155,6 +155,8 @@ const TRANSLATIONS = {
     'inv.goToPetShop': 'GO TO PET SHOP',
     'inv.section.supers.title': 'Supers',
     'inv.section.supers.sub': 'Special abilities',
+    'inv.modal.supers': 'SUPERS',
+    'ui.goToShop': 'Go to supers shop',
   },
 
   /* ======================= HEBREW ======================= */
@@ -282,7 +284,7 @@ const TRANSLATIONS = {
     'inv.section.skins.title': 'סקינים',
     'inv.section.skins.sub': 'קוסמטיקה שבבעלותך',
 
-    'inv.mini.supers.title': 'סופרים',
+    'inv.mini.supers.title': 'מכות מיוחדות',
     'inv.mini.supers.sub': 'יכולות מיוחדות',
     'inv.mini.upgrades.title': 'שדרוגים',
     'inv.mini.upgrades.sub': 'בונוסים קבועים',
@@ -300,8 +302,10 @@ const TRANSLATIONS = {
     'inv.notOwned': 'לא בבעלות',
     'inv.available': 'זמין בחנות',
     'inv.goToPetShop': 'לכו לחנות חיות',
-    'inv.section.supers.title': 'סופרים',
+    'inv.section.supers.title': 'מכות מיוחדות',
     'inv.section.supers.sub': 'יכולות מיוחדות',
+    'inv.modal.supers': 'מכות מיוחדות',
+    'ui.goToShop': 'לאזור הקנייה',
   },
 
   /* ======================= SPANISH ======================= */
@@ -449,6 +453,8 @@ const TRANSLATIONS = {
     'inv.goToPetShop': 'IR A TIENDA DE MASCOTAS',
     'inv.section.supers.title': 'Súpers',
     'inv.section.supers.sub': 'Habilidades especiales',
+    'inv.modal.supers': 'SÚPERS',
+    'ui.goToShop': 'IR A LA TIENDA',
   },
 };
 
