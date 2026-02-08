@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Main Lobby</title>
+  <link rel="icon" href="./images/logo.png" />
+  <link rel="stylesheet" href="./cssFiles/main.css" />
+  <link rel="stylesheet" href="./cssFiles/mainShop.css">
+  <link rel="stylesheet" href="./cssFiles/mainLoadout.css">
+  <link rel="stylesheet" href="./cssFiles/mainInventory.css">
+  <script defer src="./javaScriptFiles/i18n.js"></script>
+  <script defer src="./javaScriptFiles/main.js"></script>
+  <script defer src="./javaScriptFiles/mainShop.js"></script>
+  <script defer src="./javaScriptFiles/mainInventory.js"></script>
+</head>
+
+<body>
+  <div class="phone-frame">
+    <div class="screen">
+      <div class="notch"></div>
+
+      <!-- ================= HOME ================= -->
+      <div id="homeScreen" class="page active">
+        <div id="coinsContainer">
+          <span id="coinsText"></span>
+          <div id="coinsDiv"></div>
+        </div>
+
+        <button id="profileSettingsBtn" onclick="openProfileDiv(event)"></button>
+
+        <div id="profileSettingsDiv" class="uiModal uiModalAnchorTopLeft">
+          <div class="profileInfo">
+            <span class="profileLine"><strong>Profile Name:</strong> maor</span>
+            <span class="profileLine"><strong>Days Played:</strong> 1</span>
+          </div>
+
+          <button class="profileSettingsInsideDivBtn"><span>Change Name</span></button>
+          <button class="profileSettingsInsideDivBtn"><span>Profile Icon</span></button>
+          <button class="profileSettingsInsideDivBtn"><span>Account</span></button>
+        </div>
+
+        <button id="settingsBtn"></button>
+
+        <div id="settingsDiv" class="uiModal uiModalCenter">
+          <span id="settingsTitle" data-i18n="settings.title">Settings</span>
+
+          <label class="settingRow">
+            <input type="checkbox" id="musicToggle" />
+            <span class="toggle"></span>
+            <span class="settingText" data-i18n="settings.music">Music</span>
+          </label>
+
+          <label class="settingRow">
+            <input type="checkbox" id="audioToggle" />
+            <span class="toggle"></span>
+            <span class="settingText" data-i18n="settings.audio">Audio</span>
+          </label>
+
+          <label class="volumeRow">
+            <span class="volumeText" data-i18n="settings.musicVolume">Music Volume</span>
+            <input type="range" id="musicVolume" min="0" max="100" value="70" />
+          </label>
+
+          <label class="volumeRow">
+            <span class="volumeText" data-i18n="settings.audioVolume">Audio Volume</span>
+            <input type="range" id="audioVolume" min="0" max="100" value="80" />
+          </label>
+
+          <button id="languageBtn" class="settingsActionBtn" data-i18n="settings.language">Language</button>
+        </div>
+
+        <div id="languageMenu">
+          <button class="languageOption" data-lang="en">English</button>
+          <button class="languageOption" data-lang="he">עברית</button>
+          <button class="languageOption" data-lang="es">Español</button>
+        </div>
+
+        <button id="socialBtn" onclick="toggleSocial(event)">🌐</button>
+
+        <div id="socialDiv" class="uiModal uiModalAnchorBottomRight">
+
+          <div class="socialHeader" data-i18n="social.title">JOIN THE COMMUNITY</div>
+
+          <div class="socialGrid">
+
+            <div class="socialItem discord" onclick="window.open('https://discord.gg/3R3Jd78X')">
+              <img src="./images/logosImage/socialLogos/discordLogo.png" alt="Discord">
+              <span>Discord</span>
+            </div>
+
+            <div class="socialItem youtube" onclick="window.open('https://www.youtube.com/@Pdutegames')">
+              <img src="./images/logosImage/socialLogos/youtubeLogo.png" alt="YouTube">
+              <span>YouTube</span>
+            </div>
+
+            <div class="socialItem twitter">
+              <img src="./images/logosImage/socialLogos/instagramLogo.png" alt="Instagram">
+              <span>Instagram</span>
+            </div>
+
+            <div class="socialItem tiktok" onclick="window.open('https://www.tiktok.com/@user22502301035013')">
+              <img src="./images/logosImage/socialLogos/tiktokLogo.png" alt="TikTok">
+              <span>TikTok</span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div id="centerCherecter"></div>
+        <button id="startGameBtn" onclick="openMap(event)" data-sound="map" data-i18n="home.battle">BATTLE</button>
+      </div>
+
+      <!-- ================= MAP ================= -->
+      <div id="mapDiv" class="uiModal uiModalCenterTall">
+        <h2 id="mapTitle" data-i18n="map.title">LEVELS</h2>
+        <button id="closeMapDiv" onclick="closeMap()">✕
+        </button>
+
+        <div id="levelsContainer">
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(10)">10</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(9)">9</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(8)">8</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(7)">7</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(6)">6</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(5)">5</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(4)">4</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(3)">3</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(2)">2</button>
+          </div>
+          <div class="levelNode">
+            <button class="levelsBtn" onclick="goToLevel(1)">1</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= LOADOUT SCREEN ================= -->
+      <div id="loadoutScreen" class="page">
+        <h1 class="pageText" id="loadoutPageTitle" data-i18n="loadout.title">LOADOUT</h1>
+
+        <div id="loadoutBtnDiv">
+          <div class="loadoutItem">
+            <button class="loadoutBtn" onclick="openWeaponDiv(event)">
+              <img src="./images/logosImage/weaponlogo.png" class="itemIconInside" />
+            </button>
+            <span class="itemText" data-i18n="loadout.weapons">Weapons</span>
+          </div>
+
+          <div class="loadoutItem">
+            <button class="loadoutBtn" onclick="openPetShop()">
+              <img src="./images/logosImage/petIcone.png" class="itemIconInside" />
+            </button>
+            <span class="itemText" data-i18n="loadout.pets">Pets</span>
+          </div>
+
+          <div class="loadoutItem">
+            <button class="loadoutBtn" onclick="toggleSuperShop(event)">
+              <img src="./images/logosImage/superIcone.png" class="itemIconInside" />
+            </button>
+            <span class="itemText" data-i18n="loadout.super">Super</span>
+          </div>
+
+          <div class="loadoutItem">
+            <button class="loadoutBtn">
+              <img src="./images/logosImage/upgreatIcone.png" class="itemIconInside" />
+            </button>
+            <span class="itemText" data-i18n="loadout.upgrade">Upgrade</span>
+          </div>
+        </div>
+
+        <div id="overlay" onclick="closeWeaponDiv(event)"></div>
+
+        <div id="weaponShop">
+          <div id="weaponDiv">
+            <button id="closeWeaponDiv" onclick="closeWeaponDiv(event)">
+              ✕
+            </button>
+
+            <div class="weaponItem" data-weapon="laser">
+              <button class="upgradeWeapon" onclick="openBuyWeapon('laser')">
+                <img src="./images/logosImage/weaponImg/leserIcone.png" class="itemIconInside" />
+              </button>
+
+              <button class="equipBtn" data-sound="equip" data-i18n="ui.equip" onclick="equipWeapon('laser')">
+                EQUIP
+              </button>
+            </div>
+
+            <div class="weaponItem" data-weapon="missile">
+              <button class="upgradeWeapon" onclick="openBuyWeapon('missile')">
+                <img src="./images/logosImage/weaponImg/missileIcone.png" class="itemIconInside" />
+              </button>
+
+              <button class="equipBtn" data-sound="equip" data-i18n="ui.equip" onclick="equipWeapon('missile')">
+                EQUIP
+              </button>
+            </div>
+
+            <div class="weaponItem" data-weapon="triangleShooter">
+              <button class="upgradeWeapon" onclick="openBuyWeapon('triangleShooter')">
+                <img src="./images/logosImage/weaponImg/triangleShooter.png" class="itemIconInside" />
+              </button>
+
+              <button class="equipBtn" data-sound="equip" data-i18n="ui.equip" onclick="equipWeapon('triangleShooter')">
+                EQUIP
+              </button>
+            </div>
+
+            <button class="upgradeWeapon locked" data-locked>
+              <img src="./images/logosImage/weaponImg/lockIcone.png" class="itemIconInside" />
+            </button>
+
+            <button class="upgradeWeapon locked" data-locked>
+              <img src="./images/logosImage/weaponImg/lockIcone.png" class="itemIconInside" />
+            </button>
+
+            <div class="comingSoonOverlay" id="comingSoonOverlay">
+              <div class="comingSoonText" id="comingSoonText" data-i18n="ui.comingSoon">Coming Soon..</div>
+            </div>
+          </div>
+
+          <div id="buyWeaponPopup" onclick="event.stopPropagation()">
+            <div class="buyTitle" id="buyWeaponName" data-i18n="ui.weapon">WEAPON</div>
+            <img id="buyWeaponImg" />
+            <div class="buyPrice"><span id="buyWeaponPrice">0</span> 🪙</div>
+            <button id="buyConfirmBtn" data-i18n="ui.buy">BUY</button>
+            <button id="buyCancelBtn" data-i18n="ui.close">CLOSE</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="petShoopDiv" class="petShop hidden">
+        <div class="petShopBox">
+          <button class="closePetShopBtn">✕</button>
+
+          <h2 class="petTitle" data-i18n="pets.title">🐾 PET SHOP</h2>
+
+          <div class="petGrid">
+            <div class="petCard" data-pet="dog">
+              <div class="petIcon">🐶</div>
+              <div class="petName">Chimpo</div>
+              <div class="petPrice">1000 🪙</div>
+              <button class="petBuyBtn" data-i18n="ui.buy" onclick="buyPet('dog')">BUY</button>
+            </div>
+
+            <div class="petCard" data-pet="siren">
+              <div class="petIcon">🐱</div>
+              <div class="petName">Siren</div>
+              <div class="petPrice">2500 🪙</div>
+              <button class="petBuyBtn" data-i18n="ui.buy" onclick="buyPet('siren')">BUY</button>
+            </div>
+          </div>
+
+
+          <div id="petInfoOverlay" class="hidden">
+            <div id="petInfoBox">
+              <button id="closePetInfo">✕</button>
+              <h2 id="petInfoTitle"></h2>
+              <p id="petInfoDesc"></p>
+              <ul id="petInfoStats"></ul>
+              <div id="petInfoLongDesc"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="superShopDiv" data-sound="super">
+        <div class="superShopHeader">
+          <div class="superTitle" data-i18n="loadout.super">SUPER SHOP</div>
+          <button class="closeSuperShopDiv" onclick="closeSuperShop()">✕</button>
+        </div>
+        <div class="superShopBody">
+          <div class="superButtonsRow">
+
+            <!-- SUPER 1 -->
+            <div class="superCard" data-super="waveShield">
+              <button class="selectSuperBtn" data-super="waveShield"></button>
+              <button class="superEquipBtn" data-sound="equip">
+                <span class="label" data-i18n="ui.equip"></span>
+                <span class="check">✓</span>
+              </button>
+            </div>
+
+            <!-- SUPER 2 -->
+            <div class="superCard" data-super="superLaser">
+              <button class="selectSuperBtn" data-super="superLaser"></button>
+              <button class="superEquipBtn" data-sound="equip">
+                <span class="label">EQUIP</span>
+                <span class="check">✓</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="superInfoPanel">
+            <div class="superInfoDiv">
+              <button id="closeSuperInfoDiv" onclick="closeSuperInfo()">✕</button>
+              <div class="superInfoHeader" id="superInfoTitle"></div>
+              <div class="superInfoDesc" id="superInfoDesc"></div>
+              <div class="superStats" id="superStats"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="buySuperConfirm" class="buySuperConfirm">
+          <div class="buySuperBox">
+            <div class="buySuperTitle" data-i18n="ui.buy">BUY</div>
+
+            <div class="buySuperText" data-i18n="shop.confirmSuper">
+              Are you sure you want to buy this super?
+            </div>
+
+            <div class="buySuperActions">
+              <button class="buyCancelBtn" type="button" onclick="closeBuySuperConfirm()"
+                data-i18n="ui.cancel">CANCEL</button>
+              <button class="buyConfirmBtn" type="button" onclick="confirmBuySuper()" data-i18n="ui.buy">BUY</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= SHOP ================= -->
+      <div id="shopScreen" class="page">
+        <div class="shopHeader">
+          <div id="shopCoinsContainer">
+            <span id="shopCoinsText"></span>
+            <div id="shopCoinsIcon"></div>
+          </div>
+          <div class="shopTitle" data-i18n="shop.title">SHOP</div>
+          <div class="shopSub" data-i18n="shop.sub">Grab deals • Upgrade style • Power up</div>
+        </div>
+
+        <div id="shopScroll">
+          <section class="shopSection" data-shop-target="Daily">
+            <div class="sectionTop">
+              <div class="sectionTitle" data-i18n="shop.dailyOffers">DAILY OFFERS</div>
+              <div class="sectionHint" data-i18n="shop.refreshesDaily">Refreshes daily</div>
+              <div id="dailyTimer" class="timer"></div>
+            </div>
+            <div id="dailyOffersRow" class="cardsRow"></div>
+          </section>
+
+          <section class="shopSection" id="freeGiftSection">
+            <div class="sectionTop">
+              <div class="sectionTitle" data-i18n="shop.freeGift">FREE GIFT</div>
+              <div id="freeGiftTimer" class="timer">--</div>
+              <div class="sectionHint" data-i18n="shop.everyDay">Every day
+              </div>
+            </div>
+
+            <div class="freeGiftCard" id="freeGiftCard">
+              <div class="freeGiftGlow"></div>
+
+              <div class="freeGiftLeft">
+                <div class="freeGiftTag" data-i18n="shop.gift.tag">DAILY</div>
+                <div class="freeGiftName" id="freeGiftName">Daily Coins</div>
+                <div class="freeGiftDesc" id="freeGiftDesc">Claim your free reward</div>
+
+                <div class="freeGiftBottom">
+                  <div class="pricePill"><span id="freeGiftValue">+150</span> 🪙</div>
+                  <button id="freeGiftBtn" class="buyPillBtn">CLAIM</button>
+                </div>
+              </div>
+
+              <div class="freeGiftIconDecor" id="freeGiftIcon">🎁</div>
+            </div>
+          </section>
+
+          <section class="shopSection" data-shop-target="Skin Offers">
+            <div class="sectionTop">
+              <div class="sectionTitle" data-i18n="shop.skinOffers">SKIN OFFERS</div>
+              <div id="skinOffersTimer" class="timer">--</div>
+              <div class="sectionHint" data-i18n="shop.refreshesDaily">Refreshes daily</div>
+            </div>
+            <div id="skinOffersGrid" class="shopGrid"></div>
+          </section>
+
+          <section class="shopSection" data-shop-target="Featured">
+            <div class="sectionTop">
+              <div class="sectionTitle" data-i18n="shop.featured">FEATURED
+              </div>
+              <div id="featuredTimer" class="timer"></div>
+              <div class="sectionHint" data-i18n="shop.limited">Limited</div>
+            </div>
+
+            <div id="featuredCard" class="featuredCard">
+              <div class="featuredGlow"></div>
+              <div class="featuredLeft">
+                <div class="featuredTag" data-i18n="shop.featuredTag">SPECIAL DROP</div>
+                <div id="featuredName" class="featuredName">Galaxy Pass</div>
+                <div id="featuredDesc" class="featuredDesc">Unlock a premium reward track + bonus coins</div>
+                <div class="featuredBottom">
+                  <div class="pricePill"><span id="featuredPrice">2500</span> 🪙</div>
+                  <button id="featuredBuyBtn" class="buyPillBtn">GET</button>
+                </div>
+              </div>
+              <div class="featuredRight">
+                <div id="featuredIcon" class="featuredIcon">✨</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="shopSection" data-shop-target="Coins">
+            <div class="sectionTop">
+              <div class="sectionTitle" data-i18n="shop.coins">COINS</div>
+              <div class="sectionHint" data-i18n="shop.bestValue">Best value packs</div>
+            </div>
+            <div id="coinsGrid" class="shopGrid"></div>
+          </section>
+
+          <div class="shopSpacer"></div>
+        </div>
+
+        <div id="shopRail">
+          <div id="shopScrollIndicator"></div>
+          <div id="shopDots">
+            <button class="shopDot" data-target="featured" data-label="1"></button>
+            <button class="shopDot" data-target="weapons" data-label="W"></button>
+            <button class="shopDot" data-target="pets" data-label="P"></button>
+            <button class="shopDot" data-target="boosts" data-label="B"></button>
+          </div>
+        </div>
+
+        <div id="shopModal" class="shopModal hidden">
+          <div class="shopModalBox" onclick="event.stopPropagation()">
+            <button id="shopModalClose" class="shopModalClose">✕</button>
+
+            <div class="shopModalTop">
+              <div id="shopModalIcon" class="shopModalIcon">🛒</div>
+              <div class="shopModalText">
+                <div id="shopModalTitle" class="shopModalTitle" data-i18n="ui.item">Item</div>
+                <div id="shopModalDesc" class="shopModalDesc" data-i18n="ui.desc">Description</div>
+              </div>
+            </div>
+
+            <div class="shopModalPrice">
+              <span id="shopModalPrice">0</span> 🪙
+            </div>
+
+            <button id="shopModalBuy" class="shopModalBuy">BUY</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= INVENTORY ================= -->
+      <div id="inventoryScreen" class="page">
+        <h1 id="inventoryTitle" class="pageText" data-i18n="inventory.title">INVENTORY</h1>
+
+        <div class="invWrap">
+
+          <!-- WEAPONS -->
+          <div class="invSection" data-inv="weapons">
+            <div class="invHead">
+              <div class="invIcon">🔫</div>
+              <div class="invText">
+                <div class="invName" data-i18n="inv.section.weapons.title">Weapons</div>
+                <div class="invSub" data-i18n="inv.section.weapons.sub">Your unlocked weapons</div>
+              </div>
+              <div class="invPill" id="invWeaponsCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invWeaponsGrid"></div>
+
+            <button class="invBtn" onclick="openInv('weapons')" data-i18n="ui.open">OPEN</button>
+          </div>
+
+          <!-- SUPERS -->
+          <div class="invSection" data-inv="supers">
+            <div class="invHead">
+              <div class="invIcon">⚡</div>
+              <div class="invText">
+                <div class="invName" data-i18n="inv.section.supers.title">Supers</div>
+                <div class="invSub" data-i18n="inv.section.supers.sub">Special abilities</div>
+              </div>
+              <div class="invPill" id="invSupersCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invSupersGrid"></div>
+
+            <button class="invBtn" onclick="openInv('supers')" data-i18n="ui.open">OPEN</button>
+          </div>
+
+
+
+          <!-- PETS -->
+          <div class="invSection invSectionPets" data-inv="pets">
+            <div class="invHead">
+              <div class="invIcon">🐾</div>
+              <div class="invText">
+                <div class="invName" data-i18n="inv.section.pets.title">Pets</div>
+                <div class="invSub" data-i18n="inv.section.pets.sub">Companions & helpers</div>
+              </div>
+              <div class="invPill" id="invPetsCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invPetsGrid"></div>
+
+            <button class="invBtn" onclick="openInv('pets')" data-i18n="ui.open">OPEN</button>
+          </div>
+
+          <!-- SKINS -->
+          <div class="invSection" data-inv="skins">
+            <div class="invHead">
+              <div class="invIcon">🟦</div>
+              <div class="invText">
+                <div class="invName" data-i18n="inv.section.skins.title">Skins</div>
+                <div class="invSub" data-i18n="inv.section.skins.sub">Cosmetics you own</div>
+              </div>
+              <div class="invPill" id="invSkinsCount">0</div>
+            </div>
+
+            <div class="invGrid" id="invSkinsGrid"></div>
+
+            <button class="invBtn" onclick="openInv('skins')" data-i18n="ui.open">OPEN</button>
+          </div>
+        </div>
+
+        <div id="invModal" class="invModal hidden">
+          <div class="invModalBox" onclick="event.stopPropagation()">
+            <button id="invModalClose" class="shopModalClose">✕</button>
+            <div id="invModalTitle" class="invModalTitle">TITLE</div>
+            <div id="invModalGrid" class="invModalGrid"></div>
+
+            <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="skinPreviewName" class="skinPreviewName skinName"></div>
+              <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
+
+              <div class="skinPreviewImgWrap">
+                <img id="skinPreviewImg" draggable="false" />
+              </div>
+
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">RARITY</span>
+                  <span id="skinPreviewRarity" class="v rarityPill"></span>
+                </div>
+
+                <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="skinPreviewPrice" class="v"></span>
+                </div>
+
+                <div id="skinPreviewShopRow" class="skinMetaRow hidden">
+                  <span class="k">SHOP</span>
+                  <div class="v shopLine">
+                    <span id="skinPreviewShopText"></span>
+                    <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                  </div>
+                </div>
+              </div>
+
+              <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+            </div>
+
+            <div id="petPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="petPreviewName" class="skinPreviewName skinName"></div>
+              <button id="petPreviewClose" class="skinPreviewClose">✕</button>
+
+              <div class="skinPreviewImgWrap">
+                <img id="petPreviewImg" draggable="false" />
+              </div>
+
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">TYPE</span>
+                  <span id="petPreviewType" class="v"></span>
+                </div>
+
+                <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">
+                  GO TO PET SHOP
+                </button>
+
+
+                <div id="petPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="petPreviewPrice" class="v"></span>
+                </div>
+
+                <div id="petPreviewShopRow" class="skinMetaRow hidden">
+                  <span class="k">SHOP</span>
+                  <div class="v shopLine">
+                    <span id="petPreviewShopText"></span>
+                    <button id="petPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                  </div>
+                </div>
+              </div>
+
+              <button id="petPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+            </div>
+
+            <div id="weaponPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="weaponPreviewName" class="skinPreviewName skinName"></div>
+              <button id="weaponPreviewClose" class="skinPreviewClose">✕</button>
+
+              <div class="skinPreviewImgWrap">
+                <img id="weaponPreviewImg" draggable="false" />
+              </div>
+
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">DESC</span>
+                  <span id="weaponPreviewDesc" class="v"></span>
+                </div>
+
+                <div class="skinMetaRow">
+                  <span class="k">STATS</span>
+                  <span id="weaponPreviewStats" class="v"></span>
+                </div>
+
+                <div id="weaponPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="weaponPreviewPrice" class="v"></span>
+                </div>
+
+                <button id="weaponPreviewGoLoadout" class="petGoBuyBtn hidden" type="button">
+                  GO TO LOADOUT
+                </button>
+              </div>
+
+              <button id="weaponPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+            </div>
+
+            <div id="superPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="superPreviewName" class="skinPreviewName skinName"></div>
+              <button id="superPreviewClose" class="skinPreviewClose">✕</button>
+
+              <div class="skinPreviewImgWrap">
+                <img id="superPreviewImg" draggable="false" />
+              </div>
+
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k" data-i18n="ui.desc">Description</span>
+                  <span id="superPreviewDesc" class="v"></span>
+                </div>
+
+                <div id="superPreviewStats" class="skinMetaRow">
+                  <span class="k">STATS</span>
+                  <span id="superPreviewStatsText" class="v"></span>
+                </div>
+
+                <div id="superPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k" data-i18n="ui.price">PRICE</span>
+                  <span id="superPreviewPrice" class="v"></span>
+                </div>
+              </div>
+
+              <button id="superPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ================= BOTTOM NAV ================= -->
+      <div id="bottomBtns">
+        <button class="bottomButton" data-target="shopScreen" data-i18n="nav.shop">Shop</button>
+        <button class="bottomButton" data-target="loadoutScreen" data-i18n="nav.loadout">Loadout</button>
+        <button id="battle" class="bottomButton" data-target="homeScreen" data-i18n="nav.battle">Battle!</button>
+        <button class="bottomButton" data-target="inventoryScreen" data-i18n="nav.inventory">Inventory</button>
+      </div>
+    </div>
+    <div id="toast" class="toast"></div>
+  </div>
+</body>
+
+</html>
