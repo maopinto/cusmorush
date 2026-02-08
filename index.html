@@ -328,8 +328,11 @@
               Are you sure you want to buy this super?
             </div>
 
-            <button class="buyCancelBtn" data-i18n="ui.cancel"></button>
-            <button class="confirmBox" data-i18n="ui.buy"></button>
+            <div class="buySuperActions">
+              <button class="buyCancelBtn" type="button" onclick="closeBuySuperConfirm()"
+                data-i18n="ui.cancel">CANCEL</button>
+              <button class="buyConfirmBtn" type="button" onclick="confirmBuySuper()" data-i18n="ui.buy">BUY</button>
+            </div>
           </div>
         </div>
       </div>
@@ -528,142 +531,155 @@
 
             <button class="invBtn" onclick="openInv('skins')" data-i18n="ui.open">OPEN</button>
           </div>
-
-          <div class="invMini">
-            <div class="invMiniTop">
-              <span class="invMiniIcon">🧩</span>
-              <span class="invMiniTitle" data-i18n="inv.mini.upgrades.title">Upgrades</span>
-              <span class="invMiniPill" id="invUpgradesCount">0</span>
-            </div>
-            <div class="invMiniSub" data-i18n="inv.mini.upgrades.sub">Permanent boosts</div>
-          </div>
-
-          <div class="invMini">
-            <div class="invMiniTop">
-              <span class="invMiniIcon">🎁</span>
-              <span class="invMiniTitle" data-i18n="inv.mini.boosts.title">Boosts</span>
-              <span class="invMiniPill" id="invBoostsCount">0</span>
-            </div>
-            <div class="invMiniSub" data-i18n="inv.mini.boosts.sub">Consumables</div>
-          </div>
         </div>
-      </div>
 
-      <div id="invModal" class="invModal hidden">
-        <div class="invModalBox" onclick="event.stopPropagation()">
-          <button id="invModalClose" class="shopModalClose">✕</button>
-          <div id="invModalTitle" class="invModalTitle">TITLE</div>
-          <div id="invModalGrid" class="invModalGrid"></div>
+        <div id="invModal" class="invModal hidden">
+          <div class="invModalBox" onclick="event.stopPropagation()">
+            <button id="invModalClose" class="shopModalClose">✕</button>
+            <div id="invModalTitle" class="invModalTitle">TITLE</div>
+            <div id="invModalGrid" class="invModalGrid"></div>
 
-          <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
-            <div id="skinPreviewName" class="skinPreviewName skinName"></div>
-            <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
+            <div id="skinPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="skinPreviewName" class="skinPreviewName skinName"></div>
+              <button id="skinPreviewClose" class="skinPreviewClose">✕</button>
 
-            <div class="skinPreviewImgWrap">
-              <img id="skinPreviewImg" draggable="false" />
-            </div>
-
-            <div class="skinPreviewMeta">
-              <div class="skinMetaRow">
-                <span class="k">RARITY</span>
-                <span id="skinPreviewRarity" class="v rarityPill"></span>
+              <div class="skinPreviewImgWrap">
+                <img id="skinPreviewImg" draggable="false" />
               </div>
 
-              <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
-                <span class="k">PRICE</span>
-                <span id="skinPreviewPrice" class="v"></span>
-              </div>
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">RARITY</span>
+                  <span id="skinPreviewRarity" class="v rarityPill"></span>
+                </div>
 
-              <div id="skinPreviewShopRow" class="skinMetaRow hidden">
-                <span class="k">SHOP</span>
-                <div class="v shopLine">
-                  <span id="skinPreviewShopText"></span>
-                  <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="skinPreviewPrice" class="v"></span>
+                </div>
+
+                <div id="skinPreviewShopRow" class="skinMetaRow hidden">
+                  <span class="k">SHOP</span>
+                  <div class="v shopLine">
+                    <span id="skinPreviewShopText"></span>
+                    <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                  </div>
                 </div>
               </div>
+
+              <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
             </div>
 
-            <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
-          </div>
+            <div id="petPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="petPreviewName" class="skinPreviewName skinName"></div>
+              <button id="petPreviewClose" class="skinPreviewClose">✕</button>
 
-          <div id="petPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
-            <div id="petPreviewName" class="skinPreviewName skinName"></div>
-            <button id="petPreviewClose" class="skinPreviewClose">✕</button>
-
-            <div class="skinPreviewImgWrap">
-              <img id="petPreviewImg" draggable="false" />
-            </div>
-
-            <div class="skinPreviewMeta">
-              <div class="skinMetaRow">
-                <span class="k">TYPE</span>
-                <span id="petPreviewType" class="v"></span>
+              <div class="skinPreviewImgWrap">
+                <img id="petPreviewImg" draggable="false" />
               </div>
 
-              <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">
-                GO TO PET SHOP
-              </button>
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">TYPE</span>
+                  <span id="petPreviewType" class="v"></span>
+                </div>
+
+                <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">
+                  GO TO PET SHOP
+                </button>
 
 
-              <div id="petPreviewPriceRow" class="skinMetaRow hidden">
-                <span class="k">PRICE</span>
-                <span id="petPreviewPrice" class="v"></span>
-              </div>
+                <div id="petPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="petPreviewPrice" class="v"></span>
+                </div>
 
-              <div id="petPreviewShopRow" class="skinMetaRow hidden">
-                <span class="k">SHOP</span>
-                <div class="v shopLine">
-                  <span id="petPreviewShopText"></span>
-                  <button id="petPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                <div id="petPreviewShopRow" class="skinMetaRow hidden">
+                  <span class="k">SHOP</span>
+                  <div class="v shopLine">
+                    <span id="petPreviewShopText"></span>
+                    <button id="petPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                  </div>
                 </div>
               </div>
+
+              <button id="petPreviewEquip" class="skinPreviewEquip">EQUIP</button>
             </div>
 
-            <button id="petPreviewEquip" class="skinPreviewEquip">EQUIP</button>
-          </div>
+            <div id="weaponPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="weaponPreviewName" class="skinPreviewName skinName"></div>
+              <button id="weaponPreviewClose" class="skinPreviewClose">✕</button>
 
-          <div id="superPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
-            <div id="superPreviewName" class="skinPreviewName skinName"></div>
-            <button id="superPreviewClose" class="skinPreviewClose">✕</button>
+              <div class="skinPreviewImgWrap">
+                <img id="weaponPreviewImg" draggable="false" />
+              </div>
 
-            <div class="skinPreviewImgWrap">
-              <img id="superPreviewImg" draggable="false" />
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k">DESC</span>
+                  <span id="weaponPreviewDesc" class="v"></span>
+                </div>
+
+                <div class="skinMetaRow">
+                  <span class="k">STATS</span>
+                  <span id="weaponPreviewStats" class="v"></span>
+                </div>
+
+                <div id="weaponPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k">PRICE</span>
+                  <span id="weaponPreviewPrice" class="v"></span>
+                </div>
+
+                <button id="weaponPreviewGoLoadout" class="petGoBuyBtn hidden" type="button">
+                  GO TO LOADOUT
+                </button>
+              </div>
+
+              <button id="weaponPreviewEquip" class="skinPreviewEquip">EQUIP</button>
             </div>
 
-            <div class="skinPreviewMeta">
-              <div class="skinMetaRow">
-                <span class="k" data-i18n="ui.desc">Description</span>
-                <span id="superPreviewDesc" class="v"></span>
+            <div id="superPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
+              <div id="superPreviewName" class="skinPreviewName skinName"></div>
+              <button id="superPreviewClose" class="skinPreviewClose">✕</button>
+
+              <div class="skinPreviewImgWrap">
+                <img id="superPreviewImg" draggable="false" />
               </div>
 
-              <div id="superPreviewStats" class="skinMetaRow">
-                <span class="k">STATS</span>
-                <span id="superPreviewStatsText" class="v"></span>
+              <div class="skinPreviewMeta">
+                <div class="skinMetaRow">
+                  <span class="k" data-i18n="ui.desc">Description</span>
+                  <span id="superPreviewDesc" class="v"></span>
+                </div>
+
+                <div id="superPreviewStats" class="skinMetaRow">
+                  <span class="k">STATS</span>
+                  <span id="superPreviewStatsText" class="v"></span>
+                </div>
+
+                <div id="superPreviewPriceRow" class="skinMetaRow hidden">
+                  <span class="k" data-i18n="ui.price">PRICE</span>
+                  <span id="superPreviewPrice" class="v"></span>
+                </div>
               </div>
 
-              <div id="superPreviewPriceRow" class="skinMetaRow hidden">
-                <span class="k" data-i18n="ui.price">PRICE</span>
-                <span id="superPreviewPrice" class="v"></span>
-              </div>
+              <button id="superPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
             </div>
-
-            <button id="superPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
           </div>
         </div>
+
       </div>
 
-    </div>
 
-
-    <!-- ================= BOTTOM NAV ================= -->
-    <div id="bottomBtns">
-      <button class="bottomButton" data-target="shopScreen" data-i18n="nav.shop">Shop</button>
-      <button class="bottomButton" data-target="loadoutScreen" data-i18n="nav.loadout">Loadout</button>
-      <button id="battle" class="bottomButton" data-target="homeScreen" data-i18n="nav.battle">Battle!</button>
-      <button class="bottomButton" data-target="inventoryScreen" data-i18n="nav.inventory">Inventory</button>
+      <!-- ================= BOTTOM NAV ================= -->
+      <div id="bottomBtns">
+        <button class="bottomButton" data-target="shopScreen" data-i18n="nav.shop">Shop</button>
+        <button class="bottomButton" data-target="loadoutScreen" data-i18n="nav.loadout">Loadout</button>
+        <button id="battle" class="bottomButton" data-target="homeScreen" data-i18n="nav.battle">Battle!</button>
+        <button class="bottomButton" data-target="inventoryScreen" data-i18n="nav.inventory">Inventory</button>
+      </div>
     </div>
-  </div>
-  <div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
   </div>
 </body>
 

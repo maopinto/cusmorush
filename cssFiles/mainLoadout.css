@@ -1225,7 +1225,7 @@
     opacity 0.25s ease,
     filter 0.35s ease;
 
-  z-index: 20;
+  z-index: 9000;
   overflow: hidden;
 }
 
@@ -1727,6 +1727,7 @@
     filter 0.3s ease;
 
   filter: blur(6px);
+  z-index: 9100;
 }
 
 .superInfoDiv.open {

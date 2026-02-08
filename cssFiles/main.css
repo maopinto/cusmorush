@@ -10,6 +10,7 @@ body {
   user-select: none;
   -webkit-touch-callout: none;
   background: #000;
+  overflow-x: hidden;
 }
 
 :root {
@@ -132,6 +133,11 @@ img {
     linear-gradient(180deg, var(--bg1), var(--bg0) 55%, #000);
 
   padding-bottom: calc(var(--nav-h) + var(--safe-b));
+}
+
+phone-frame,
+.screen {
+  overflow-x: hidden;
 }
 
 #homeScreen {

@@ -61,29 +61,25 @@ function equipSkin(id) {
 const STORAGE_KEY_EQUIPPED_SUPER = 'equippedSuper';
 
 function getOwnedSupersArr() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY_OWNED_SUPERS) || '[]');
-}
-
-function getOwnedSupersSet() {
-  return new Set(getOwnedSupersArr().map(normalizeSkinId));
+  return JSON.parse(localStorage.getItem('ownedSupers') || '[]');
 }
 
 function isSuperOwned(id) {
-  const n = normalizeSkinId(id);
-  return getOwnedSupersSet().has(n) || SUPERS[id]?.price === 0;
+  return (SUPERS[id]?.price ?? 0) === 0 || getOwnedSupersArr().includes(id);
 }
 
 function getEquippedSuper() {
-  return normalizeSkinId(localStorage.getItem(STORAGE_KEY_EQUIPPED_SUPER));
+  return localStorage.getItem(STORAGE_KEY_EQUIPPED_SUPER) || '';
 }
 
 function setEquippedSuper(id) {
-  localStorage.setItem(STORAGE_KEY_EQUIPPED_SUPER, normalizeSkinId(id));
+  localStorage.setItem(STORAGE_KEY_EQUIPPED_SUPER, id);
 }
 
 function openInv(type) {
   closePetPreview?.();
   closeSuperPreview?.();
+  closeWeaponPreview?.();
   invOpenType = type;
 
   const modal = document.getElementById('invModal');
@@ -183,20 +179,24 @@ function openInv(type) {
   }
 
   if (type === 'weapons') {
-    const allWeaponIds = Object.keys(WEAPONS || {});
-    const ownedList = allWeaponIds.filter((id) => isWeaponOwned(id));
-    const lockedList = allWeaponIds.filter((id) => !isWeaponOwned(id));
+    closeSkinPreview();
+    closePetPreview?.();
+    closeSuperPreview?.();
+    closeWeaponPreview?.();
 
-    const renderWeaponCard = (id, owned) => {
-      const w = WEAPONS[id] || {};
-      const name = w.name || id;
+    const allWeaponIds = Object.keys(WEAPONS || {});
+    const ownedList = allWeaponIds.filter((wid) => isWeaponOwned(wid));
+    const lockedList = allWeaponIds.filter((wid) => !isWeaponOwned(wid));
+
+    const renderWeaponCard = (wid, owned) => {
+      const w = WEAPONS[wid] || {};
+      const name = w.name || wid;
       const img = w.img || './images/skins/placeholder.png';
-      const equipped = getEquippedWeapon() === id;
+      const equipped = getEquippedWeapon() === wid;
 
       const el = document.createElement('div');
-      el.className = `invOwnedCard weaponCard ${owned ? 'owned' : 'locked'} ${
-        equipped ? 'equipped' : ''
-      }`.trim();
+      el.className =
+        `invOwnedCard weaponCard ${owned ? 'owned' : 'locked'} ${equipped ? 'equipped' : ''}`.trim();
 
       el.innerHTML = `
       <div class="invOwnedIcon">
@@ -206,17 +206,22 @@ function openInv(type) {
       ${
         owned
           ? `<button class="EquipBtn" ${equipped ? 'disabled' : ''}>
-              ${equipped ? invT('ui.equipped') : invT('ui.equip')}
+               ${equipped ? invT('ui.equipped') : invT('ui.equip')}
              </button>`
           : ``
       }
     `;
 
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openWeaponPreview(wid);
+      });
+
       if (owned) {
         el.querySelector('.EquipBtn')?.addEventListener('click', (e) => {
           e.stopPropagation();
           if (equipped) return;
-          equipWeaponFromInventory(id);
+          equipWeaponFromInventory(wid);
         });
       }
 
@@ -226,15 +231,15 @@ function openInv(type) {
     if (!allWeaponIds.length) {
       grid.innerHTML = `<div class="invEmpty">${invT('inv.empty.weapons')}</div>`;
     } else {
-      ownedList.forEach((id) => renderWeaponCard(id, true));
+      ownedList.forEach((wid) => renderWeaponCard(wid, true));
 
       if (lockedList.length) {
         const divider = document.createElement('div');
         divider.className = 'invLockedDivider';
-        divider.textContent = 'NOT OWNED';
+        divider.textContent = invT('inv.notOwned') || 'NOT OWNED';
         grid.appendChild(divider);
 
-        lockedList.forEach((id) => renderWeaponCard(id, false));
+        lockedList.forEach((wid) => renderWeaponCard(wid, false));
       }
     }
   }
@@ -364,7 +369,8 @@ function openInv(type) {
         el.querySelector('.EquipBtn')?.addEventListener('click', (e) => {
           e.stopPropagation();
           if (btnDisabled) return;
-          localStorage.setItem('equippedSuper', sKey);
+          setEquippedSuper(sKey);
+          updateSuperEquipUI?.();
           openInv('supers');
           renderInventoryOverview?.();
         });
@@ -398,8 +404,145 @@ function openInv(type) {
   title.classList.toggle('supersTheme', type === 'supers');
   box?.classList.toggle('supersTheme', type === 'supers');
   modal.classList.toggle('isSupers', type === 'supers');
+  modal.classList.toggle('isSkins', type === 'skins');
 
   modal.classList.remove('hidden');
+}
+
+function closeWeaponPreview() {
+  document.getElementById('weaponPreview')?.classList.add('hidden');
+}
+
+function openWeaponPreview(id) {
+  const wrap = document.getElementById('weaponPreview');
+  const img = document.getElementById('weaponPreviewImg');
+  const nameEl = document.getElementById('weaponPreviewName');
+  const descEl = document.getElementById('weaponPreviewDesc');
+  const statsEl = document.getElementById('weaponPreviewStats');
+  const equipBtn = document.getElementById('weaponPreviewEquip');
+  const priceRow = document.getElementById('weaponPreviewPriceRow');
+  const priceEl = document.getElementById('weaponPreviewPrice');
+  const goLoadoutBtn = document.getElementById('weaponPreviewGoLoadout');
+
+  if (
+    !wrap ||
+    !img ||
+    !nameEl ||
+    !descEl ||
+    !statsEl ||
+    !equipBtn ||
+    !goLoadoutBtn
+  )
+    return;
+
+  const w = WEAPONS?.[id] || {};
+  const owned = isWeaponOwned(id);
+  const equipped = getEquippedWeapon() === id;
+
+  wrap.classList.remove('hidden');
+
+  img.src = w.img || './images/skins/placeholder.png';
+  nameEl.textContent = w.name || id;
+
+  const desc = w.desc ?? w.description ?? w.info ?? w.text ?? w.lore ?? '';
+  if (desc) {
+    descEl.textContent = String(desc);
+  } else {
+    const nid = String(id).toLowerCase();
+    descEl.textContent = nid.includes('missile')
+      ? 'Heavy projectile with strong impact.'
+      : nid.includes('laser')
+        ? 'Fast shots with a high fire rate.'
+        : nid.includes('triangle')
+          ? 'Wide spread shots for crowd control.'
+          : 'Weapon description coming soon.';
+  }
+
+  const statsObj = w.stats ?? w.attributes ?? w.upgrades ?? null;
+
+  let statsText = '';
+  if (
+    statsObj &&
+    typeof statsObj === 'object' &&
+    Object.keys(statsObj).length
+  ) {
+    statsText = Object.entries(statsObj)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join('  •  ');
+  } else {
+    const dmg = w.damage ?? w.dmg;
+    const rate = w.fireRate ?? w.rate ?? w.cooldown;
+    const speed = w.speed ?? w.projectileSpeed;
+    const range = w.range ?? w.maxRange;
+
+    const parts = [];
+    if (dmg != null) parts.push(`DMG: ${dmg}`);
+    if (rate != null) parts.push(`RATE: ${rate}`);
+    if (speed != null) parts.push(`SPEED: ${speed}`);
+    if (range != null) parts.push(`RANGE: ${range}`);
+
+    statsText = parts.join('  •  ') || (w.statsText ? String(w.statsText) : '');
+  }
+
+  statsEl.textContent = statsText || 'Stats coming soon.';
+
+  if (priceRow && priceEl) {
+    if (!owned && w.price != null) {
+      priceRow.classList.remove('hidden');
+      priceEl.textContent = `${Number(w.price || 0)} 🪙`;
+    } else {
+      priceRow.classList.add('hidden');
+    }
+  }
+
+  equipBtn.textContent = equipped ? invT('ui.equipped') : invT('ui.equip');
+  equipBtn.disabled = equipped || !owned;
+  equipBtn.classList.toggle('hidden', !owned);
+
+  equipBtn.onclick = () => {
+    if (!owned || equipped) return;
+    equipWeaponFromInventory(id);
+    closeWeaponPreview?.();
+  };
+
+  goLoadoutBtn.className = 'weaponGoLoadoutBtn';
+  goLoadoutBtn.style.display = '';
+  goLoadoutBtn.classList.toggle('hidden', !owned);
+
+  goLoadoutBtn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    closeWeaponPreview?.();
+    closeInv?.();
+
+    document.querySelector('[data-target="loadoutScreen"]')?.click();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (typeof openWeaponDiv === 'function') {
+          openWeaponDiv({ stopPropagation() {}, preventDefault() {} });
+        }
+
+        const screen = document.querySelector('.screen');
+        const phone = document.querySelector('.phone-frame');
+        screen?.scrollTo(0, 0);
+        phone?.scrollTo(0, 0);
+        document.documentElement.scrollLeft = 0;
+        document.body.scrollLeft = 0;
+
+        const list = document.getElementById('weaponDiv');
+        const item = document.querySelector(`.weaponItem[data-weapon="${id}"]`);
+        if (!list || !item) return;
+
+        list.scrollLeft = 0;
+
+        const top =
+          item.offsetTop - list.clientHeight / 2 + item.clientHeight / 2;
+        list.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    });
+  };
 }
 
 function closeSkinPreview() {
@@ -529,6 +672,7 @@ function closeInv() {
   closeSkinPreview();
   closePetPreview?.();
   closeSuperPreview?.();
+  closeWeaponPreview?.();
 
   const modal = document.getElementById('invModal');
   const title = document.getElementById('invModalTitle');
@@ -604,6 +748,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.currentTarget === e.target) closeSuperPreview();
   });
   ('');
+
+  document
+    .getElementById('weaponPreviewClose')
+    ?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeWeaponPreview();
+    });
+
+  document.getElementById('weaponPreview')?.addEventListener('click', (e) => {
+    if (e.currentTarget === e.target) closeWeaponPreview();
+  });
 });
 
 function getOwnedSkinsCount() {
@@ -612,6 +767,10 @@ function getOwnedSkinsCount() {
 
 function getOwnedWeaponsCount() {
   return getOwnedWeaponsArr().length;
+}
+
+function getOwnedSupersSet() {
+  return new Set(JSON.parse(localStorage.getItem('ownedSupers') || '[]'));
 }
 
 function renderInventoryOverview() {
@@ -780,6 +939,7 @@ function openSuperPreview(s) {
   const wrap = document.getElementById('superPreview');
   const img = document.getElementById('superPreviewImg');
   const nameEl = document.getElementById('superPreviewName');
+  nameEl.textContent = prettySuperName(s.id);
   const descEl = document.getElementById('superPreviewDesc');
   const statsEl = document.getElementById('superPreviewStatsText');
   const equipBtn = document.getElementById('superPreviewEquip');
@@ -827,6 +987,7 @@ function openSuperPreview(s) {
   equipBtn.onclick = () => {
     if (!owned || equipped) return;
     setEquippedSuper(id);
+    updateSuperEquipUI?.();
     openInv('supers');
     renderInventoryOverview?.();
     closeSuperPreview();
@@ -850,49 +1011,12 @@ function openSuperPreview(s) {
       anchor?.nextSibling || null
     );
   }
+}
 
-  goShopBtn.onclick = (e) => {
-    e.stopPropagation();
-
-    const rawId = String(s.id || '');
-    const normId = normalizeSkinId(rawId);
-
-    closeSuperPreview?.();
-    closeInv?.();
-
-    document.querySelector('[data-target="loadoutScreen"]')?.click();
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (typeof toggleSuperShop === 'function') {
-          toggleSuperShop({ stopPropagation() {} });
-        } else {
-          document.getElementById('superShopDiv')?.classList.remove('hidden');
-        }
-
-        requestAnimationFrame(() => {
-          const card =
-            document.querySelector(`.superCard[data-super="${rawId}"]`) ||
-            Array.from(
-              document.querySelectorAll('.superCard[data-super]')
-            ).find(
-              (el) => normalizeSkinId(el.getAttribute('data-super')) === normId
-            );
-
-          if (!card) return;
-
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-          document
-            .querySelectorAll('.superCard.shopHighlight')
-            .forEach((x) => x.classList.remove('shopHighlight'));
-
-          card.classList.add('shopHighlight');
-          setTimeout(() => card.classList.remove('shopHighlight'), 1800);
-        });
-      });
-    });
-  };
+function prettySuperName(str) {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
 }
 
 function invRerenderIfOpen() {

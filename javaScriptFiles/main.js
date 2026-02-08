@@ -1,3 +1,7 @@
+if (!sessionStorage.getItem('passedLoading')) {
+  window.location.replace('loading.html');
+}
+
 // coins x
 let coins = Number(localStorage.getItem('coins')) || 50;
 const maxCoins = 999999;
@@ -407,6 +411,10 @@ function closeAll() {
   document.getElementById('settingsDiv')?.classList.remove('open');
   document.getElementById('socialDiv')?.classList.remove('open');
 
+  document.getElementById('superShopDiv')?.classList.remove('open');
+  document.getElementById('buySuperConfirm')?.classList.remove('open');
+  document.querySelector('.superInfoDiv')?.classList.remove('open');
+
   const map = UI.map();
   if (map?.classList.contains('open')) {
     map.classList.remove('open');
@@ -414,7 +422,6 @@ function closeAll() {
     setTimeout(() => map.classList.remove('closing'), 400);
   }
 }
-
 // ---------- PROFILE ----------
 function openProfileDiv(e) {
   e.stopPropagation();
@@ -1049,11 +1056,9 @@ function addPetStat(label, value) {
 
 function toggleSuperShop(e) {
   e.stopPropagation();
-
-  const superShop = document.getElementById('superShopDiv');
-  if (!superShop) return;
-
-  superShop.classList.toggle('open');
+  closeAll();
+  document.getElementById('superShopDiv')?.classList.add('open');
+  updateSuperEquipUI();
 }
 
 function closeSuperShop() {
@@ -1123,6 +1128,31 @@ document.addEventListener('DOMContentLoaded', () => {
   superInfoDiv.addEventListener('click', (e) => {
     e.stopPropagation();
   });
+
+  const box = document.getElementById('buySuperConfirm');
+  if (!box) return;
+
+  box.querySelector('.buyCancelBtn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeBuySuperConfirm();
+  });
+
+  box.querySelector('.confirmBox')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    confirmBuySuper();
+  });
+
+  box.addEventListener('click', (e) => {
+    if (e.target === box) closeBuySuperConfirm();
+  });
+
+  const key = 'equippedSuper';
+
+  if (!localStorage.getItem(key)) {
+    localStorage.setItem(key, 'waveShield');
+  }
+
+  ensureEquippedSuper();
 });
 
 function closeSuperInfo() {
@@ -1136,11 +1166,21 @@ function getEquippedSuper() {
   return localStorage.getItem(STORAGE_KEY_SUPER);
 }
 
+function ensureEquippedSuper() {
+  const equipped = getEquippedSuper();
+
+  if (equipped && SUPERS[equipped]) return;
+
+  setEquippedSuper('waveShield');
+}
+
 function setEquippedSuper(id) {
   localStorage.setItem(STORAGE_KEY_SUPER, id);
 }
 
 function updateSuperEquipUI() {
+  ensureEquippedSuper();
+
   const lang = getLang();
   const equipped = getEquippedSuper();
 
@@ -1246,6 +1286,7 @@ function confirmBuySuper() {
   pendingSuperBuy = null;
   closeBuySuperConfirm();
   updateSuperEquipUI();
+  ensureEquippedSuper();
 }
 
 function closeBuySuperConfirm() {
