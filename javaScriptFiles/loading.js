@@ -21,15 +21,15 @@ const pctEl = document.getElementById('loadingPct');
 
 function setProgress(p) {
   const v = Math.max(0, Math.min(100, Math.round(p)));
-  fillEl.style.width = v + '%';
-  pctEl.textContent = v + '%';
+  if (fillEl) fillEl.style.width = v + '%';
+  if (pctEl) pctEl.textContent = v + '%';
 }
 
 function loadImage(src) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => resolve({ src, ok: true });
-    img.onerror = () => resolve({ src, ok: false });
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
     img.src = src;
   });
 }
@@ -37,7 +37,7 @@ function loadImage(src) {
 function loadAudio(src) {
   return new Promise((resolve) => {
     const a = new Audio();
-    const done = (ok) => resolve({ src, ok });
+    const done = (ok) => resolve(ok);
     a.addEventListener('canplaythrough', () => done(true), { once: true });
     a.addEventListener('error', () => done(false), { once: true });
     a.preload = 'auto';
@@ -62,42 +62,6 @@ async function preloadAssets(list) {
     else await loadImage(src);
 
     loaded++;
-    setProgress((loaded / total) * 100);
-  }
-
-  return true;
-}
-
-(async () => {
-  try {
-    await preloadAssets(ASSETS);
-
-    sessionStorage.setItem('passedLoading', '1');
-
-    const root = document.querySelector('.phone-frame');
-    if (root) root.classList.add('loadingOut');
-
-    setTimeout(() => {
-      window.location.replace('index.html');
-    }, 350);
-  } catch (e) {
-    sessionStorage.setItem('passedLoading', '1');
-    window.location.replace('index.html');
-  }
-})();
-
-async function preloadAssets(list) {
-  const unique = Array.from(new Set(list)).filter(Boolean);
-  const total = unique.length || 1;
-  let loaded = 0;
-
-  setProgress(0);
-
-  for (const src of unique) {
-    if (isAudio(src)) await loadAudio(src);
-    else await loadImage(src);
-
-    loaded++;
     setProgress((loaded / total) * 90);
   }
 
@@ -108,3 +72,27 @@ async function preloadAssets(list) {
 
   return true;
 }
+
+(async () => {
+  const KEY = 'passedLoading';
+
+  if (sessionStorage.getItem(KEY) === '1') {
+    window.location.replace('main.html');
+    return;
+  }
+
+  sessionStorage.setItem(KEY, '1');
+
+  try {
+    await preloadAssets(ASSETS);
+
+    const root = document.querySelector('.phone-frame');
+    if (root) root.classList.add('loadingOut');
+
+    setTimeout(() => {
+      window.location.replace('main.html');
+    }, 350);
+  } catch (e) {
+    window.location.replace('main.html');
+  }
+})();

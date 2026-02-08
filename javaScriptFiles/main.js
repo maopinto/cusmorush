@@ -1,7 +1,3 @@
-if (!sessionStorage.getItem('passedLoading')) {
-  window.location.replace('loading.html');
-}
-
 // coins x
 let coins = Number(localStorage.getItem('coins')) || 50;
 const maxCoins = 999999;
