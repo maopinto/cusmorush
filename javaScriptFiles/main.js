@@ -438,11 +438,22 @@ function closeBuyWeapon() {
   document.getElementById('buyWeaponPopup').classList.remove('open');
 }
 
+function goToLoadoutHighlightWeapon(weaponId) {
+  sessionStorage.setItem('weaponLoadoutHighlight', weaponId);
+  openWeaponDiv();
+}
+
 window.openWeaponDiv = function (e) {
   if (e) e.stopPropagation();
   closeAll();
   UI.weapon()?.classList.add('open');
   UI.overlay()?.classList.add('show');
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      highlightWeaponInLoadout();
+    });
+  });
 };
 
 window.closeWeaponDiv = function (e) {
@@ -1407,4 +1418,38 @@ function highlightPetInShop() {
   setTimeout(() => card.classList.remove('petHighlight'), 1800);
 
   sessionStorage.removeItem('petShopHighlight');
+}
+
+function highlightWeaponInLoadout() {
+  const id = sessionStorage.getItem('weaponLoadoutHighlight');
+  if (!id) return;
+
+  const list = document.getElementById('weaponDiv');
+  const item = document.querySelector(`.weaponItem[data-weapon="${id}"]`);
+
+  if (!list || !item) {
+    sessionStorage.removeItem('weaponLoadoutHighlight');
+    return;
+  }
+
+  document
+    .querySelectorAll('.weaponItem.weaponHighlight')
+    .forEach((x) => x.classList.remove('weaponHighlight'));
+
+  const iconBtn = item.querySelector('.upgradeWeapon');
+  if (!iconBtn) return;
+
+  document
+    .querySelectorAll('.upgradeWeapon.weaponHighlight')
+    .forEach((x) => x.classList.remove('weaponHighlight'));
+
+  iconBtn.classList.add('weaponHighlight');
+
+  const itemTop = item.offsetTop;
+  const targetTop = itemTop - list.clientHeight / 2 + item.clientHeight / 2;
+
+  list.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+
+  setTimeout(() => item.classList.remove('weaponHighlight'), 1100);
+  sessionStorage.removeItem('weaponLoadoutHighlight');
 }

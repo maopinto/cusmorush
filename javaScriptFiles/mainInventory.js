@@ -507,9 +507,12 @@ function openWeaponPreview(id) {
 
   goLoadoutBtn.className = 'weaponGoLoadoutBtn';
   goLoadoutBtn.style.display = '';
-  goLoadoutBtn.classList.toggle('hidden', !owned);
+  goLoadoutBtn.className = 'weaponGoLoadoutBtn';
+  goLoadoutBtn.style.display = '';
+  goLoadoutBtn.classList.toggle('hidden', owned);
 
   goLoadoutBtn.onclick = (e) => {
+    sessionStorage.setItem('weaponLoadoutHighlight', id);
     e.preventDefault();
     e.stopPropagation();
 
