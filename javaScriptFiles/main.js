@@ -88,6 +88,8 @@ const PETS = {
       DAMAGE: 8,
       SHOOT_RATE: 'Every 8s',
     },
+    role: 'ATTACK',
+    ability: 'Heavy Pulse',
     description:
       'Chimpo is an autonomous companion unit that assists the player in battle.\n\n' +
       'It automatically targets the closest enemy and fires consistently over time. ' +
@@ -105,6 +107,8 @@ const PETS = {
       EFFECT: 'Forces enemies to attack each other',
       RATE: 'Every 9s',
     },
+    role: 'ATTACK',
+    ability: 'Mass Crash',
     description:
       'Siren does not deal damage directly.\n\n' +
       'It manipulates enemy minds, forcing them to turn against each other.\n' +
@@ -744,7 +748,7 @@ function goToLevel(level) {
 // ---------- COINS ----------
 
 function saveCoins() {
-  localStorage.setItem('coins', coins);
+  localStorage.setItem('coins', String(coins));
 }
 
 function loadCoins() {
@@ -886,6 +890,9 @@ function isPetOwned(id) {
 }
 
 function buyPet(id) {
+  const pet = PETS[id];
+  if (!pet) return;
+
   const lang = getLang();
 
   if (isPetOwned(id)) {

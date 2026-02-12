@@ -99,6 +99,7 @@ function openInv(type) {
           : type === 'supers'
             ? invT('inv.modal.supers')
             : invT('inventory.title');
+
   grid.innerHTML = '';
 
   if (type === 'skins') {
@@ -405,6 +406,7 @@ function openInv(type) {
   box?.classList.toggle('supersTheme', type === 'supers');
   modal.classList.toggle('isSupers', type === 'supers');
   modal.classList.toggle('isSkins', type === 'skins');
+  modal.classList.toggle('isPets', type === 'pets');
 
   modal.classList.remove('hidden');
 }
@@ -684,6 +686,7 @@ function closeInv() {
   title?.classList.remove('supersTheme');
   box?.classList.remove('supersTheme');
   modal?.classList.remove('isSupers');
+  modal?.classList.remove('isSkins', 'isPets');
 
   modal?.classList.add('hidden');
 }
@@ -799,7 +802,11 @@ function renderInventoryOverview() {
   const ownedPets = getOwnedPetsArr().length;
 
   const petsCount = document.getElementById('invPetsCount');
-  if (petsCount) petsCount.textContent = `${ownedPets}/${allPets}`;
+  if (petsCount) {
+    petsCount.textContent = `${ownedPets}/${allPets}`;
+    const pct = allPets ? Math.round((ownedPets / allPets) * 100) : 0;
+    petsCount.style.setProperty('--pct', pct);
+  }
 
   // ===== SUPERS =====
   const allSupers = Object.keys(SUPERS || {}).length;
@@ -822,6 +829,7 @@ function getOwnedPetsSet() {
 
 function isPetOwned(id) {
   const n = normalizeSkinId(id);
+  const DEFAULT_PET = 'chimpo';
   return n === DEFAULT_PET || getOwnedPetsSet().has(n);
 }
 
@@ -845,8 +853,10 @@ function openPetPreview(p) {
   const wrap = document.getElementById('petPreview');
   const img = document.getElementById('petPreviewImg');
   const nameEl = document.getElementById('petPreviewName');
-  const typeEl = document.getElementById('petPreviewType');
+  const roleEl = document.getElementById('petPreviewRole');
+  const abilityEl = document.getElementById('petPreviewAbility');
   const equipBtn = document.getElementById('petPreviewEquip');
+  const goBuyBtn = document.getElementById('petPreviewGoBuy');
 
   const priceRow = document.getElementById('petPreviewPriceRow');
   const priceEl = document.getElementById('petPreviewPrice');
@@ -855,8 +865,7 @@ function openPetPreview(p) {
   const shopText = document.getElementById('petPreviewShopText');
   const goShopBtn = document.getElementById('petPreviewGoShop');
 
-  const goBuyBtn = document.getElementById('petPreviewGoBuy');
-  if (!wrap || !img || !nameEl || !equipBtn || !typeEl || !goBuyBtn) return;
+  if (!wrap || !img || !nameEl || !equipBtn || !goBuyBtn) return;
 
   const id = normalizeSkinId(p.id || p.petId || p.key || p.name);
   const owned = isPetOwned(id);
@@ -867,32 +876,28 @@ function openPetPreview(p) {
   img.src = p.img || './images/skins/placeholder.png';
   nameEl.textContent = p.name || id;
 
-  typeEl.textContent = (p.type || 'PET').toString().toUpperCase();
+  if (roleEl) roleEl.textContent = (p.role || '—').toString().toUpperCase();
+  if (abilityEl) {
+    const a = p.ability;
+    abilityEl.textContent =
+      typeof a === 'string' ? a : a?.name || a?.title || '—';
+  }
+
   goBuyBtn.onclick = (e) => {
     e.stopPropagation();
-
     sessionStorage.setItem('petShopHighlight', id);
-
     closePetPreview();
     closeInv();
-
     document.querySelector('[data-target="loadoutScreen"]')?.click();
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (typeof openPetShop === 'function') openPetShop();
         else document.getElementById('petShoopDiv')?.classList.remove('hidden');
-
-        requestAnimationFrame(() => highlightPetInShop());
+        requestAnimationFrame(() => highlightPetInShop?.());
       });
     });
   };
-
-  const statsText = p.stats
-    ? Object.entries(p.stats)
-        .map(([k, v]) => `${k}:${v}`)
-        .join('  ')
-    : p.desc || '—';
 
   if (priceRow && priceEl) {
     if (!owned && p.price != null) {
@@ -911,9 +916,11 @@ function openPetPreview(p) {
     if (!owned && inShop) {
       shopRow.classList.remove('hidden');
       shopText.textContent = invT('inv.available');
-      goShopBtn.onclick = () => {
+      goShopBtn.onclick = (e) => {
+        e.stopPropagation();
         sessionStorage.setItem('shopJumpTo', 'pets');
         closePetPreview();
+        closeInv();
         document.querySelector('[data-target="shopScreen"]')?.click();
       };
     } else {

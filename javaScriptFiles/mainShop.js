@@ -38,14 +38,6 @@ const shopData = {
   ],
   dailyPool: [
     {
-      id: 'daily_laser_boost',
-      name: 'Laser Boost',
-      desc: '+15% laser dmg (1 run)',
-      icon: '⚡',
-      price: 180,
-      badge: 'HOT',
-    },
-    {
       id: 'daily_pet_food',
       name: 'Pet Treat',
       desc: 'Pet bonus for 3 battles',
@@ -60,14 +52,6 @@ const shopData = {
       icon: '🪙',
       price: 150,
       badge: 'VALUE',
-    },
-    {
-      id: 'daily_shield_boost',
-      name: 'Shield Boost',
-      desc: '+20% shield strength (1 run)',
-      icon: '🛡️',
-      price: 200,
-      badge: 'HOT',
     },
     {
       id: 'daily_fire_rate',
@@ -85,14 +69,7 @@ const shopData = {
       price: 300,
       badge: 'RARE',
     },
-    {
-      id: 'daily_xp_boost',
-      name: 'XP Boost',
-      desc: '+50% XP for 30 minutes',
-      icon: '📈',
-      price: 240,
-      badge: 'XP',
-    },
+
     {
       id: 'daily_super_charge',
       name: 'Super Charge',
@@ -211,55 +188,6 @@ const DAILY_GIFT_POOL = [
   },
   { type: 'coins', amount: 150, weight: 22, name: 'Coin Pack', icon: '💰' },
   { type: 'coins', amount: 300, weight: 10, name: 'Big Coin Pack', icon: '🏦' },
-
-  {
-    type: 'boost',
-    id: 'boost_xp',
-    weight: 12,
-    name: 'XP Boost',
-    icon: '📈',
-    duration: 30,
-  },
-  {
-    type: 'boost',
-    id: 'boost_shield',
-    weight: 9,
-    name: 'Shield Boost',
-    icon: '🛡️',
-    battles: 1,
-  },
-  {
-    type: 'boost',
-    id: 'boost_fire',
-    weight: 9,
-    name: 'Rapid Fire',
-    icon: '🔥',
-    battles: 2,
-  },
-  {
-    type: 'boost',
-    id: 'boost_laser',
-    weight: 8,
-    name: 'Laser Boost',
-    icon: '⚡',
-    battles: 1,
-  },
-  {
-    type: 'boost',
-    id: 'boost_revive',
-    weight: 4,
-    name: 'Instant Revive',
-    icon: '💖',
-    uses: 1,
-  },
-
-  {
-    type: 'daily',
-    id: 'daily_random_box',
-    weight: 6,
-    name: 'Mystery Box',
-    icon: '🎁',
-  },
 ];
 
 const SHOP_I18N = {
@@ -276,11 +204,6 @@ const SHOP_I18N = {
     },
 
     dailyPool: {
-      daily_laser_boost: {
-        name: 'Laser Boost',
-        desc: '+15% laser dmg (1 run)',
-        badge: 'HOT',
-      },
       daily_pet_food: {
         name: 'Pet Treat',
         desc: 'Pet bonus for 3 battles',
@@ -290,11 +213,6 @@ const SHOP_I18N = {
         name: 'Mini Coins',
         desc: '+350 coins',
         badge: 'VALUE',
-      },
-      daily_shield_boost: {
-        name: 'Shield Boost',
-        desc: '+20% shield strength (1 run)',
-        badge: 'HOT',
       },
       daily_fire_rate: {
         name: 'Rapid Fire',
@@ -306,21 +224,12 @@ const SHOP_I18N = {
         desc: 'Revive once on death',
         badge: 'RARE',
       },
-      daily_xp_boost: {
-        name: 'XP Boost',
-        desc: '+50% XP for 30 minutes',
-        badge: 'XP',
-      },
       daily_super_charge: {
         name: 'Super Charge',
         desc: 'Start battle with full super',
         badge: 'POWER',
       },
-      daily_random_box: {
-        name: 'Mystery Box',
-        desc: 'Random reward',
-        badge: '???',
-      },
+
       daily_coin_rush: {
         name: 'Coin Rush',
         desc: 'Double coins for 2 battles',
@@ -348,18 +257,11 @@ const SHOP_I18N = {
       coin_pack: { name: 'Coin Pack' },
       big_coin_pack: { name: 'Big Coin Pack' },
 
-      boost_xp: { name: 'XP Boost' },
-      boost_shield: { name: 'Shield Boost' },
-      boost_fire: { name: 'Rapid Fire' },
-      boost_laser: { name: 'Laser Boost' },
-      boost_revive: { name: 'Instant Revive' },
-
       daily_random_box: { name: 'Mystery Box' },
     },
 
     ui: {
       freeCoinsToday: 'Free coins for today',
-      unlockBoost: 'Unlock a boost item',
       unlockDaily: 'Unlock a daily shop item',
     },
   },
@@ -374,11 +276,6 @@ const SHOP_I18N = {
     },
 
     dailyPool: {
-      daily_laser_boost: {
-        name: 'בוסט לייזר',
-        desc: '+15% נזק לייזר (לריצה אחת)',
-        badge: 'חם',
-      },
       daily_pet_food: {
         name: 'חטיף לחיה',
         desc: 'בונוס לחיה ל־3 קרבות',
@@ -389,11 +286,7 @@ const SHOP_I18N = {
         desc: '+350 מטבעות',
         badge: 'שווה',
       },
-      daily_shield_boost: {
-        name: 'בוסט מגן',
-        desc: '+20% חוזק מגן (לריצה אחת)',
-        badge: 'חם',
-      },
+
       daily_fire_rate: {
         name: 'אש מהירה',
         desc: '+25% קצב ירי (2 קרבות)',
@@ -404,11 +297,7 @@ const SHOP_I18N = {
         desc: 'החייאה פעם אחת במוות',
         badge: 'נדיר',
       },
-      daily_xp_boost: {
-        name: 'בוסט XP',
-        desc: '+50% ניסיון ל־30 דקות',
-        badge: 'XP',
-      },
+
       daily_super_charge: {
         name: 'טעינת סופר',
         desc: 'מתחילים קרב עם סופר מלא',
@@ -446,18 +335,11 @@ const SHOP_I18N = {
       coin_pack: { name: 'חבילת מטבעות' },
       big_coin_pack: { name: 'חבילת מטבעות גדולה' },
 
-      boost_xp: { name: 'בוסט XP' },
-      boost_shield: { name: 'בוסט מגן' },
-      boost_fire: { name: 'אש מהירה' },
-      boost_laser: { name: 'בוסט לייזר' },
-      boost_revive: { name: 'החייאה מיידית' },
-
       daily_random_box: { name: 'קופסת הפתעה' },
     },
 
     ui: {
       freeCoinsToday: 'מטבעות חינם להיום',
-      unlockBoost: 'פותח פריט בוסט',
       unlockDaily: 'פותח פריט דיילי מהחנות',
     },
   },
@@ -475,11 +357,6 @@ const SHOP_I18N = {
     },
 
     dailyPool: {
-      daily_laser_boost: {
-        name: 'Mejora Láser',
-        desc: '+15% daño láser (1 partida)',
-        badge: 'TOP',
-      },
       daily_pet_food: {
         name: 'Premio Mascota',
         desc: 'Bono para mascota por 3 batallas',
@@ -490,11 +367,6 @@ const SHOP_I18N = {
         desc: '+350 monedas',
         badge: 'VALOR',
       },
-      daily_shield_boost: {
-        name: 'Mejora Escudo',
-        desc: '+20% fuerza de escudo (1 partida)',
-        badge: 'TOP',
-      },
       daily_fire_rate: {
         name: 'Fuego Rápido',
         desc: '+25% cadencia (2 batallas)',
@@ -504,11 +376,6 @@ const SHOP_I18N = {
         name: 'Revivir Instantáneo',
         desc: 'Revive una vez al morir',
         badge: 'RARO',
-      },
-      daily_xp_boost: {
-        name: 'Mejora XP',
-        desc: '+50% XP por 30 min',
-        badge: 'XP',
       },
       daily_super_charge: {
         name: 'Carga Súper',
@@ -547,18 +414,11 @@ const SHOP_I18N = {
       coin_pack: { name: 'Paquete de monedas' },
       big_coin_pack: { name: 'Paquete grande de monedas' },
 
-      boost_xp: { name: 'Mejora XP' },
-      boost_shield: { name: 'Mejora Escudo' },
-      boost_fire: { name: 'Fuego Rápido' },
-      boost_laser: { name: 'Mejora Láser' },
-      boost_revive: { name: 'Revivir Instantáneo' },
-
       daily_random_box: { name: 'Caja Misteriosa' },
     },
 
     ui: {
       freeCoinsToday: 'Monedas gratis de hoy',
-      unlockBoost: 'Desbloquea un boost',
       unlockDaily: 'Desbloquea un ítem diario',
     },
   },
@@ -629,13 +489,19 @@ function getCoins() {
 }
 
 function setCoins(v) {
-  localStorage.setItem('coins', String(v));
+  const n = Number(v) || 0;
+
+  localStorage.setItem('coins', String(n));
+
+  try {
+    coins = n;
+  } catch (_) {}
 
   const coinsText = document.getElementById('coinsText');
-  if (coinsText) coinsText.textContent = v;
+  if (coinsText) coinsText.textContent = n;
 
   const shopCoinsText = document.getElementById('shopCoinsText');
-  if (shopCoinsText) shopCoinsText.textContent = v;
+  if (shopCoinsText) shopCoinsText.textContent = n;
 }
 
 function showToast(msg, type = '') {
@@ -896,12 +762,6 @@ function renderDailyGiftCard() {
     return;
   }
 
-  if (gift.type === 'boost') {
-    valEl.textContent = shopT('shop.free');
-    descEl.textContent = shopT('shop.gift.unlockBoost');
-    return;
-  }
-
   if (gift.type === 'daily') {
     valEl.textContent = shopT('shop.free');
     descEl.textContent = shopT('shop.gift.unlockDaily');
@@ -910,16 +770,6 @@ function renderDailyGiftCard() {
 
   valEl.textContent = shopT('shop.free');
   descEl.textContent = shopT('shop.gift.claimYourReward');
-}
-
-const K_OWNED_BOOSTS = 'ownedBoosts';
-
-function getOwnedBoosts() {
-  return new Set(JSON.parse(localStorage.getItem(K_OWNED_BOOSTS) || '[]'));
-}
-
-function saveOwnedBoosts(set) {
-  localStorage.setItem(K_OWNED_BOOSTS, JSON.stringify([...set]));
 }
 
 function claimDailyGift() {
@@ -934,27 +784,6 @@ function claimDailyGift() {
     setCoins(getCoins() + Number(gift.amount || 0));
     setDailyGiftClaimed();
     showToast(shopT('shop.dailyGiftCoins', { coins: gift.amount }), 'success');
-    renderDailyGiftCard();
-    updateDailyGiftUI();
-    return;
-  }
-
-  if (gift.type === 'boost') {
-    const boosts = getOwnedBoosts();
-
-    if (!boosts.has(gift.id)) {
-      boosts.add(gift.id);
-      saveOwnedBoosts(boosts);
-      setDailyGiftClaimed();
-      showToast(`Boost unlocked: ${gift.name}`, 'success');
-      renderDailyGiftCard();
-      updateDailyGiftUI();
-      return;
-    }
-
-    setCoins(getCoins() + 120);
-    setDailyGiftClaimed();
-    showToast(`Already owned. Bonus: +120 coins`, 'success');
     renderDailyGiftCard();
     updateDailyGiftUI();
     return;
@@ -1325,7 +1154,7 @@ function shopOpenModal(item) {
 
   if (priceEl) {
     priceEl.textContent =
-      item.type === 'coin' ? `+${item.add} 🪙` : String(item.price ?? 0);
+      item.type === 'coin' ? `+${item.add}` : String(item.price ?? 0);
   }
 
   const buyBtn = document.getElementById('shopModalBuy');

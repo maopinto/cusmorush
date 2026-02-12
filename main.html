@@ -439,7 +439,6 @@
             <button class="shopDot" data-target="featured" data-label="1"></button>
             <button class="shopDot" data-target="weapons" data-label="W"></button>
             <button class="shopDot" data-target="pets" data-label="P"></button>
-            <button class="shopDot" data-target="boosts" data-label="B"></button>
           </div>
         </div>
 
@@ -469,7 +468,6 @@
         <h1 id="inventoryTitle" class="pageText" data-i18n="inventory.title">INVENTORY</h1>
 
         <div class="invWrap">
-
           <!-- WEAPONS -->
           <div class="invSection" data-inv="weapons">
             <div class="invHead">
@@ -501,8 +499,6 @@
 
             <button class="invBtn" onclick="openInv('supers')" data-i18n="ui.open">OPEN</button>
           </div>
-
-
 
           <!-- PETS -->
           <div class="invSection invSectionPets" data-inv="pets">
@@ -584,14 +580,16 @@
 
               <div class="skinPreviewMeta">
                 <div class="skinMetaRow">
-                  <span class="k">TYPE</span>
-                  <span id="petPreviewType" class="v"></span>
+                  <span class="k">ROLE:</span>
+                  <span id="petPreviewRole" class="v"></span>
                 </div>
 
-                <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">
-                  GO TO PET SHOP
-                </button>
+                <div class="skinMetaRow">
+                  <span class="k">ABILITY:</span>
+                  <span id="petPreviewAbility" class="v"></span>
+                </div>
 
+                <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">GO TO PET SHOP</button>
 
                 <div id="petPreviewPriceRow" class="skinMetaRow hidden">
                   <span class="k">PRICE</span>
@@ -634,9 +632,7 @@
                   <span id="weaponPreviewPrice" class="v"></span>
                 </div>
 
-                <button id="weaponPreviewGoLoadout" class="petGoBuyBtn hidden" type="button">
-                  GO TO LOADOUT
-                </button>
+                <button id="weaponPreviewGoLoadout" class="petGoBuyBtn hidden" type="button">GO TO LOADOUT</button>
               </div>
 
               <button id="weaponPreviewEquip" class="skinPreviewEquip">EQUIP</button>
@@ -671,9 +667,7 @@
             </div>
           </div>
         </div>
-
       </div>
-
 
       <!-- ================= BOTTOM NAV ================= -->
       <div id="bottomBtns">
@@ -682,9 +676,9 @@
         <button id="battle" class="bottomButton" data-target="homeScreen" data-i18n="nav.battle">Battle!</button>
         <button class="bottomButton" data-target="inventoryScreen" data-i18n="nav.inventory">Inventory</button>
       </div>
+      <div id="toast" class="toast"></div>
+
     </div>
-    <div id="toast" class="toast"></div>
-  </div>
 </body>
 
 </html>

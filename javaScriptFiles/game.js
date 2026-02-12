@@ -883,10 +883,10 @@ window.addEventListener('load', function () {
   class Pet {
     constructor(game) {
       this.game = game;
-      this.width = 60;
-      this.height = 60;
-      this.offsetX = -70;
-      this.offsetY = 100;
+      this.width = 80;
+      this.height = 80;
+      this.offsetX = -50;
+      this.offsetY = 86;
 
       this.lives = 3;
 
@@ -898,6 +898,16 @@ window.addEventListener('load', function () {
       this.invulnerable = false;
       this.invulnerableTimer = 0;
       this.invulnerableInterval = 1000;
+
+      this.image = document.getElementById('chimboSprite');
+      this.frameX = 0;
+      this.frameY = 0;
+      this.frameTimer = 0;
+      this.frameInterval = 90;
+
+      this.spriteWidth = 128;
+      this.spriteHeight = 128;
+      this.maxFrame = 1;
     }
 
     update(deltaTime) {
@@ -905,6 +915,12 @@ window.addEventListener('load', function () {
 
       this.x = player.x + this.offsetX;
       this.y = player.y + this.offsetY;
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % this.maxFrame;
+        this.frameTimer = 0;
+      }
 
       this.shootTimer += deltaTime;
       if (this.shootTimer >= this.shootInterval && !this.game.gameOver) {
@@ -929,7 +945,6 @@ window.addEventListener('load', function () {
         this.x + this.width / 2,
         this.y + this.height / 2
       );
-
       if (!target) return;
 
       this.petBullets.push(
@@ -937,11 +952,27 @@ window.addEventListener('load', function () {
       );
     }
 
-    draw(context) {
-      context.fillStyle = this.invulnerable ? 'orange' : 'yellow';
-      context.fillRect(this.x, this.y, this.width, this.height);
+    draw(ctx) {
+      if (!this.image) return;
 
-      this.petBullets.forEach((bullet) => bullet.draw(context));
+      ctx.save();
+      if (this.invulnerable) ctx.globalAlpha = 0.65;
+
+      ctx.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+
+      ctx.restore();
+
+      this.petBullets.forEach((bullet) => bullet.draw(ctx));
     }
   }
 
@@ -1022,9 +1053,18 @@ window.addEventListener('load', function () {
 
       this.controlTimer = 0;
       this.controlInterval = 9000;
-      this.target = null;
 
       this.markedForDeletion = false;
+
+      this.image = document.getElementById('sirenSprite');
+      this.frameX = 0;
+      this.frameY = 0;
+      this.frameTimer = 0;
+      this.frameInterval = 90;
+
+      this.spriteWidth = 128;
+      this.spriteHeight = 128;
+      this.maxFrame = 1;
     }
 
     update(deltaTime) {
@@ -1033,8 +1073,13 @@ window.addEventListener('load', function () {
       this.x = player.x + this.offsetX;
       this.y = player.y + this.offsetY;
 
-      this.controlTimer += deltaTime;
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % this.maxFrame;
+        this.frameTimer = 0;
+      }
 
+      this.controlTimer += deltaTime;
       if (this.controlTimer >= this.controlInterval && !this.game.gameOver) {
         this.findTarget();
         this.controlTimer = 0;
@@ -1045,7 +1090,6 @@ window.addEventListener('load', function () {
       const enemies = this.game.enemies.filter(
         (e) => !e.markedForDeletion && !e.mindControlled
       );
-
       if (enemies.length < 2) return;
 
       const controller = enemies[Math.floor(Math.random() * enemies.length)];
@@ -1061,22 +1105,21 @@ window.addEventListener('load', function () {
     }
 
     draw(ctx) {
+      if (!this.image) return;
+
       ctx.save();
 
-      ctx.fillStyle = 'purple';
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-
-      if (this.target) {
-        ctx.strokeStyle = 'violet';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(this.x + this.width / 2, this.y + this.height / 2);
-        ctx.lineTo(
-          this.target.x + this.target.width / 2,
-          this.target.y + this.target.height / 2
-        );
-        ctx.stroke();
-      }
+      ctx.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
 
       ctx.restore();
     }
