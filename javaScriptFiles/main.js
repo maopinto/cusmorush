@@ -104,7 +104,7 @@ const PETS = {
     stats: {
       LIVES: 2,
       ABILITY: 'Mind Control',
-      EFFECT: 'Forces enemies to attack each other',
+      EFFECT: 'Let them do the work.',
       RATE: 'Every 9s',
     },
     role: 'ATTACK',

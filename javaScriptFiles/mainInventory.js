@@ -949,7 +949,6 @@ function openSuperPreview(s) {
   const wrap = document.getElementById('superPreview');
   const img = document.getElementById('superPreviewImg');
   const nameEl = document.getElementById('superPreviewName');
-  nameEl.textContent = prettySuperName(s.id);
   const descEl = document.getElementById('superPreviewDesc');
   const statsEl = document.getElementById('superPreviewStatsText');
   const equipBtn = document.getElementById('superPreviewEquip');
@@ -958,7 +957,9 @@ function openSuperPreview(s) {
 
   if (!wrap || !img || !nameEl || !descEl || !statsEl || !equipBtn) return;
 
-  const id = s.id;
+  const id = s?.id;
+  if (!id) return;
+
   const ownedSet = new Set(
     JSON.parse(localStorage.getItem('ownedSupers') || '[]').map(normalizeSkinId)
   );
@@ -979,7 +980,7 @@ function openSuperPreview(s) {
         .map(([k, v]) => `${k}: ${v}`)
         .join('  •  ')
     : '';
-  statsEl.textContent = statsText;
+  statsEl.textContent = statsText || '';
 
   if (priceRow && priceEl) {
     if (!owned) {
@@ -1002,17 +1003,17 @@ function openSuperPreview(s) {
     renderInventoryOverview?.();
     closeSuperPreview();
   };
+
   let goShopBtn = document.getElementById('superPreviewGoShop');
   if (!goShopBtn) {
     goShopBtn = document.createElement('button');
     goShopBtn.id = 'superPreviewGoShop';
     goShopBtn.className = 'superGoShopBtn';
     goShopBtn.type = 'button';
-    goShopBtn.textContent = invT('ui.goToShop') || 'GO TO SHOP';
+    goShopBtn.textContent = invT('ui.goToShop') || 'GO TO SUPER SHOP';
 
     const anchor =
       document.getElementById('superPreviewPriceRow') ||
-      document.getElementById('superPreviewStatsText') ||
       document.getElementById('superPreviewStats') ||
       descEl;
 
@@ -1021,7 +1022,79 @@ function openSuperPreview(s) {
       anchor?.nextSibling || null
     );
   }
+
+  const shouldShowGoShop = !owned;
+
+  goShopBtn.className = 'superGoShopBtn';
+  goShopBtn.style.display = '';
+  goShopBtn.classList.toggle('hidden', !shouldShowGoShop);
+
+  const openAndHighlight = () => {
+    const shop = document.getElementById('superShopDiv');
+    if (!shop) return;
+
+    shop.classList.remove('hidden');
+    shop.style.display = '';
+
+    const sid = normalizeSkinId(id);
+
+    shop
+      .querySelectorAll('.superCard.shopHighlight')
+      .forEach((x) => x.classList.remove('shopHighlight'));
+
+    const card =
+      shop.querySelector(`.superCard[data-super="${sid}"]`) ||
+      shop.querySelector(`.superCard[data-super="${id}"]`);
+
+    if (!card) return;
+
+    card.classList.add('shopHighlight');
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => card.classList.remove('shopHighlight'), 1800);
+  };
+
+  goShopBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (!shouldShowGoShop) return;
+
+    closeSuperPreview();
+    closeInv();
+
+    document.querySelector('[data-target="loadoutScreen"]')?.click();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (typeof toggleSuperShop === 'function') {
+          toggleSuperShop({ stopPropagation() {}, preventDefault() {} });
+        }
+
+        openAndHighlight();
+      });
+    });
+  };
 }
+
+function goToSuperShop(superId) {
+  const sid = normalizeSkinId(superId);
+
+  sessionStorage.setItem('superShopHighlight', sid);
+
+  closeSuperPreview?.();
+  closeInv?.();
+
+  document.querySelector('[data-target="loadoutScreen"]')?.click();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      openSuperShopDiv();
+
+      const pick = sessionStorage.getItem('superShopHighlight');
+      if (pick) highlightSuperInShop(pick);
+    });
+  });
+}
+
+window.goToSuperShop = goToSuperShop;
 
 function prettySuperName(str) {
   return str

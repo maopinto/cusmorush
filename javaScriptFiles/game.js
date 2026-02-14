@@ -883,13 +883,27 @@ window.addEventListener('load', function () {
   class Pet {
     constructor(game) {
       this.game = game;
+
+      this.image = document.getElementById('chimboSprite');
+
+      this.spriteWidth = 128;
+      this.spriteHeight = 192;
+      this.maxFrame = 8;
+
+      this.frameX = 0;
+      this.frameY = 0;
+      this.frameTimer = 0;
+      this.frameInterval = 90;
+
       this.width = 80;
-      this.height = 80;
+      this.height = Math.round(
+        this.width * (this.spriteHeight / this.spriteWidth)
+      );
+
       this.offsetX = -50;
       this.offsetY = 86;
 
       this.lives = 3;
-
       this.petBullets = [];
       this.shootTimer = 0;
       this.shootInterval = 8000;
@@ -898,16 +912,6 @@ window.addEventListener('load', function () {
       this.invulnerable = false;
       this.invulnerableTimer = 0;
       this.invulnerableInterval = 1000;
-
-      this.image = document.getElementById('chimboSprite');
-      this.frameX = 0;
-      this.frameY = 0;
-      this.frameTimer = 0;
-      this.frameInterval = 90;
-
-      this.spriteWidth = 128;
-      this.spriteHeight = 128;
-      this.maxFrame = 1;
     }
 
     update(deltaTime) {
@@ -971,8 +975,7 @@ window.addEventListener('load', function () {
       );
 
       ctx.restore();
-
-      this.petBullets.forEach((bullet) => bullet.draw(ctx));
+      this.petBullets.forEach((b) => b.draw(ctx));
     }
   }
 
