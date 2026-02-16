@@ -1,4 +1,9 @@
-const ASSETS = [
+const params = new URLSearchParams(location.search);
+const to = params.get('to')
+  ? decodeURIComponent(params.get('to'))
+  : 'main.html';
+
+const HOME_ASSETS = [
   './images/logo.png',
   './images/backgroundImages/homePage.png',
   './images/backgroundImages/centerIconeImage.png',
@@ -14,6 +19,22 @@ const ASSETS = [
   './images/logosImage/weaponImg/missileIcone.png',
   './images/logosImage/weaponImg/triangleShooter.png',
   './images/logosImage/weaponImg/lockIcone.png',
+];
+
+const GAME_ASSETS = [
+  './images/logo.png',
+  './images/game/background/blueSpace.png',
+  './images/game/sprites/smokeExplosion.png',
+  './images/game/sprites/playerSkins/playerSkin1.png',
+  './images/game/sprites/playerSkins/playerRedSkin.png',
+  './images/game/sprites/missileSprite.png',
+  './images/game/sprites/petSprites/chimboSprite.png',
+  './images/game/sprites/petSprites/SirenSPrite.png',
+];
+
+const ASSETS = [
+  ...HOME_ASSETS,
+  ...(to.includes('game.html') ? GAME_ASSETS : []),
 ];
 
 const fillEl = document.getElementById('loadingFill');
@@ -34,6 +55,10 @@ function loadImage(src) {
   });
 }
 
+function isAudio(src) {
+  return /\.(mp3|wav|ogg|m4a)$/i.test(src);
+}
+
 function loadAudio(src) {
   return new Promise((resolve) => {
     const a = new Audio();
@@ -44,10 +69,6 @@ function loadAudio(src) {
     a.src = src;
     a.load();
   });
-}
-
-function isAudio(src) {
-  return /\.(mp3|wav|ogg|m4a)$/i.test(src);
 }
 
 async function preloadAssets(list) {
@@ -69,15 +90,13 @@ async function preloadAssets(list) {
     setProgress(p);
     await new Promise((r) => setTimeout(r, 12));
   }
-
-  return true;
 }
 
 (async () => {
-  const KEY = 'passedLoading';
+  const KEY = 'passedLoading:' + to;
 
   if (sessionStorage.getItem(KEY) === '1') {
-    window.location.replace('main.html');
+    location.replace(to);
     return;
   }
 
@@ -90,9 +109,9 @@ async function preloadAssets(list) {
     if (root) root.classList.add('loadingOut');
 
     setTimeout(() => {
-      window.location.replace('main.html');
+      location.replace(to);
     }, 350);
   } catch (e) {
-    window.location.replace('main.html');
+    location.replace(to);
   }
 })();

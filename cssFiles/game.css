@@ -148,17 +148,14 @@ body {
   min-width: 130px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 #btnLobby {
   background: linear-gradient(145deg, #444, #222);
   box-shadow: 0 6px 0 #111;
-}
-
-#btnLobby:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.6);
 }
 
 #btnLobby:active {
@@ -170,11 +167,6 @@ body {
   background: linear-gradient(145deg, #ffd700, #ff9f00);
   color: #111;
   box-shadow: 0 6px 0 #c48a00;
-}
-
-#btnNext:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 10px 20px rgba(255, 200, 0, 0.6);
 }
 
 #btnNext:active {
@@ -191,10 +183,6 @@ body {
   height: 100%;
   background: rgba(255, 255, 255, 0.4);
   transform: skewX(-25deg);
-}
-
-#btnNext:hover::after {
-  animation: shine 0.6s ease;
 }
 
 @keyframes shine {

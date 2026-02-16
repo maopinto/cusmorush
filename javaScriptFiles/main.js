@@ -743,10 +743,18 @@ audioVolume.addEventListener('input', () => {
 
 // ---------- LEVEL NAV ----------
 function goToLevel(level) {
-  window.location.href = `game.html?level=${level}`;
-}
-// ---------- COINS ----------
+  const maxUnlocked = getMaxUnlockedLevel();
 
+  if (level > maxUnlocked) {
+    showLockedLevel(level);
+    return;
+  }
+
+  const target = `game.html?level=${level}`;
+  location.href = `index.html?to=${encodeURIComponent(target)}`;
+}
+
+// ---------- COINS ----------
 function saveCoins() {
   localStorage.setItem('coins', String(coins));
 }
@@ -1339,17 +1347,6 @@ function unlockNextLevel(currentLevel) {
   if (currentLevel >= maxLevel) {
     localStorage.setItem(STORAGE_KEY_MAX_LEVEL, currentLevel + 1);
   }
-}
-
-function goToLevel(level) {
-  const maxUnlocked = getMaxUnlockedLevel();
-
-  if (level > maxUnlocked) {
-    showLockedLevel(level);
-    return;
-  }
-
-  window.location.href = `game.html?level=${level}`;
 }
 
 function showLockedLevel(level) {
