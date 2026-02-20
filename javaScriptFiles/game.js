@@ -959,7 +959,6 @@ window.addEventListener('load', function () {
       weapon.fire(this);
     }
   }
-
   class Pet {
     constructor(game) {
       this.game = game;
@@ -980,33 +979,32 @@ window.addEventListener('load', function () {
         this.width * (this.spriteHeight / this.spriteWidth)
       );
 
-      this.offsetX = -50;
-      this.offsetY = 86;
+      this.offsetX = -60;
+      this.offsetY = 60;
+
+      this.x = 0;
+      this.y = 0;
 
       this.lives = 3;
-      this.petBullets = [];
-      this.shootTimer = 0;
-      this.shootInterval = 8000;
-
-      this.markedForDeletion = false;
       this.invulnerable = false;
       this.invulnerableTimer = 0;
       this.invulnerableInterval = 1000;
 
+      this.petBullets = [];
+      this.shootTimer = 0;
+
       this.baseShootInterval = 8000;
-      this.shootInterval = this.baseShootInterval;
+      this.markedForDeletion = false;
     }
 
     update(deltaTime) {
-      const player = this.game.player;
+      const p = this.game.player;
 
-      this.x = player.x + this.offsetX;
-      this.y = player.y + this.offsetY;
+      const targetX = p.x + this.offsetX;
+      const targetY = p.y + this.offsetY;
 
-      this.shootInterval = Math.max(
-        this.game.petCooldownMin,
-        Math.round(this.baseShootInterval * this.game.petCooldownMult)
-      );
+      this.x += (targetX - this.x) * 0.18;
+      this.y += (targetY - this.y) * 0.18;
 
       this.frameTimer += deltaTime;
       if (this.frameTimer > this.frameInterval) {
@@ -1014,13 +1012,18 @@ window.addEventListener('load', function () {
         this.frameTimer = 0;
       }
 
+      const interval = Math.max(
+        this.game.petCooldownMin,
+        Math.round(this.baseShootInterval * this.game.petCooldownMult)
+      );
+
       this.shootTimer += deltaTime;
-      if (this.shootTimer >= this.shootInterval && !this.game.gameOver) {
-        this.shoot();
+      if (!this.game.gameOver && this.shootTimer >= interval) {
         this.shootTimer = 0;
+        this.shoot();
       }
 
-      this.petBullets.forEach((bullet) => bullet.update());
+      this.petBullets.forEach((b) => b.update(deltaTime));
       this.petBullets = this.petBullets.filter((b) => !b.markedForDeletion);
 
       if (this.invulnerable) {
@@ -1040,7 +1043,7 @@ window.addEventListener('load', function () {
       if (!target) return;
 
       this.petBullets.push(
-        new Pet1Bullet(this.game, this.x + this.width / 2, this.y + 5, target)
+        new Pet1Bullet(this.game, this.x + this.width / 2, this.y + 10, target)
       );
     }
 
@@ -1063,6 +1066,7 @@ window.addEventListener('load', function () {
       );
 
       ctx.restore();
+
       this.petBullets.forEach((b) => b.draw(ctx));
     }
   }
@@ -1814,6 +1818,9 @@ window.addEventListener('load', function () {
       this.fontFamily = 'Helvetica';
       this.color = 'white';
 
+      this.prevLives = game.player.lives;
+      this.hurtPulse = 0;
+
       this.superColors = [
         { p: 0.0, c: { r: 0, g: 200, b: 255 } },
         { p: 0.25, c: { r: 0, g: 150, b: 255 } },
@@ -1830,20 +1837,62 @@ window.addEventListener('load', function () {
       ctx.font = `${this.fontSize}px ${this.fontFamily}`;
       ctx.fillText(`Score: ${this.game.score}`, 20, 30);
 
-      let hearts;
-      if (this.game.gameOver) {
-        hearts = '💀💀💀';
-      } else if (this.game.player.invulnerable) {
-        hearts = '🛡️'.repeat(this.game.player.lives);
-      } else {
-        hearts = '❤️'.repeat(this.game.player.lives);
-      }
-      ctx.fillText(`Lives: ${hearts}`, 20, 65);
+      // 👇 החיים החדשים
+      this.drawLives(ctx);
 
       this.drawSuperGauge(ctx);
 
       if (this.game.gameOver) {
         this.drawGameOver(ctx);
+      }
+
+      ctx.restore();
+    }
+
+    drawLives(ctx) {
+      const lives = Math.max(0, this.game.player.lives);
+
+      if (lives < this.prevLives) this.hurtPulse = 1;
+      this.prevLives = lives;
+      this.hurtPulse *= 0.9;
+
+      const x = 20;
+      const y = 65;
+
+      const shake =
+        this.hurtPulse > 0.02
+          ? Math.sin(performance.now() * 0.06) * 3 * this.hurtPulse
+          : 0;
+
+      const pop = 1 + this.hurtPulse * 0.35;
+
+      ctx.save();
+      ctx.translate(shake, 0);
+
+      ctx.font = `700 22px ${this.fontFamily}`;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText('Lives:', x, y);
+
+      const startX = x + 70;
+      const gap = 22;
+      const maxLives = 3;
+
+      for (let i = 0; i < maxLives; i++) {
+        const isFull = i < lives;
+        const icon = isFull ? '❤️' : '🖤';
+
+        ctx.save();
+        const ix = startX + i * gap;
+
+        if (isFull && this.hurtPulse > 0.02) {
+          ctx.translate(ix + 10, y - 10);
+          ctx.scale(pop, pop);
+          ctx.translate(-(ix + 10), -(y - 10));
+        }
+
+        ctx.globalAlpha = isFull ? 1 : 0.35;
+        ctx.fillText(icon, ix, y);
+        ctx.restore();
       }
 
       ctx.restore();
@@ -2262,6 +2311,7 @@ window.addEventListener('load', function () {
           this.enemyTimer += deltaTime;
         }
       }
+
       this.enemies.forEach((enemy) => enemy.update(deltaTime));
       this.enemies = this.enemies.filter((enemy) => !enemy.markedForDeletion);
 
@@ -2322,16 +2372,32 @@ window.addEventListener('load', function () {
               p.split = false;
 
               const cy = p.y + p.height * 0.35;
-
               const leftX = p.x - 6;
               const rightX = p.x + 6;
+              const grace = 140;
 
               this.player.projectiles.push(
-                new TriangleProjectile(this, leftX, cy, -6, 0, false)
+                new TriangleProjectile(
+                  this,
+                  leftX - 8,
+                  cy - 10,
+                  -6,
+                  -1,
+                  false,
+                  grace
+                )
               );
 
               this.player.projectiles.push(
-                new TriangleProjectile(this, rightX, cy, 6, 0, false)
+                new TriangleProjectile(
+                  this,
+                  rightX + 8,
+                  cy - 10,
+                  6,
+                  -1,
+                  false,
+                  grace
+                )
               );
 
               p.markedForDeletion = true;
@@ -2387,9 +2453,7 @@ window.addEventListener('load', function () {
 
         this.player.speedX = 0;
         this.player.speedY = 0;
-      }
-
-      if (!this.upgradeCardsShowing) {
+      } else {
         this.enemies.forEach((enemy) => {
           if (enemy.originalSpeedY !== undefined) {
             enemy.speedY = enemy.originalSpeedY;
@@ -2399,7 +2463,7 @@ window.addEventListener('load', function () {
       }
 
       if (
-        currentLevel === 1 &&
+        this.level === 1 &&
         !this.bossSpawned &&
         this.score >= this.winningScore
       ) {
@@ -2416,6 +2480,16 @@ window.addEventListener('load', function () {
       }
 
       if (this.bossKilled && !this.gameOver) {
+        this.gameOver = true;
+        this.win = true;
+      }
+
+      if (
+        this.level !== 1 &&
+        !this.gameOver &&
+        !this.upgradeCardsShowing &&
+        this.score >= this.winningScore
+      ) {
         this.gameOver = true;
         this.win = true;
       }
@@ -2445,7 +2519,14 @@ window.addEventListener('load', function () {
 
               if (enemy.lives <= 0 && !enemy.markedForDeletion) {
                 enemy.markedForDeletion = true;
-                tthis.score++;
+
+                if (enemy instanceof Boss1) {
+                  this.bossActive = false;
+                  this.bossKilled = true;
+                } else {
+                  this.score++;
+                  this.addSuperCharge(1);
+                }
 
                 const px = enemy.x + enemy.width / 2;
                 const py = enemy.y + enemy.height / 2;
@@ -2481,17 +2562,9 @@ window.addEventListener('load', function () {
           grantCoins(reward);
           unlockNextLevel(this.level);
 
-          showVictoryScreen({
-            win: true,
-            reward,
-            level: this.level,
-          });
+          showVictoryScreen({ win: true, reward, level: this.level });
         } else {
-          showVictoryScreen({
-            win: false,
-            reward: 0,
-            level: this.level,
-          });
+          showVictoryScreen({ win: false, reward: 0, level: this.level });
         }
 
         this.rewardGiven = true;
