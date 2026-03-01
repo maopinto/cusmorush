@@ -203,6 +203,176 @@ window.addEventListener('load', function () {
     ctx.closePath();
   }
 
+  function clamp(v, a, b) {
+    return Math.max(a, Math.min(b, v));
+  }
+
+  function rand(a, b) {
+    return a + Math.random() * (b - a);
+  }
+
+  function drawVignette(ctx, w, h) {
+    const g = ctx.createRadialGradient(
+      w * 0.5,
+      h * 0.45,
+      Math.min(w, h) * 0.2,
+      w * 0.5,
+      h * 0.5,
+      Math.max(w, h) * 0.78
+    );
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, 'rgba(0,0,0,0.55)');
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+  }
+
+  let _scan = null;
+  function drawScanlines(ctx, w, h) {
+    if (!_scan || _scan.width !== w || _scan.height !== h) {
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      const g = c.getContext('2d');
+
+      g.fillStyle = 'rgba(255,255,255,0.03)';
+      for (let y = 0; y < h; y += 3) g.fillRect(0, y, w, 1);
+
+      _scan = c;
+    }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.35;
+    ctx.drawImage(_scan, 0, 0);
+    ctx.restore();
+  }
+  function drawThruster(ctx, x, y, w, h) {
+    const t = performance.now() * 0.008;
+
+    const cx = x + w * 0.5;
+    const baseY = y + h * 0.56;
+
+    const len = h * (0.55 + 0.08 * Math.sin(t * 2));
+    const baseW = w * (0.75 + 0.06 * Math.sin(t * 3));
+    const sideW = w * (0.45 + 0.05 * Math.sin(t * 2.4));
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.globalAlpha = 0.55;
+    ctx.shadowColor = 'rgba(0,200,255,0.85)';
+    ctx.shadowBlur = 34;
+
+    const haze = ctx.createRadialGradient(
+      cx,
+      baseY,
+      0,
+      cx,
+      baseY + len * 0.35,
+      len * 0.95
+    );
+    haze.addColorStop(0, 'rgba(255,255,255,0.35)');
+    haze.addColorStop(0.25, 'rgba(0,220,255,0.28)');
+    haze.addColorStop(1, 'rgba(0,120,255,0)');
+    ctx.fillStyle = haze;
+    ctx.beginPath();
+    ctx.ellipse(
+      cx,
+      baseY + len * 0.25,
+      baseW * 0.55,
+      len * 0.55,
+      0,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.globalAlpha = 0.95;
+    ctx.shadowBlur = 26;
+
+    const core = ctx.createRadialGradient(cx, baseY, 0, cx, baseY + len, len);
+    core.addColorStop(0, 'rgba(255,255,255,0.95)');
+    core.addColorStop(0.28, 'rgba(0,235,255,0.85)');
+    core.addColorStop(0.6, 'rgba(0,140,255,0.45)');
+    core.addColorStop(1, 'rgba(0,80,255,0)');
+    ctx.fillStyle = core;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, baseY);
+    ctx.bezierCurveTo(
+      cx - baseW * 0.55,
+      baseY + len * 0.18,
+      cx - baseW * 0.25,
+      baseY + len * 0.75,
+      cx,
+      baseY + len
+    );
+    ctx.bezierCurveTo(
+      cx + baseW * 0.25,
+      baseY + len * 0.75,
+      cx + baseW * 0.55,
+      baseY + len * 0.18,
+      cx,
+      baseY
+    );
+    ctx.closePath();
+    ctx.fill();
+
+    const ox = w * 0.22;
+
+    const side = (sx) => {
+      const g = ctx.createRadialGradient(
+        sx,
+        baseY,
+        0,
+        sx,
+        baseY + len * 0.9,
+        len * 0.85
+      );
+      g.addColorStop(0, 'rgba(255,255,255,0.8)');
+      g.addColorStop(0.35, 'rgba(0,220,255,0.65)');
+      g.addColorStop(1, 'rgba(0,120,255,0)');
+      ctx.fillStyle = g;
+
+      ctx.beginPath();
+      ctx.moveTo(sx, baseY);
+      ctx.bezierCurveTo(
+        sx - sideW * 0.42,
+        baseY + len * 0.22,
+        sx - sideW * 0.18,
+        baseY + len * 0.78,
+        sx,
+        baseY + len * 0.95
+      );
+      ctx.bezierCurveTo(
+        sx + sideW * 0.18,
+        baseY + len * 0.78,
+        sx + sideW * 0.42,
+        baseY + len * 0.22,
+        sx,
+        baseY
+      );
+      ctx.closePath();
+      ctx.fill();
+    };
+
+    side(cx - ox);
+    side(cx + ox);
+
+    ctx.globalAlpha = 0.9;
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY + len * 0.15, w * 0.08, h * 0.06, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
   const WEAPON_BEHAVIOR = {
     laser: {
       fireRate: 200,
@@ -494,6 +664,55 @@ window.addEventListener('load', function () {
     }
   }
 
+  class Particle {
+    constructor(x, y, vx, vy, life, size, hue) {
+      this.x = x;
+      this.y = y;
+      this.vx = vx;
+      this.vy = vy;
+      this.life = life;
+      this.maxLife = life;
+      this.size = size;
+      this.hue = hue;
+      this.markedForDeletion = false;
+    }
+
+    update(dt) {
+      const k = dt / 16.67;
+      this.x += this.vx * k;
+      this.y += this.vy * k;
+      this.vy += 0.08 * k;
+
+      this.life -= dt;
+      if (this.life <= 0) this.markedForDeletion = true;
+    }
+
+    draw(ctx) {
+      const p = clamp(this.life / this.maxLife, 0, 1);
+      const r = this.size * (0.3 + 0.7 * p);
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.9 * p;
+
+      ctx.shadowColor = `hsla(${this.hue},100%,60%,1)`;
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = `hsla(${this.hue},100%,60%,1)`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.8 * p;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+
   class Explosion {
     constructor(game, x, y) {
       this.game = game;
@@ -516,6 +735,10 @@ window.addEventListener('load', function () {
       this.maxFrame = 8;
 
       this.image = EXPLOSION_IMG;
+
+      if (this.game && this.game.spawnSparks) {
+        this.game.spawnSparks(x, y, 16, 190);
+      }
     }
 
     update(deltaTime) {
@@ -641,7 +864,7 @@ window.addEventListener('load', function () {
       this.speedX = speedX;
       this.speedY = speedY;
 
-      this.damage = 2;
+      this.damage = 7;
       this.split = canSplit;
 
       this.grace = graceMs;
@@ -929,6 +1152,8 @@ window.addEventListener('load', function () {
 
       if (this.invulnerable) context.globalAlpha = 0.65;
 
+      drawThruster(context, this.x, this.y, this.width, this.height);
+
       context.drawImage(
         this.image,
         this.frameX * this.spriteWidth,
@@ -1166,41 +1391,50 @@ window.addEventListener('load', function () {
   class Siren {
     constructor(game) {
       this.game = game;
+      this.image = document.getElementById('sirenSprite');
 
-      this.width = 60;
-      this.height = 60;
+      this.maxFrame = 6;
+      this.spriteWidth = this.image.width / (this.maxFrame + 1);
+      this.spriteHeight = this.image.height;
 
-      this.offsetX = 70;
-      this.offsetY = 100;
+      this.width = 50;
+      this.height = this.width * (this.spriteHeight / this.spriteWidth);
 
-      this.x = 0;
-      this.y = 0;
+      this.offsetX = 60;
+      this.offsetY = 120;
+
+      this.x = this.game.player.x - this.distanceX;
+      this.y = this.game.player.y - this.distanceY;
+
       this.lives = 2;
-
-      this.controlTimer = 0;
-      this.controlInterval = 9000;
-
       this.markedForDeletion = false;
 
-      this.image = document.getElementById('sirenSprite');
       this.frameX = 0;
-      this.frameY = 0;
       this.frameTimer = 0;
       this.frameInterval = 90;
-
-      this.baseControlInterval = 9000;
-      this.controlInterval = this.baseControlInterval;
-
-      this.spriteWidth = 128;
-      this.spriteHeight = 128;
-      this.maxFrame = 1;
     }
 
+    draw(context) {
+      context.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        0,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    }
     update(deltaTime) {
-      const player = this.game.player;
+      const p = this.game.player;
 
-      this.x = player.x + this.offsetX;
-      this.y = player.y + this.offsetY;
+      const px = p.x + p.width / 2;
+      const py = p.y + p.height / 2;
+
+      this.x = px + this.offsetX;
+      this.y = py + this.offsetY;
 
       this.controlInterval = Math.max(
         this.game.petCooldownMin,
@@ -1209,7 +1443,7 @@ window.addEventListener('load', function () {
 
       this.frameTimer += deltaTime;
       if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % this.maxFrame;
+        this.frameX = (this.frameX + 1) % (this.maxFrame + 1);
         this.frameTimer = 0;
       }
 
@@ -1241,21 +1475,30 @@ window.addEventListener('load', function () {
     draw(ctx) {
       if (!this.image) return;
 
-      ctx.save();
+      const drawX = this.x - this.width / 2;
+      const drawY = this.y - this.height;
+
+      const clampedX = Math.max(
+        0,
+        Math.min(this.game.width - this.width, drawX)
+      );
+
+      const clampedY = Math.max(
+        0,
+        Math.min(this.game.height - this.height, drawY)
+      );
 
       ctx.drawImage(
         this.image,
         this.frameX * this.spriteWidth,
-        this.frameY * this.spriteHeight,
+        0,
         this.spriteWidth,
         this.spriteHeight,
-        this.x,
-        this.y,
+        clampedX,
+        clampedY,
         this.width,
         this.height
       );
-
-      ctx.restore();
     }
   }
 
@@ -1321,24 +1564,61 @@ window.addEventListener('load', function () {
     }
 
     draw(ctx) {
-      ctx.save();
-
-      ctx.fillStyle = this.mindControlled ? 'violet' : this.color;
+      ctx.fillStyle = 'purple';
       ctx.fillRect(this.x, this.y, this.width, this.height);
-
-      ctx.restore();
     }
   }
 
   class Angler1 extends Enemy {
     constructor(game) {
       super(game);
+
       this.width = 80;
       this.height = 80;
       this.lives = 4;
       this.speedY = 1.5;
       this.x = Math.random() * (this.game.width - this.width);
-      this.color = 'red';
+
+      this.image = document.getElementById('angler1Sprite');
+
+      this.spriteWidth = 80;
+      this.spriteHeight = 80;
+
+      this.frameX = 0;
+      this.frameY = 0;
+
+      this.maxFrame = 0;
+      this.frameTimer = 0;
+      this.frameInterval = 90;
+    }
+
+    update(deltaTime) {
+      super.update(deltaTime);
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % (this.maxFrame + 1);
+        this.frameTimer = 0;
+      }
+    }
+
+    draw(ctx) {
+      if (this.image && this.image.complete && this.image.naturalWidth) {
+        ctx.drawImage(
+          this.image,
+          this.frameX * this.spriteWidth,
+          this.frameY * this.spriteHeight,
+          this.spriteWidth,
+          this.spriteHeight,
+          this.x,
+          this.y,
+          this.width,
+          this.height
+        );
+      } else {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      }
     }
   }
 
@@ -2285,6 +2565,9 @@ window.addEventListener('load', function () {
       this.redirectScheduled = false;
 
       this.superGaugeVisual = 0;
+
+      this.particles = [];
+      this.shake = 0;
     }
 
     addSuperCharge(amount = 1) {
@@ -2293,8 +2576,34 @@ window.addEventListener('load', function () {
       this.superAttackGauge = Math.min(need, this.superAttackGauge + amount);
     }
 
+    spawnSparks(x, y, amount = 18, hue = 190) {
+      for (let i = 0; i < amount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = rand(1.2, 4.8);
+        const vx = Math.cos(a) * sp;
+        const vy = Math.sin(a) * sp;
+
+        this.particles.push(
+          new Particle(
+            x,
+            y,
+            vx,
+            vy,
+            rand(220, 520),
+            rand(2.5, 6),
+            hue + rand(-25, 25)
+          )
+        );
+      }
+    }
+
     update(deltaTime) {
       this.player.update(deltaTime);
+
+      this.shake *= 0.86;
+
+      this.particles.forEach((p) => p.update(deltaTime));
+      this.particles = this.particles.filter((p) => !p.markedForDeletion);
 
       if (this.pet) this.pet.update(deltaTime);
 
@@ -2324,6 +2633,7 @@ window.addEventListener('load', function () {
           !this.gameOver
         ) {
           this.player.lives--;
+          this.shake = Math.max(this.shake, 8);
           this.player.invulnerable = true;
           this.player.invulnerableTimer = 0;
         }
@@ -2626,19 +2936,33 @@ window.addEventListener('load', function () {
     }
 
     draw(context) {
+      context.save();
+
+      if (this.shake > 0.2) {
+        const s = this.shake;
+        context.translate(
+          (Math.random() * 2 - 1) * s,
+          (Math.random() * 2 - 1) * s
+        );
+      }
+
       this.player.draw(context);
 
-      if (this.pet) {
-        this.pet.draw(context);
-      }
+      if (this.pet) this.pet.draw(context);
+
       this.superAttacks.forEach((sa) => sa.draw(context));
       this.enemies.forEach((enemy) => enemy.draw(context));
       this.explosions.forEach((explosion) => explosion.draw(context));
-      this.ui.draw(context);
+
+      this.particles.forEach((p) => p.draw(context));
 
       if (this.upgradeCardsShowing) {
         this.upgradeCards.forEach((card) => card.draw(context));
       }
+
+      context.restore();
+
+      this.ui.draw(context);
     }
 
     addEnemy() {
@@ -2819,10 +3143,6 @@ window.addEventListener('load', function () {
     localStorage.setItem('coins', current + amount);
   }
 
-  function restartGame() {
-    game = new Game(logicalW, logicalH);
-  }
-
   (async () => {
     await preload();
 
@@ -2852,12 +3172,19 @@ window.addEventListener('load', function () {
       game.update(deltaTime);
       game.draw(ctx);
 
+      drawVignette(ctx, logicalW, logicalH);
+      drawScanlines(ctx, logicalW, logicalH);
+
       requestAnimationFrame(loop);
     }
 
     requestAnimationFrame(loop);
   })();
 });
+
+function restartGame() {
+  game = new Game(logicalW, logicalH);
+}
 
 function showVictoryScreen(data) {
   const screen = document.getElementById('victoryScreen');
