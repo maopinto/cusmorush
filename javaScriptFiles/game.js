@@ -124,11 +124,17 @@ function equipSkin(id) {
 }
 
 window.addEventListener('load', function () {
+  function getBackgroundForLevel(level) {
+    if (level <= 10) return './images/game/background/blueSpace.png';
+    if (level <= 20) return './images/game/background/greenSpace.png';
+    if (level <= 30) return './images/game/background/pinkSpace.png';
+    return './images/game/background/blueSpace.png';
+  }
+
   const ASSETS = {
-    bg: './images/game/background/blueSpace.png',
+    bg: getBackgroundForLevel(currentLevel),
     explosion: './images/game/sprites/smokeExplosion.png',
   };
-
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -772,21 +778,97 @@ window.addEventListener('load', function () {
     constructor(game, x, y) {
       this.game = game;
       this.width = 4;
-      this.height = 10;
+      this.height = 14;
       this.x = x;
       this.y = y;
-      this.speedY = -7;
-      this.damege = 1;
+      this.speedY = -4.5;
+
+      this.damage = 1;
       this.markedForDeletion = false;
-    }
-    update() {
-      this.y += this.speedY;
-      if (this.y < -this.height) this.markedForDeletion = true;
+
+      this.len = 22;
+      this.w = 3;
+      this.phase = Math.random() * Math.PI * 2;
     }
 
-    draw(context) {
-      context.fillStyle = 'yellow';
-      context.fillRect(this.x, this.y, this.width, this.height);
+    update(deltaTime) {
+      this.y += this.speedY;
+      if (this.y < -this.len - 30) this.markedForDeletion = true;
+    }
+
+    draw(ctx) {
+      const t = performance.now() * 0.008 + this.phase;
+      const pulse = 0.8 + 0.2 * Math.sin(t * 3);
+
+      const cx = this.x + this.width / 2;
+      const topY = this.y;
+      const botY = this.y + this.len;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      // ==== OUTER GLOW (הילה חיצונית רכה) ====
+      ctx.globalAlpha = 0.15 * pulse;
+      ctx.lineWidth = this.w * 8;
+      ctx.strokeStyle = 'rgba(0,180,255,1)';
+      ctx.beginPath();
+      ctx.moveTo(cx, botY);
+      ctx.lineTo(cx, topY);
+      ctx.stroke();
+
+      const grad = ctx.createLinearGradient(cx, botY, cx, topY);
+      grad.addColorStop(0, 'rgba(0,120,255,0)');
+      grad.addColorStop(0.2, 'rgba(0,200,255,0.7)');
+      grad.addColorStop(0.5, 'rgba(120,255,255,1)');
+      grad.addColorStop(0.8, 'rgba(255,255,255,1)');
+      grad.addColorStop(1, 'rgba(255,255,255,1)');
+
+      ctx.globalAlpha = 0.95;
+      ctx.lineWidth = this.w * 2.2;
+      ctx.strokeStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(cx, botY);
+      ctx.lineTo(cx, topY);
+      ctx.stroke();
+
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = Math.max(1.5, this.w * 0.8);
+      ctx.strokeStyle = 'white';
+      ctx.beginPath();
+      ctx.moveTo(cx, botY);
+      ctx.lineTo(cx, topY);
+      ctx.stroke();
+
+      const tipRadius = 3.5 + 1.2 * Math.sin(t * 4);
+
+      const tipGrad = ctx.createRadialGradient(
+        cx,
+        topY,
+        0,
+        cx,
+        topY,
+        tipRadius * 3
+      );
+
+      tipGrad.addColorStop(0, 'rgba(255,255,255,1)');
+      tipGrad.addColorStop(0.3, 'rgba(120,255,255,1)');
+      tipGrad.addColorStop(1, 'rgba(0,150,255,0)');
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = tipGrad;
+      ctx.beginPath();
+      ctx.arc(cx, topY, tipRadius * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = this.w * 1.4;
+      ctx.strokeStyle = 'rgba(180,255,255,1)';
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.sin(t * 5) * 1.2, botY);
+      ctx.lineTo(cx, topY + 6);
+      ctx.stroke();
+
+      ctx.restore();
     }
   }
 
@@ -864,7 +946,7 @@ window.addEventListener('load', function () {
       this.speedX = speedX;
       this.speedY = speedY;
 
-      this.damage = 7;
+      this.damage = 5;
       this.split = canSplit;
 
       this.grace = graceMs;
@@ -1564,7 +1646,7 @@ window.addEventListener('load', function () {
     }
 
     draw(ctx) {
-      ctx.fillStyle = 'purple';
+      ctx.fillStyle = this.color;
       ctx.fillRect(this.x, this.y, this.width, this.height);
     }
   }
@@ -1573,25 +1655,35 @@ window.addEventListener('load', function () {
     constructor(game) {
       super(game);
 
-      this.width = 80;
-      this.height = 80;
+      this.width = 70;
+      this.height = 90;
+
       this.lives = 4;
       this.speedY = 1.5;
+
       this.x = Math.random() * (this.game.width - this.width);
 
       this.image = document.getElementById('angler1Sprite');
 
-      this.spriteWidth = 80;
-      this.spriteHeight = 80;
-
       this.frameX = 0;
       this.frameY = 0;
 
-      this.maxFrame = 0;
       this.frameTimer = 0;
       this.frameInterval = 90;
-    }
 
+      this.frames = 8;
+      this.maxFrame = this.frames - 1;
+
+      this.spriteWidth = 0;
+      this.spriteHeight = 0;
+
+      if (this.image && (this.image.naturalWidth || this.image.width)) {
+        const iw = this.image.naturalWidth || this.image.width;
+        const ih = this.image.naturalHeight || this.image.height;
+        this.spriteWidth = Math.floor(iw / this.frames);
+        this.spriteHeight = ih;
+      }
+    }
     update(deltaTime) {
       super.update(deltaTime);
 
@@ -1625,12 +1717,61 @@ window.addEventListener('load', function () {
   class Angler2 extends Enemy {
     constructor(game) {
       super(game);
-      this.width = 100;
-      this.height = 100;
-      this.lives = 10;
+
+      this.width = 90;
+      this.height = 90;
+
+      this.lives = 7;
       this.speedY = Math.random() * (2 - 1.5) + 1.5;
       this.x = Math.random() * (this.game.width - this.width);
-      this.color = 'purple';
+
+      this.image = document.getElementById('angler2Sprite');
+
+      this.frames = 1;
+      this.frameX = 0;
+      this.frameY = 0;
+
+      this.frameTimer = 0;
+      this.frameInterval = 90;
+
+      this.spriteWidth = 0;
+      this.spriteHeight = 0;
+
+      if (this.image && (this.image.naturalWidth || this.image.width)) {
+        const iw = this.image.naturalWidth || this.image.width;
+        const ih = this.image.naturalHeight || this.image.height;
+        this.spriteWidth = Math.floor(iw / this.frames);
+        this.spriteHeight = ih;
+      }
+    }
+
+    update(deltaTime) {
+      super.update(deltaTime);
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % this.frames;
+        this.frameTimer = 0;
+      }
+    }
+
+    draw(ctx) {
+      if (this.image && this.image.complete && this.image.naturalWidth) {
+        ctx.drawImage(
+          this.image,
+          this.frameX * this.spriteWidth,
+          this.frameY * this.spriteHeight,
+          this.spriteWidth,
+          this.spriteHeight,
+          this.x,
+          this.y,
+          this.width,
+          this.height
+        );
+      } else {
+        ctx.fillStyle = 'purple';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+      }
     }
   }
 
@@ -1647,22 +1788,40 @@ window.addEventListener('load', function () {
       this.shooterTimer = 0;
       this.shooterInterval = Math.random() * (3000 - 2000) + 2000;
       this.enemyBullets = [];
+
+      this.image = document.getElementById('angler3Sprite');
+
+      this.frames = 1;
+      this.maxFrame = this.frames - 1;
+
+      this.spriteWidth = 0;
+      this.spriteHeight = 0;
+
+      this.frameX = 0;
+      this.frameY = 0;
+      this.frameTimer = 0;
+      this.frameInterval = 90;
+
+      if (this.image && (this.image.naturalWidth || this.image.width)) {
+        const iw = this.image.naturalWidth || this.image.width;
+        const ih = this.image.naturalHeight || this.image.height;
+        this.spriteWidth = Math.floor(iw / this.frames);
+        this.spriteHeight = ih;
+      }
     }
 
     update(deltaTime) {
-      super.update();
+      super.update(deltaTime);
+
       this.shooterTimer += deltaTime;
       if (this.shooterTimer >= this.shooterInterval && !this.game.gameOver) {
         this.shootTop();
         this.shooterTimer = 0;
       }
 
-      if (this.y >= 100) {
-        this.speedY = 0;
-      }
+      if (this.y >= 100) this.speedY = 0;
 
       this.enemyBullets.forEach((b) => b.update(deltaTime));
-
       this.enemyBullets = this.enemyBullets.filter(
         (b) => !b.markedForDeletion && b.y <= this.game.height
       );
@@ -1670,9 +1829,16 @@ window.addEventListener('load', function () {
       this.enemyBullets.forEach((b) => {
         if (checkCollision(this.game.player, b)) {
           this.game.player.lives--;
+          this.game.triggerShake(520, 26);
           b.markedForDeletion = true;
         }
       });
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % this.frames;
+        this.frameTimer = 0;
+      }
     }
 
     shootTop() {
@@ -1685,9 +1851,23 @@ window.addEventListener('load', function () {
       );
     }
 
-    draw(context) {
-      super.draw(context);
-      this.enemyBullets.forEach((b) => b.draw(context));
+    draw(ctx) {
+      if (this.image && this.image.complete && this.image.naturalWidth) {
+        ctx.drawImage(
+          this.image,
+          this.frameX * this.spriteWidth,
+          this.frameY * this.spriteHeight,
+          this.spriteWidth,
+          this.spriteHeight,
+          this.x,
+          this.y,
+          this.width,
+          this.height
+        );
+      } else {
+        super.draw(ctx);
+      }
+      this.enemyBullets.forEach((b) => b.draw(ctx));
     }
   }
 
@@ -1696,20 +1876,69 @@ window.addEventListener('load', function () {
       this.game = game;
       this.x = x;
       this.y = y;
-      this.width = 10;
-      this.height = 10;
-      this.speedY = 7;
+      this.width = 20;
+      this.height = 20;
+      this.speedY = 5;
       this.markedForDeletion = false;
     }
 
-    update() {
+    update(deltaTime) {
       this.y += this.speedY;
       if (this.y > this.game.height) this.markedForDeletion = true;
+
+      const shots = this.game.player.projectiles;
+      for (let i = 0; i < shots.length; i++) {
+        const p = shots[i];
+        if (p.markedForDeletion) continue;
+
+        if (checkCollision(p, this)) {
+          p.markedForDeletion = true;
+          this.markedForDeletion = true;
+          break;
+        }
+      }
     }
 
-    draw(context) {
-      context.fillStyle = 'rgb(160, 125, 255)';
-      context.fillRect(this.x, this.y, this.width, this.height);
+    draw(ctx) {
+      const t = performance.now() * 0.01;
+      const pulse = 0.85 + 0.15 * Math.sin(t * 4);
+
+      const cx = this.x + this.width / 2;
+      const cy = this.y + this.height / 2;
+      const r = this.width * 0.6;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3);
+      glow.addColorStop(0, 'rgba(255,200,255,0.8)');
+      glow.addColorStop(0.4, 'rgba(180,120,255,0.6)');
+      glow.addColorStop(1, 'rgba(120,60,255,0)');
+
+      ctx.globalAlpha = 0.7 * pulse;
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      core.addColorStop(0, 'white');
+      core.addColorStop(0.4, 'rgba(200,150,255,1)');
+      core.addColorStop(1, 'rgba(140,80,255,1)');
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = core;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = 'rgba(160,125,255,1)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - r * 2.2, r * 0.7, r * 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
     }
   }
 
@@ -1781,7 +2010,7 @@ window.addEventListener('load', function () {
       this.speedY = 1.2;
       this.speedX = 2.2;
 
-      this.maxLives = 30;
+      this.maxLives = 100;
       this.lives = this.maxLives;
 
       this.color = '#ff2d55';
@@ -1853,6 +2082,7 @@ window.addEventListener('load', function () {
           checkCollision(this.game.player, b)
         ) {
           this.game.player.lives--;
+          this.game.triggerShake(520, 26);
           this.game.player.invulnerable = true;
           this.game.player.invulnerableTimer = 0;
           b.markedForDeletion = true;
@@ -2517,6 +2747,10 @@ window.addEventListener('load', function () {
       this.width = width;
       this.height = height;
 
+      this.shakeTime = 0;
+      this.shakeDuration = 0;
+      this.shakeMagnitude = 0;
+
       this.bossSpawned = false;
       this.bossActive = false;
       this.bossKilled = false;
@@ -2543,7 +2777,8 @@ window.addEventListener('load', function () {
       this.explosions = [];
 
       this.nextRageScore = 10;
-      this.winningScore = 30;
+      if (this.level == 1) this.winningScore = 15;
+      else this.winningScore = 30;
 
       this.equippedSuper =
         localStorage.getItem('equippedSuper') || 'waveShield';
@@ -2568,6 +2803,12 @@ window.addEventListener('load', function () {
 
       this.particles = [];
       this.shake = 0;
+    }
+
+    triggerShake(duration = 420, magnitude = 18) {
+      this.shakeDuration = duration;
+      this.shakeTime = duration;
+      this.shakeMagnitude = Math.max(this.shakeMagnitude, magnitude);
     }
 
     addSuperCharge(amount = 1) {
@@ -2633,7 +2874,7 @@ window.addEventListener('load', function () {
           !this.gameOver
         ) {
           this.player.lives--;
-          this.shake = Math.max(this.shake, 8);
+          this.triggerShake(520, 26);
           this.player.invulnerable = true;
           this.player.invulnerableTimer = 0;
         }
@@ -2740,7 +2981,8 @@ window.addEventListener('load', function () {
       if (
         !this.bossActive &&
         this.score >= this.nextRageScore &&
-        !this.upgradeCardsShowing
+        !this.upgradeCardsShowing &&
+        this.score < this.winningScore
       ) {
         this.upgradeCardsShowing = true;
 
@@ -2838,32 +3080,18 @@ window.addEventListener('load', function () {
                   this.addSuperCharge(1);
                 }
 
-                const px = enemy.x + enemy.width / 2;
-                const py = enemy.y + enemy.height / 2;
-                this.explosions.push(new Explosion(this, px, py));
+                this.explosions.push(
+                  new Explosion(
+                    this,
+                    enemy.x + enemy.width / 2,
+                    enemy.y + enemy.height / 2
+                  )
+                );
               }
             }
           });
         });
       }
-
-      this.enemies.forEach((enemy) => {
-        if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-          enemy.markedForDeletion = true;
-
-          if (enemy instanceof Boss1) {
-            this.bossActive = false;
-            this.bossKilled = true;
-          } else {
-            this.score++;
-            this.addSuperCharge(1);
-          }
-
-          const px = enemy.x + enemy.width / 2;
-          const py = enemy.y + enemy.height / 2;
-          this.explosions.push(new Explosion(this, px, py));
-        }
-      });
 
       if (this.gameOver && !this.rewardGiven) {
         if (this.win) {
@@ -2891,11 +3119,16 @@ window.addEventListener('load', function () {
           ) {
             enemy.lives -= superAtk.damage;
             enemy.hitBySuper = true;
-
             if (enemy.lives <= 0 && !enemy.markedForDeletion) {
               enemy.markedForDeletion = true;
-              this.score++;
-              this.addSuperCharge(1);
+
+              if (enemy instanceof Boss1) {
+                this.bossActive = false;
+                this.bossKilled = true;
+              } else {
+                this.score++;
+                this.addSuperCharge(1);
+              }
 
               this.explosions.push(
                 new Explosion(
@@ -2933,10 +3166,26 @@ window.addEventListener('load', function () {
 
       const target = this.superAttackGauge / this.superAttackReadyGauge;
       this.superGaugeVisual += (target - this.superGaugeVisual) * 0.08;
+
+      if (this.shakeTime > 0) {
+        this.shakeTime -= deltaTime;
+        if (this.shakeTime < 0) this.shakeTime = 0;
+      }
     }
 
     draw(context) {
-      context.save();
+      ctx.save();
+
+      if (this.shakeTime > 0) {
+        const p = this.shakeTime / this.shakeDuration;
+        const ease = p * p;
+        const mag = this.shakeMagnitude * ease;
+
+        const dx = (Math.random() * 2 - 1) * mag;
+        const dy = (Math.random() * 2 - 1) * mag;
+
+        ctx.translate(dx, dy);
+      }
 
       if (this.shake > 0.2) {
         const s = this.shake;
