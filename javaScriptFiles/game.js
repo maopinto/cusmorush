@@ -934,7 +934,7 @@ window.addEventListener('load', function () {
       x,
       y,
       speedX = 0,
-      speedY = -5,
+      speedY = -4,
       canSplit = true,
       graceMs = 0
     ) {
@@ -966,45 +966,87 @@ window.addEventListener('load', function () {
         this.markedForDeletion = true;
       }
     }
-
     draw(ctx) {
       const cx = this.x + this.width / 2;
       const cy = this.y + this.height / 2;
 
+      const t = performance.now() * 0.01;
+      const pulse = 0.85 + 0.15 * Math.sin(t * 2 + this.phase);
+
+      const dx = this.speedX || 0;
+      const dy = this.speedY || -1;
+      const ang = Math.atan2(dy, dx) + Math.PI / 2;
+
+      const len = this.height * 1.1;
+      const wid = this.width * 0.55;
+
       ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(ang);
       ctx.globalCompositeOperation = 'lighter';
 
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 18;
-
-      const grad = ctx.createLinearGradient(
-        cx,
-        this.y,
-        cx,
-        this.y + this.height
-      );
-
-      grad.addColorStop(0, '#ffffff');
-      grad.addColorStop(0.4, '#00ffff');
-      grad.addColorStop(1, '#0077ff');
-
-      ctx.fillStyle = grad;
-
+      ctx.globalAlpha = 0.22 * pulse;
+      ctx.shadowColor = 'rgba(0,255,255,0.9)';
+      ctx.shadowBlur = 26;
+      ctx.fillStyle = 'rgba(0,180,255,0.35)';
       ctx.beginPath();
-      ctx.moveTo(cx, this.y);
-      ctx.lineTo(this.x, this.y + this.height);
-      ctx.lineTo(this.x + this.width, this.y + this.height);
-      ctx.closePath();
+      ctx.ellipse(0, 0, wid * 1.35, len * 0.85, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.shadowBlur = 0;
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      const g = ctx.createLinearGradient(0, -len, 0, len);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.25, 'rgba(120,255,255,1)');
+      g.addColorStop(0.65, 'rgba(0,200,255,0.95)');
+      g.addColorStop(1, 'rgba(0,120,255,0)');
+
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.moveTo(cx, this.y + 4);
-      ctx.lineTo(this.x + 5, this.y + this.height - 6);
-      ctx.lineTo(this.x + this.width - 5, this.y + this.height - 6);
+      ctx.moveTo(0, -len);
+      ctx.bezierCurveTo(-wid, -len * 0.25, -wid * 0.85, len * 0.55, 0, len);
+      ctx.bezierCurveTo(wid * 0.85, len * 0.55, wid, -len * 0.25, 0, -len);
       ctx.closePath();
       ctx.fill();
+
+      ctx.globalAlpha = 0.9;
+      ctx.lineWidth = Math.max(2, wid * 0.25);
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(0, len * 0.55);
+      ctx.lineTo(0, -len * 0.85);
+      ctx.stroke();
+
+      const tipR = 4 + 2 * Math.sin(t * 3 + this.phase);
+      const tip = ctx.createRadialGradient(
+        0,
+        -len * 0.92,
+        0,
+        0,
+        -len * 0.92,
+        tipR * 3
+      );
+      tip.addColorStop(0, 'rgba(255,255,255,1)');
+      tip.addColorStop(0.35, 'rgba(120,255,255,1)');
+      tip.addColorStop(1, 'rgba(0,180,255,0)');
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = tip;
+      ctx.beginPath();
+      ctx.arc(0, -len * 0.92, tipR * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.28;
+      ctx.lineWidth = wid * 0.35;
+      ctx.strokeStyle = 'rgba(0,220,255,1)';
+      for (let i = 0; i < 3; i++) {
+        const ox = Math.sin(t * 2.6 + i) * 0.7 * wid * 0.25;
+        const oy1 = len * (0.2 + i * 0.18);
+        const oy2 = len * (0.65 + i * 0.18);
+        ctx.beginPath();
+        ctx.moveTo(ox, oy1);
+        ctx.lineTo(ox, oy2);
+        ctx.stroke();
+      }
 
       ctx.restore();
     }
@@ -1025,39 +1067,87 @@ window.addEventListener('load', function () {
       this.y -= this.speedY;
       if (this.y < -this.height) this.markedForDeletion = true;
     }
+
     draw(context) {
-      const t = performance.now() * 0.008;
-      const radius = this.height * 0.6;
-      const pulse = 0.85 + 0.15 * Math.sin(t * 2);
+      const t = performance.now() * 0.001;
+
+      const x = this.x;
+      const y = this.y;
+      const w = this.width;
+      const h = this.height;
+
+      const cx = x + w / 2;
+      const cy = y + h / 2;
+
+      const r = h * 0.6;
+      const pulse = 0.85 + 0.15 * Math.sin(t * 6);
+      const wobble = Math.sin(t * 10) * 0.6;
 
       context.save();
+      context.globalCompositeOperation = 'lighter';
 
-      context.globalAlpha = 0.7 * pulse;
-      context.fillStyle = 'rgba(0, 220, 255, 1)';
-      drawRoundedRect(context, this.x, this.y, this.width, this.height, radius);
+      context.globalAlpha = 0.22 * pulse;
+      context.shadowColor = 'rgba(0,220,255,0.9)';
+      context.shadowBlur = 30;
+
+      const glow = context.createRadialGradient(cx, cy, 0, cx, cy, w * 0.7);
+      glow.addColorStop(0, 'rgba(255,255,255,0.22)');
+      glow.addColorStop(0.25, 'rgba(0,220,255,0.18)');
+      glow.addColorStop(1, 'rgba(0,120,255,0)');
+
+      context.fillStyle = glow;
+      context.beginPath();
+      context.ellipse(cx, cy, w * 0.55, h * 1.8, 0, 0, Math.PI * 2);
       context.fill();
 
-      context.globalAlpha = 0.35;
-      context.fillStyle = 'rgba(255, 255, 255, 1)';
-      const stripeCount = 6;
+      context.shadowBlur = 0;
+      context.globalAlpha = 0.85;
 
-      for (let i = 0; i < stripeCount; i++) {
-        const offset = (t * 30 + i * 40) % this.width;
-        drawRoundedRect(context, this.x + offset, this.y, 8, this.height, 4);
-        context.fill();
+      const body = context.createLinearGradient(x, y, x + w, y);
+      body.addColorStop(0, 'rgba(0,120,255,0)');
+      body.addColorStop(0.18, 'rgba(0,200,255,0.95)');
+      body.addColorStop(0.5, 'rgba(255,255,255,0.95)');
+      body.addColorStop(0.82, 'rgba(0,200,255,0.95)');
+      body.addColorStop(1, 'rgba(0,120,255,0)');
+
+      context.fillStyle = body;
+      drawRoundedRect(context, x, y, w, h, r);
+      context.fill();
+
+      context.globalAlpha = 0.95;
+      context.fillStyle = 'rgba(255,255,255,0.9)';
+      drawRoundedRect(
+        context,
+        x + w * 0.12,
+        y + h * 0.35,
+        w * 0.76,
+        h * 0.3,
+        h * 0.25
+      );
+      context.fill();
+
+      context.globalAlpha = 0.22 * pulse;
+      context.lineWidth = 2;
+
+      for (let i = 0; i < 7; i++) {
+        const px = x + (i / 7) * w;
+        const waveY = cy + Math.sin(t * 8 + i * 0.9) * (h * 0.25) + wobble;
+
+        context.strokeStyle = 'rgba(120,255,255,1)';
+        context.beginPath();
+        context.moveTo(px, y);
+        context.lineTo(px + Math.sin(t * 10 + i) * 6, waveY);
+        context.lineTo(px, y + h);
+        context.stroke();
       }
 
-      context.globalAlpha = 0.9;
-      context.fillStyle = 'rgba(255, 255, 255, 1)';
-      drawRoundedRect(context, this.x, this.y, this.width, 4, 2);
-      context.fill();
-
-      context.shadowColor = 'rgba(0, 200, 255, 0.9)';
-      context.shadowBlur = 20;
-      context.globalAlpha = 0.4;
-      context.fillStyle = 'rgba(0, 200, 255, 1)';
-      drawRoundedRect(context, this.x, this.y, this.width, this.height, radius);
-      context.fill();
+      context.globalAlpha = 0.55 * pulse;
+      context.shadowColor = 'rgba(0,220,255,0.95)';
+      context.shadowBlur = 16;
+      context.strokeStyle = 'rgba(0,220,255,0.85)';
+      context.lineWidth = 3;
+      drawRoundedRect(context, x, y, w, h, r);
+      context.stroke();
 
       context.restore();
     }
@@ -1197,6 +1287,7 @@ window.addEventListener('load', function () {
       this.frameInterval = 80;
       this.spriteWidth = 128;
       this.spriteHeight = 128;
+      this.fireRateMult = 1;
     }
 
     update(deltaTime) {
@@ -1258,10 +1349,12 @@ window.addEventListener('load', function () {
       const weapon = WEAPON_BEHAVIOR[this.weapon];
       if (!weapon) return;
 
-      if (now - this.lastFireTime < weapon.fireRate) return;
+      const effectiveRate = Math.max(60, weapon.fireRate * this.fireRateMult);
+
+      if (now - this.lastFireTime < effectiveRate) return;
 
       this.lastFireTime = now;
-      this.shootingInterval = weapon.fireRate;
+      this.shootingInterval = effectiveRate;
 
       weapon.fire(this);
     }
@@ -1727,28 +1820,23 @@ window.addEventListener('load', function () {
 
       this.image = document.getElementById('angler2Sprite');
 
-      this.frames = 1;
+      this.frames = 8;
       this.frameX = 0;
       this.frameY = 0;
 
+      this.fps = 6;
       this.frameTimer = 0;
-      this.frameInterval = 90;
+      this.frameInterval = 1000 / this.fps;
 
-      this.spriteWidth = 0;
-      this.spriteHeight = 0;
-
-      if (this.image && (this.image.naturalWidth || this.image.width)) {
-        const iw = this.image.naturalWidth || this.image.width;
-        const ih = this.image.naturalHeight || this.image.height;
-        this.spriteWidth = Math.floor(iw / this.frames);
-        this.spriteHeight = ih;
-      }
+      this.frameCuts = [0, 57, 110, 163, 215, 270, 323, 375, 428];
+      this.spriteHeight = 80;
     }
 
     update(deltaTime) {
       super.update(deltaTime);
 
       this.frameTimer += deltaTime;
+
       if (this.frameTimer > this.frameInterval) {
         this.frameX = (this.frameX + 1) % this.frames;
         this.frameTimer = 0;
@@ -1757,11 +1845,14 @@ window.addEventListener('load', function () {
 
     draw(ctx) {
       if (this.image && this.image.complete && this.image.naturalWidth) {
+        const sx = this.frameCuts[this.frameX];
+        const sw = this.frameCuts[this.frameX + 1] - sx;
+
         ctx.drawImage(
           this.image,
-          this.frameX * this.spriteWidth,
-          this.frameY * this.spriteHeight,
-          this.spriteWidth,
+          sx,
+          0,
+          sw,
           this.spriteHeight,
           this.x,
           this.y,
@@ -2325,7 +2416,7 @@ window.addEventListener('load', function () {
     constructor(game) {
       this.game = game;
       this.fontSize = 26;
-      this.fontFamily = 'Helvetica';
+      this.fontFamily = '"Archivo Black", system-ui, sans-serif';
       this.color = 'white';
 
       this.prevLives = game.player.lives;
@@ -2438,7 +2529,7 @@ window.addEventListener('load', function () {
 
       if (progress >= 1) {
         ctx.fillStyle = color;
-        ctx.font = 'bold 14px Helvetica';
+        ctx.font = `800 14px ${this.fontFamily}`;
         ctx.textAlign = 'center';
         ctx.fillText('SUPER READY', this.game.width / 2, y - 6);
       }
@@ -2516,7 +2607,7 @@ window.addEventListener('load', function () {
       this.y = this.game.height + this.height;
       this.targetY = this.game.height / 2 - this.height / 2;
       this.fontSize = Math.max(14, this.width * 0.12);
-      this.fontFamily = 'Helvetica';
+      this.fontFamily = '"Archivo Black", system-ui, sans-serif';
       this.color = '#111';
       this.type = 'shild';
       this.opacity = 0;
@@ -3308,9 +3399,9 @@ window.addEventListener('load', function () {
           break;
 
         case 'fasterShoter':
-          this.player.shootingInterval = Math.max(
-            60,
-            this.player.shootingInterval - 80
+          this.player.fireRateMult = Math.max(
+            0.45,
+            this.player.fireRateMult * 0.85
           );
           this.mouse.restartFire();
           break;
@@ -3395,6 +3486,12 @@ window.addEventListener('load', function () {
   (async () => {
     await preload();
 
+    try {
+      await document.fonts.load('26px "Archivo Black"');
+      await document.fonts.load('48px "Archivo Black"');
+      await document.fonts.ready;
+    } catch (e) {}
+
     EXPLOSION_IMG = cached.explosionImg;
 
     background = new ScrollingBackground(canvas, cached.bgImg, 1.2);
@@ -3442,7 +3539,7 @@ function showVictoryScreen(data) {
   const nextBtn = document.getElementById('btnNext');
 
   if (data.win) {
-    title.textContent = '🏆 Victory!';
+    title.textContent = 'Victory!';
     text.textContent = `You earned ${data.reward} coins`;
     nextBtn.textContent = 'Next Level';
 
@@ -3450,7 +3547,7 @@ function showVictoryScreen(data) {
       window.location.href = `game.html?level=${data.level + 1}`;
     };
   } else {
-    title.textContent = '💀 Game Over';
+    title.textContent = 'Game Over!';
     text.textContent = 'Better luck next time!';
     nextBtn.textContent = 'Try Again';
 

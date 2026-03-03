@@ -152,13 +152,6 @@ phone-frame,
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      circle at 50% 35%,
-      rgba(0, 200, 255, 0.12),
-      transparent 55%
-    ),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.65));
   pointer-events: none;
   z-index: 0;
 }
@@ -588,7 +581,6 @@ button {
   padding: 10px 10px 12px;
 
   font-size: 18px;
-  font-weight: 900;
   letter-spacing: 0.22rem;
   text-transform: uppercase;
   text-align: center;
@@ -598,6 +590,9 @@ button {
   text-shadow:
     0 0 10px rgba(0, 190, 255, 0.35),
     0 2px 0 rgba(0, 0, 0, 0.7);
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .settingsTitle::after {
@@ -2003,7 +1998,11 @@ button {
     display: none;
   }
 }
-
+*/
+html,
+body {
+  font-family: 'Archivo Black', sans-serif !important;
+}
 /* ================= RTL FIX ================= */
 [dir='rtl'] {
   direction: rtl;
@@ -2042,8 +2041,4 @@ button {
 
 [dir='rtl'] .socialItem {
   flex-direction: row-reverse;
-}
-
-[dir='rtl'] {
-  font-family: 'Heebo', system-ui, sans-serif;
 }
