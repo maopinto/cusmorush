@@ -85,7 +85,35 @@ function unlockNextLevel(currentLevel) {
 const SKIN_TO_PLAYER_IMG_ID = {
   default: 'player',
   redclassic: 'playerRedClassic',
+  darkreaper: { imgId: 'playerDarkReaper', frameY: 0 },
+  celestialsakura: { imgId: 'playerCelestialSakura', frameY: 1 },
+  goldencore: { imgId: 'playerGoldenCore', frameY: 1 },
 };
+
+const DEFAULT_SKIN = 'default';
+const STORAGE_KEY_EQUIPPED_SKIN = 'equippedSkin';
+
+const ALLOWED_SKINS = new Set([
+  'default',
+  'redclassic',
+  'darkreaper',
+  'celestialsakura',
+  'goldencore',
+]);
+
+const SKIN_ALIASES = {
+  default: 'default',
+  redclassic: 'redclassic',
+  darkreaper: 'darkreaper',
+  celestialsakura: 'celestialsakura',
+  goldencore: 'goldencore',
+  godencore: 'goldencore',
+};
+
+function resolveSkinId(raw) {
+  const n = normalizeSkinId(raw);
+  return SKIN_ALIASES[n] || DEFAULT_SKIN;
+}
 
 function normalizeSkinId(id) {
   return String(id || '')
@@ -94,21 +122,15 @@ function normalizeSkinId(id) {
     .replace(/[_-]+/g, '');
 }
 
-const DEFAULT_SKIN = 'default';
-const STORAGE_KEY_EQUIPPED_SKIN = 'equippedSkin';
-
 function getEquippedSkin() {
   const raw = localStorage.getItem(STORAGE_KEY_EQUIPPED_SKIN) || DEFAULT_SKIN;
-  const n = normalizeSkinId(raw);
-  return n === 'redclassic' ? 'redclassic' : 'default';
+  const resolved = resolveSkinId(raw);
+  return ALLOWED_SKINS.has(resolved) ? resolved : DEFAULT_SKIN;
 }
 
 function setEquippedSkin(id) {
-  const n = normalizeSkinId(id);
-  localStorage.setItem(
-    STORAGE_KEY_EQUIPPED_SKIN,
-    n === 'redclassic' ? 'redclassic' : 'default'
-  );
+  const resolved = resolveSkinId(id);
+  localStorage.setItem(STORAGE_KEY_EQUIPPED_SKIN, resolved);
 }
 
 function equipSkin(id) {
@@ -256,7 +278,18 @@ window.addEventListener('load', function () {
     ctx.drawImage(_scan, 0, 0);
     ctx.restore();
   }
-  function drawThruster(ctx, x, y, w, h) {
+
+  function drawThruster(
+    ctx,
+    x,
+    y,
+    w,
+    h,
+    isRed = false,
+    isDark = false,
+    isCelestial = false,
+    isGolden = false
+  ) {
     const t = performance.now() * 0.008;
 
     const cx = x + w * 0.5;
@@ -266,11 +299,81 @@ window.addEventListener('load', function () {
     const baseW = w * (0.75 + 0.06 * Math.sin(t * 3));
     const sideW = w * (0.45 + 0.05 * Math.sin(t * 2.4));
 
+    const C = isRed
+      ? {
+          shadow: 'rgba(255,80,90,0.9)',
+          haze1: 'rgba(255,255,255,0.35)',
+          haze2: 'rgba(255,120,120,0.28)',
+          haze3: 'rgba(255,30,40,0)',
+          core1: 'rgba(255,255,255,0.95)',
+          core2: 'rgba(255,150,150,0.85)',
+          core3: 'rgba(255,70,70,0.45)',
+          core4: 'rgba(180,0,20,0)',
+          side1: 'rgba(255,255,255,0.8)',
+          side2: 'rgba(255,130,130,0.65)',
+          side3: 'rgba(255,30,40,0)',
+        }
+      : isDark
+        ? {
+            shadow: 'rgba(120, 40, 255, 0.75)',
+            haze1: 'rgba(255,255,255,0.10)',
+            haze2: 'rgba(120, 40, 255, 0.22)',
+            haze3: 'rgba(0,0,0,0)',
+            core1: 'rgba(220,220,255,0.55)',
+            core2: 'rgba(140, 60, 255, 0.55)',
+            core3: 'rgba(50, 0, 110, 0.35)',
+            core4: 'rgba(0,0,0,0)',
+            side1: 'rgba(210,210,255,0.22)',
+            side2: 'rgba(120, 40, 255, 0.28)',
+            side3: 'rgba(0,0,0,0)',
+          }
+        : isCelestial
+          ? {
+              shadow: 'rgba(255, 150, 205, 0.85)',
+              haze1: 'rgba(255,255,255,0.36)',
+              haze2: 'rgba(250, 118, 184, 0.3)',
+              haze3: 'rgba(255,120,190,0)',
+              core1: 'rgba(255,255,255,0.96)',
+              core2: 'rgba(255, 103, 186, 0.88)',
+              core3: 'rgba(255, 123, 196, 0.48)',
+              core4: 'rgba(255,120,190,0)',
+              side1: 'rgba(255,255,255,0.82)',
+              side2: 'rgba(255, 109, 187, 0.68)',
+              side3: 'rgba(255,140,200,0)',
+            }
+          : isGolden
+            ? {
+                shadow: 'rgba(255,215,60,0.95)',
+                haze1: 'rgba(255,255,255,0.55)',
+                haze2: 'rgba(255,215,0,0.45)',
+                haze3: 'rgba(255,180,0,0)',
+                core1: 'rgba(255,255,255,1)',
+                core2: 'rgba(255,235,120,0.95)',
+                core3: 'rgba(255,200,0,0.65)',
+                core4: 'rgba(255,150,0,0)',
+                side1: 'rgba(255,255,255,0.95)',
+                side2: 'rgba(255,215,0,0.85)',
+                side3: 'rgba(255,180,0,0)',
+              }
+            : {
+                shadow: 'rgba(0,200,255,0.85)',
+                haze1: 'rgba(255,255,255,0.35)',
+                haze2: 'rgba(0,220,255,0.28)',
+                haze3: 'rgba(0,120,255,0)',
+                core1: 'rgba(255,255,255,0.95)',
+                core2: 'rgba(0,235,255,0.85)',
+                core3: 'rgba(0,140,255,0.45)',
+                core4: 'rgba(0,80,255,0)',
+                side1: 'rgba(255,255,255,0.8)',
+                side2: 'rgba(0,220,255,0.65)',
+                side3: 'rgba(0,120,255,0)',
+              };
+
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
 
     ctx.globalAlpha = 0.55;
-    ctx.shadowColor = 'rgba(0,200,255,0.85)';
+    ctx.shadowColor = C.shadow;
     ctx.shadowBlur = 34;
 
     const haze = ctx.createRadialGradient(
@@ -281,9 +384,9 @@ window.addEventListener('load', function () {
       baseY + len * 0.35,
       len * 0.95
     );
-    haze.addColorStop(0, 'rgba(255,255,255,0.35)');
-    haze.addColorStop(0.25, 'rgba(0,220,255,0.28)');
-    haze.addColorStop(1, 'rgba(0,120,255,0)');
+    haze.addColorStop(0, C.haze1);
+    haze.addColorStop(0.25, C.haze2);
+    haze.addColorStop(1, C.haze3);
     ctx.fillStyle = haze;
     ctx.beginPath();
     ctx.ellipse(
@@ -301,10 +404,10 @@ window.addEventListener('load', function () {
     ctx.shadowBlur = 26;
 
     const core = ctx.createRadialGradient(cx, baseY, 0, cx, baseY + len, len);
-    core.addColorStop(0, 'rgba(255,255,255,0.95)');
-    core.addColorStop(0.28, 'rgba(0,235,255,0.85)');
-    core.addColorStop(0.6, 'rgba(0,140,255,0.45)');
-    core.addColorStop(1, 'rgba(0,80,255,0)');
+    core.addColorStop(0, C.core1);
+    core.addColorStop(0.28, C.core2);
+    core.addColorStop(0.6, C.core3);
+    core.addColorStop(1, C.core4);
     ctx.fillStyle = core;
 
     ctx.beginPath();
@@ -339,9 +442,9 @@ window.addEventListener('load', function () {
         baseY + len * 0.9,
         len * 0.85
       );
-      g.addColorStop(0, 'rgba(255,255,255,0.8)');
-      g.addColorStop(0.35, 'rgba(0,220,255,0.65)');
-      g.addColorStop(1, 'rgba(0,120,255,0)');
+      g.addColorStop(0, C.side1);
+      g.addColorStop(0.35, C.side2);
+      g.addColorStop(1, C.side3);
       ctx.fillStyle = g;
 
       ctx.beginPath();
@@ -371,7 +474,11 @@ window.addEventListener('load', function () {
 
     ctx.globalAlpha = 0.9;
     ctx.shadowBlur = 18;
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillStyle = isDark
+      ? 'rgba(210,190,255,0.35)'
+      : isCelestial
+        ? 'rgba(255,225,240,0.88)'
+        : 'rgba(255,255,255,0.85)';
     ctx.beginPath();
     ctx.ellipse(cx, baseY + len * 0.15, w * 0.08, h * 0.06, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -716,6 +823,231 @@ window.addEventListener('load', function () {
       ctx.fill();
 
       ctx.restore();
+    }
+  }
+
+  class Player {
+    constructor(game) {
+      this.game = game;
+      this.width = 100;
+      this.height = 120;
+      this.x = this.game.width / 2 - this.width / 2;
+      this.y = this.game.height - this.height - 20;
+      this.speedX = 0;
+      this.speedY = 0;
+      this.projectiles = [];
+      this.lives = 3;
+      this.doubleShot = false;
+      this.invulnerable = false;
+      this.invulnerableTimer = 0;
+      this.invulnerableInterval = 3000;
+      this.shootingInterval = 200;
+      this.lastFireTime = 0;
+      this.weapon = localStorage.getItem('equippedWeapon') || 'laser';
+
+      const skinId = getEquippedSkin();
+      this.isRedClassic = skinId === 'redclassic';
+      this.isDarkReaper = skinId === 'darkreaper' || skinId === 'darkvoid';
+      this.isCelestialSakura = skinId === 'celestialsakura';
+      this.isGoldenCore = skinId === 'goldencore';
+
+      const skinDef = SKIN_TO_PLAYER_IMG_ID[skinId];
+
+      let imgId = 'player';
+      let frameY = this.isRedClassic ? 0 : 1;
+
+      if (typeof skinDef === 'string') {
+        imgId = skinDef;
+      } else if (skinDef && typeof skinDef === 'object') {
+        imgId = skinDef.imgId || imgId;
+        if (Number.isFinite(skinDef.frameY)) frameY = skinDef.frameY;
+      }
+
+      this.image =
+        document.getElementById(imgId) ||
+        cached?.dom?.[imgId] ||
+        document.getElementById('player') ||
+        cached?.dom?.player;
+
+      this.frameX = 0;
+      this.frameY = frameY;
+
+      this.frameTimer = 0;
+      this.frameInterval = 120;
+      this.spriteWidth = 128;
+      this.spriteHeight = 128;
+      this.fireRateMult = 1;
+    }
+
+    update(deltaTime) {
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX++;
+        if (this.frameX >= 6) this.frameX = 0;
+        this.frameTimer = 0;
+      }
+
+      if (this.game.mouse.pressed) {
+        const targetX = this.game.mouse.x - this.width / 2;
+        const targetY = this.game.mouse.y - this.height / 2;
+
+        this.x += (targetX - this.x) * 0.22;
+        this.y += (targetY - this.y) * 0.22;
+
+        canvas.style.cursor = 'none';
+      } else {
+        canvas.style.cursor = 'default';
+      }
+
+      if (this.x < 0) this.x = 0;
+      if (this.x + this.width > this.game.width)
+        this.x = this.game.width - this.width;
+      if (this.y < 0) this.y = 0;
+      if (this.y + this.height > this.game.height)
+        this.y = this.game.height - this.height;
+
+      this.projectiles.forEach((p) => p.update(deltaTime));
+      this.projectiles = this.projectiles.filter((p) => !p.markedForDeletion);
+    }
+
+    draw(context) {
+      context.save();
+
+      if (this.invulnerable) context.globalAlpha = 0.65;
+
+      if (this.isGoldenCore) {
+        const t = performance.now() * 0.008;
+        const cx = this.x + this.width * 0.5;
+        const cy = this.y + this.height * 0.88;
+
+        context.save();
+        context.globalCompositeOperation = 'lighter';
+
+        const aura = context.createRadialGradient(
+          cx,
+          cy,
+          0,
+          cx,
+          cy,
+          this.width * 0.42
+        );
+        aura.addColorStop(0, 'rgba(255,255,220,0.28)');
+        aura.addColorStop(0.35, 'rgba(255,215,90,0.22)');
+        aura.addColorStop(1, 'rgba(255,180,0,0)');
+        context.globalAlpha = 0.9;
+        context.fillStyle = aura;
+        context.beginPath();
+        context.arc(cx, cy, this.width * 0.42, 0, Math.PI * 2);
+        context.fill();
+
+        for (let i = 0; i < 7; i++) {
+          const ang = t * 1.2 + i * 0.9;
+          const r = this.width * (0.12 + (i % 3) * 0.05);
+          const sx = cx + Math.cos(ang) * r;
+          const sy = cy + Math.sin(ang * 1.4) * 8 - i * 3;
+
+          const sparkle = 0.65 + 0.35 * Math.sin(t * 4 + i * 2);
+
+          context.globalAlpha = sparkle;
+          context.fillStyle = 'rgba(255,235,140,0.95)';
+          context.beginPath();
+          context.arc(sx, sy, 1.5 + (i % 2), 0, Math.PI * 2);
+          context.fill();
+
+          context.globalAlpha = sparkle * 0.8;
+          context.strokeStyle = 'rgba(255,250,210,0.95)';
+          context.lineWidth = 1.2;
+          context.beginPath();
+          context.moveTo(sx - 4, sy);
+          context.lineTo(sx + 4, sy);
+          context.moveTo(sx, sy - 4);
+          context.lineTo(sx, sy + 4);
+          context.stroke();
+        }
+
+        for (let i = 0; i < 5; i++) {
+          const rise = (t * 35 + i * 17) % 26;
+          const px =
+            this.x +
+            this.width * (0.28 + ((i * 0.17 + Math.sin(t + i)) * 0.22 + 0.22));
+          const py = this.y + this.height * 0.95 - rise;
+
+          const size = 1.8 + ((i + 1) % 3);
+          const alpha = 0.35 + 0.45 * (1 - rise / 26);
+
+          context.globalAlpha = alpha;
+          context.fillStyle = 'rgba(255,210,70,0.95)';
+          context.beginPath();
+          context.arc(px, py, size, 0, Math.PI * 2);
+          context.fill();
+
+          context.globalAlpha = alpha * 0.9;
+          context.fillStyle = 'rgba(255,255,255,0.95)';
+          context.beginPath();
+          context.arc(px, py, size * 0.45, 0, Math.PI * 2);
+          context.fill();
+        }
+
+        const pulseR = this.width * (0.16 + 0.03 * Math.sin(t * 3));
+        const pulse = context.createRadialGradient(
+          cx,
+          cy,
+          0,
+          cx,
+          cy,
+          pulseR * 2.4
+        );
+        pulse.addColorStop(0, 'rgba(255,255,255,0.9)');
+        pulse.addColorStop(0.4, 'rgba(255,225,110,0.65)');
+        pulse.addColorStop(1, 'rgba(255,180,0,0)');
+        context.globalAlpha = 0.8;
+        context.fillStyle = pulse;
+        context.beginPath();
+        context.arc(cx, cy, pulseR * 2.2, 0, Math.PI * 2);
+        context.fill();
+
+        context.restore();
+      }
+      drawThruster(
+        context,
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+        this.isRedClassic,
+        this.isDarkReaper,
+        this.isCelestialSakura,
+        this.isGoldenCore
+      );
+
+      context.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+
+      context.restore();
+
+      this.projectiles.forEach((p) => p.draw(context));
+    }
+
+    fire() {
+      const now = performance.now();
+      const weapon = WEAPON_BEHAVIOR[this.weapon];
+      if (!weapon) return;
+
+      const effectiveRate = Math.max(60, weapon.fireRate * this.fireRateMult);
+      if (now - this.lastFireTime < effectiveRate) return;
+
+      this.lastFireTime = now;
+      this.shootingInterval = effectiveRate;
+      weapon.fire(this);
     }
   }
 
@@ -1257,108 +1589,6 @@ window.addEventListener('load', function () {
     superLaser: { class: SuperLaser, duration: 4000, charge: 9 },
   };
 
-  class Player {
-    constructor(game) {
-      this.game = game;
-      this.width = 100;
-      this.height = 120;
-      this.x = this.game.width / 2 - this.width / 2;
-      this.y = this.game.height - this.height - 20;
-      this.speedX = 0;
-      this.speedY = 0;
-      this.projectiles = [];
-      this.lives = 3;
-      this.doubleShot = false;
-      this.invulnerable = false;
-      this.invulnerableTimer = 0;
-      this.invulnerableInterval = 3000;
-      this.shootingInterval = 200;
-      this.lastFireTime = 0;
-      this.weapon = localStorage.getItem('equippedWeapon') || 'laser';
-
-      const skinId = getEquippedSkin();
-      const imgId = SKIN_TO_PLAYER_IMG_ID[skinId] || 'player';
-      this.image =
-        document.getElementById(imgId) || document.getElementById('player');
-
-      this.frameX = 0;
-      this.frameY = 1;
-      this.frameTimer = 0;
-      this.frameInterval = 80;
-      this.spriteWidth = 128;
-      this.spriteHeight = 128;
-      this.fireRateMult = 1;
-    }
-
-    update(deltaTime) {
-      this.frameTimer += deltaTime;
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX++;
-        if (this.frameX >= 6) this.frameX = 0;
-        this.frameTimer = 0;
-      }
-      if (this.game.mouse.pressed) {
-        const targetX = this.game.mouse.x - this.width / 2;
-        const targetY = this.game.mouse.y - this.height / 2;
-
-        this.x += (targetX - this.x) * 0.22;
-        this.y += (targetY - this.y) * 0.22;
-
-        canvas.style.cursor = 'none';
-      } else {
-        canvas.style.cursor = 'default';
-      }
-
-      if (this.x < 0) this.x = 0;
-      if (this.x + this.width > this.game.width)
-        this.x = this.game.width - this.width;
-      if (this.y < 0) this.y = 0;
-      if (this.y + this.height > this.game.height)
-        this.y = this.game.height - this.height;
-
-      this.projectiles.forEach((p) => p.update(deltaTime));
-      this.projectiles = this.projectiles.filter((p) => !p.markedForDeletion);
-    }
-
-    draw(context) {
-      context.save();
-
-      if (this.invulnerable) context.globalAlpha = 0.65;
-
-      drawThruster(context, this.x, this.y, this.width, this.height);
-
-      context.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        this.frameY * this.spriteHeight,
-        this.spriteWidth,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-
-      context.restore();
-
-      this.projectiles.forEach((p) => p.draw(context));
-    }
-
-    fire() {
-      const now = performance.now();
-      const weapon = WEAPON_BEHAVIOR[this.weapon];
-      if (!weapon) return;
-
-      const effectiveRate = Math.max(60, weapon.fireRate * this.fireRateMult);
-
-      if (now - this.lastFireTime < effectiveRate) return;
-
-      this.lastFireTime = now;
-      this.shootingInterval = effectiveRate;
-
-      weapon.fire(this);
-    }
-  }
   class Pet {
     constructor(game) {
       this.game = game;
@@ -1367,7 +1597,7 @@ window.addEventListener('load', function () {
 
       this.spriteWidth = 128;
       this.spriteHeight = 192;
-      this.maxFrame = 8;
+      this.maxFrame = 7;
 
       this.frameX = 0;
       this.frameY = 0;
@@ -1388,7 +1618,7 @@ window.addEventListener('load', function () {
       this.lives = 3;
       this.invulnerable = false;
       this.invulnerableTimer = 0;
-      this.invulnerableInterval = 1000;
+      this.invulnerableInterval = 2000;
 
       this.petBullets = [];
       this.shootTimer = 0;
@@ -1400,39 +1630,30 @@ window.addEventListener('load', function () {
     update(deltaTime) {
       const p = this.game.player;
 
-      const targetX = p.x + this.offsetX;
-      const targetY = p.y + this.offsetY;
+      const px = p.x + p.width / 2 - 40;
+      const py = p.y + p.height / 2 + 60;
 
-      this.x += (targetX - this.x) * 0.18;
-      this.y += (targetY - this.y) * 0.18;
+      this.x = px + this.offsetX;
+      this.y = py - this.offsetY;
 
       this.frameTimer += deltaTime;
       if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % this.maxFrame;
+        this.frameX = (this.frameX + 1) % (this.maxFrame + 1);
         this.frameTimer = 0;
       }
 
+      this.shootTimer += deltaTime;
       const interval = Math.max(
         this.game.petCooldownMin,
-        Math.round(this.baseShootInterval * this.game.petCooldownMult)
+        this.baseShootInterval * this.game.petCooldownMult
       );
-
-      this.shootTimer += deltaTime;
       if (!this.game.gameOver && this.shootTimer >= interval) {
-        this.shootTimer = 0;
         this.shoot();
+        this.shootTimer = 0;
       }
 
       this.petBullets.forEach((b) => b.update(deltaTime));
       this.petBullets = this.petBullets.filter((b) => !b.markedForDeletion);
-
-      if (this.invulnerable) {
-        this.invulnerableTimer += deltaTime;
-        if (this.invulnerableTimer >= this.invulnerableInterval) {
-          this.invulnerable = false;
-          this.invulnerableTimer = 0;
-        }
-      }
     }
 
     shoot() {
@@ -1483,6 +1704,9 @@ window.addEventListener('load', function () {
 
       this.target = target;
       this.markedForDeletion = false;
+      this.r = this.size * 0.5;
+      this.width = this.size;
+      this.height = this.size;
 
       this.vx = 0;
       this.vy = -this.speed;
@@ -1495,14 +1719,28 @@ window.addEventListener('load', function () {
       this.hue = 185;
     }
 
-    update() {
-      if (!this.target || this.target.markedForDeletion) {
-        this.markedForDeletion = true;
-        return;
-      }
-
+    update(deltaTime) {
       this.trail.push({ x: this.x, y: this.y });
       if (this.trail.length > this.trailMax) this.trail.shift();
+
+      if (!this.target || this.target.markedForDeletion) {
+        this.target = this.game.getClosestEnemy(this.x, this.y);
+      }
+
+      if (!this.target) {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (
+          this.x < -50 ||
+          this.x > this.game.width + 50 ||
+          this.y < -50 ||
+          this.y > this.game.height + 50
+        ) {
+          this.markedForDeletion = true;
+        }
+        return;
+      }
 
       const tx = this.target.x + this.target.width / 2;
       const ty = this.target.y + this.target.height / 2;
@@ -1511,6 +1749,7 @@ window.addEventListener('load', function () {
       const desiredY = ty - this.y;
 
       const desiredDist = Math.hypot(desiredX, desiredY);
+
       if (desiredDist < 12) {
         this.target.lives -= this.damage;
         this.markedForDeletion = true;
@@ -1814,7 +2053,7 @@ window.addEventListener('load', function () {
       this.width = 90;
       this.height = 90;
 
-      this.lives = 7;
+      this.lives = 9;
       this.speedY = Math.random() * (2 - 1.5) + 1.5;
       this.x = Math.random() * (this.game.width - this.width);
 
@@ -1824,7 +2063,7 @@ window.addEventListener('load', function () {
       this.frameX = 0;
       this.frameY = 0;
 
-      this.fps = 6;
+      this.fps = 5;
       this.frameTimer = 0;
       this.frameInterval = 1000 / this.fps;
 
@@ -1869,12 +2108,13 @@ window.addEventListener('load', function () {
   class Angler3 extends Enemy {
     constructor(game) {
       super(game);
+
       this.width = 80;
       this.height = 80;
+
       this.lives = 6;
       this.speedY = 0.5;
       this.x = Math.random() * (this.game.width - this.width);
-      this.color = 'orange';
 
       this.shooterTimer = 0;
       this.shooterInterval = Math.random() * (3000 - 2000) + 2000;
@@ -1882,27 +2122,25 @@ window.addEventListener('load', function () {
 
       this.image = document.getElementById('angler3Sprite');
 
-      this.frames = 1;
-      this.maxFrame = this.frames - 1;
-
-      this.spriteWidth = 0;
-      this.spriteHeight = 0;
-
+      this.frames = 8;
       this.frameX = 0;
-      this.frameY = 0;
-      this.frameTimer = 0;
-      this.frameInterval = 90;
 
-      if (this.image && (this.image.naturalWidth || this.image.width)) {
-        const iw = this.image.naturalWidth || this.image.width;
-        const ih = this.image.naturalHeight || this.image.height;
-        this.spriteWidth = Math.floor(iw / this.frames);
-        this.spriteHeight = ih;
-      }
+      this.fps = 5;
+      this.frameTimer = 0;
+      this.frameInterval = 1000 / this.fps;
+
+      this.frameCuts = [0, 57, 110, 163, 215, 270, 323, 375, 428];
+      this.spriteHeight = 80;
     }
 
     update(deltaTime) {
       super.update(deltaTime);
+
+      this.frameTimer += deltaTime;
+      if (this.frameTimer > this.frameInterval) {
+        this.frameX = (this.frameX + 1) % this.frames;
+        this.frameTimer = 0;
+      }
 
       this.shooterTimer += deltaTime;
       if (this.shooterTimer >= this.shooterInterval && !this.game.gameOver) {
@@ -1924,12 +2162,6 @@ window.addEventListener('load', function () {
           b.markedForDeletion = true;
         }
       });
-
-      this.frameTimer += deltaTime;
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % this.frames;
-        this.frameTimer = 0;
-      }
     }
 
     shootTop() {
@@ -1944,11 +2176,14 @@ window.addEventListener('load', function () {
 
     draw(ctx) {
       if (this.image && this.image.complete && this.image.naturalWidth) {
+        const sx = this.frameCuts[this.frameX];
+        const sw = this.frameCuts[this.frameX + 1] - sx;
+
         ctx.drawImage(
           this.image,
-          this.frameX * this.spriteWidth,
-          this.frameY * this.spriteHeight,
-          this.spriteWidth,
+          sx,
+          0,
+          sw,
           this.spriteHeight,
           this.x,
           this.y,
@@ -1958,6 +2193,7 @@ window.addEventListener('load', function () {
       } else {
         super.draw(ctx);
       }
+
       this.enemyBullets.forEach((b) => b.draw(ctx));
     }
   }
@@ -2436,9 +2672,12 @@ window.addEventListener('load', function () {
 
       ctx.fillStyle = this.color;
       ctx.font = `${this.fontSize}px ${this.fontFamily}`;
-      ctx.fillText(`Score: ${this.game.score}`, 20, 30);
+      ctx.fillText(
+        `Score: ${this.game.score} / ${this.game.winningScore}`,
+        20,
+        30
+      );
 
-      // 👇 החיים החדשים
       this.drawLives(ctx);
 
       this.drawSuperGauge(ctx);
@@ -2997,6 +3236,14 @@ window.addEventListener('load', function () {
         }
       }
 
+      if (this.pet && this.pet.invulnerable && !this.gameOver) {
+        this.pet.invulnerableTimer += deltaTime;
+        if (this.pet.invulnerableTimer >= this.pet.invulnerableInterval) {
+          this.pet.invulnerable = false;
+          this.pet.invulnerableTimer = 0;
+        }
+      }
+
       this.player.projectiles.forEach((p) => {
         this.enemies.forEach((enemy) => {
           if (p.markedForDeletion || enemy.markedForDeletion) return;
@@ -3153,11 +3400,19 @@ window.addEventListener('load', function () {
         this.pet.petBullets.forEach((bullet) => {
           if (bullet.markedForDeletion) return;
 
+          const br = bullet.r ?? bullet.size * 0.5;
+          const bulletRect = {
+            x: bullet.x - br,
+            y: bullet.y - br,
+            width: br * 2,
+            height: br * 2,
+          };
+
           this.enemies.forEach((enemy) => {
             if (enemy.markedForDeletion) return;
 
-            if (checkCollision(bullet, enemy)) {
-              enemy.lives -= bullet.damage;
+            if (checkCollision(bulletRect, enemy)) {
+              enemy.lives -= bullet.damage ?? 1;
               bullet.markedForDeletion = true;
 
               if (enemy.lives <= 0 && !enemy.markedForDeletion) {
@@ -3484,13 +3739,51 @@ window.addEventListener('load', function () {
   }
 
   (async () => {
-    await preload();
+    function waitDomImg(id) {
+      return new Promise((resolve) => {
+        const img = document.getElementById(id);
+        if (!img) return resolve(null);
 
-    try {
-      await document.fonts.load('26px "Archivo Black"');
-      await document.fonts.load('48px "Archivo Black"');
-      await document.fonts.ready;
-    } catch (e) {}
+        const done = () => resolve(img);
+
+        if (img.complete && (img.naturalWidth || img.width)) return done();
+
+        img.onload = done;
+        img.onerror = () => resolve(null);
+      });
+    }
+
+    const PRELOAD_DOM_IMAGES = [
+      'player',
+      'playerRedClassic',
+      'playerDarkReaper',
+      'playerCelestialSakura',
+      'playerGoldenCore',
+      'missile',
+      'chimboSprite',
+      'sirenSprite',
+      'angler1Sprite',
+      'angler2Sprite',
+      'angler3Sprite',
+    ];
+
+    async function preload() {
+      const [bgImg, explosionImg, ...domImgs] = await Promise.all([
+        loadImage(ASSETS.bg),
+        loadImage(ASSETS.explosion),
+        ...PRELOAD_DOM_IMAGES.map(waitDomImg),
+      ]);
+
+      cached.bgImg = bgImg;
+      cached.explosionImg = explosionImg;
+
+      cached.dom = {};
+      for (let i = 0; i < PRELOAD_DOM_IMAGES.length; i++) {
+        cached.dom[PRELOAD_DOM_IMAGES[i]] = domImgs[i];
+      }
+    }
+
+    await preload();
 
     EXPLOSION_IMG = cached.explosionImg;
 
@@ -3567,7 +3860,3 @@ function enterFullscreen() {
   const el = document.documentElement;
   if (el.requestFullscreen) el.requestFullscreen();
 }
-
-battleBtn.addEventListener('click', () => {
-  enterFullscreen();
-});
