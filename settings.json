@@ -1,9 +1,19 @@
 {
   "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modifications",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  "editor.stableCursorOnSave": true, 
+  "editor.renderLineHighlight": "all",
+  "editor.multiCursorModifier": "alt",
+  "editor.scrollBeyondLastLine": false,
+  
+  "editor.cursorSurroundingLines": 0,
+  "editor.cursorSurroundingLinesStyle": "default",
 
   "[html]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
   "[css]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
 
   "prettier.requireConfig": false,
   "prettier.embeddedLanguageFormatting": "auto"

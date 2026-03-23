@@ -1,3 +1,5 @@
+const ENEMY_SPAWN_TABLE = window.ENEMY_SPAWN_TABLE;
+
 document.addEventListener(
   'touchmove',
   (e) => {
@@ -156,7 +158,9 @@ window.addEventListener('load', function () {
   const ASSETS = {
     bg: getBackgroundForLevel(currentLevel),
     explosion: './images/game/sprites/smokeExplosion.png',
+    music: './sounds/game/gameplayMusic.mp3',
   };
+
   function loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -166,12 +170,76 @@ window.addEventListener('load', function () {
     });
   }
 
+  function getMusicEnabled() {
+    return localStorage.getItem('music') !== 'off';
+  }
+
+  function getMusicVolume() {
+    const v = Number(localStorage.getItem('musicVolume') ?? 70);
+    return Math.max(0, Math.min(100, v));
+  }
+
+  function applyGameMusicSettings() {
+    if (!bgMusic) return;
+
+    const enabled = getMusicEnabled();
+    const volume = getMusicVolume();
+
+    bgMusic.volume = volume / 100;
+
+    if (!enabled || volume === 0) {
+      bgMusic.pause();
+      return;
+    }
+
+    if (musicStarted && bgMusic.paused) {
+      bgMusic.play().catch(() => {});
+    }
+  }
+  ('');
+
+  function setupMusic() {
+    bgMusic = new Audio(ASSETS.music);
+    bgMusic.loop = true;
+    bgMusic.preload = 'auto';
+    applyGameMusicSettings();
+  }
+
+  function startMusic() {
+    if (!bgMusic || musicStarted) return;
+    if (!getMusicEnabled() || getMusicVolume() === 0) return;
+
+    bgMusic.volume = getMusicVolume() / 100;
+
+    bgMusic
+      .play()
+      .then(() => {
+        musicStarted = true;
+      })
+      .catch(() => {});
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'music' || e.key === 'musicVolume') {
+      applyGameMusicSettings();
+    }
+  });
+
+  function stopMusic() {
+    if (!bgMusic) return;
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+    musicStarted = false;
+  }
+
   let cached = {};
 
   let EXPLOSION_IMG = null;
   let background = null;
   let stars = null;
   let game = null;
+  let bgMusic = null;
+  let musicStarted = false;
 
   async function preload() {
     const [bgImg, explosionImg] = await Promise.all([
@@ -486,6 +554,9 @@ window.addEventListener('load', function () {
     ctx.restore();
   }
 
+  window.drawRoundedRect = drawRoundedRect;
+  window.checkCollision = checkCollision;
+
   const WEAPON_BEHAVIOR = {
     laser: {
       fireRate: 200,
@@ -574,6 +645,8 @@ window.addEventListener('load', function () {
         'pointerdown',
         (e) => {
           e.preventDefault();
+          startMusic();
+
           this.activePointerId = e.pointerId;
           canvas.setPointerCapture(e.pointerId);
 
@@ -1106,6 +1179,8 @@ window.addEventListener('load', function () {
     }
   }
 
+  window.Explosion = Explosion;
+
   class Projectile {
     constructor(game, x, y) {
       this.game = game;
@@ -1384,1268 +1459,9 @@ window.addEventListener('load', function () {
     }
   }
 
-  class SuperAttack1 {
-    constructor(game) {
-      this.game = game;
-      this.width = 240;
-      this.height = 30;
-      this.x = this.game.width / 2 - this.width / 2;
-      this.y = game.height;
-      this.speedY = 4;
-      this.damage = 50;
-      this.markedForDeletion = false;
-    }
-    update() {
-      this.y -= this.speedY;
-      if (this.y < -this.height) this.markedForDeletion = true;
-    }
-
-    draw(context) {
-      const t = performance.now() * 0.001;
-
-      const x = this.x;
-      const y = this.y;
-      const w = this.width;
-      const h = this.height;
-
-      const cx = x + w / 2;
-      const cy = y + h / 2;
-
-      const r = h * 0.6;
-      const pulse = 0.85 + 0.15 * Math.sin(t * 6);
-      const wobble = Math.sin(t * 10) * 0.6;
-
-      context.save();
-      context.globalCompositeOperation = 'lighter';
-
-      context.globalAlpha = 0.22 * pulse;
-      context.shadowColor = 'rgba(0,220,255,0.9)';
-      context.shadowBlur = 30;
-
-      const glow = context.createRadialGradient(cx, cy, 0, cx, cy, w * 0.7);
-      glow.addColorStop(0, 'rgba(255,255,255,0.22)');
-      glow.addColorStop(0.25, 'rgba(0,220,255,0.18)');
-      glow.addColorStop(1, 'rgba(0,120,255,0)');
-
-      context.fillStyle = glow;
-      context.beginPath();
-      context.ellipse(cx, cy, w * 0.55, h * 1.8, 0, 0, Math.PI * 2);
-      context.fill();
-
-      context.shadowBlur = 0;
-      context.globalAlpha = 0.85;
-
-      const body = context.createLinearGradient(x, y, x + w, y);
-      body.addColorStop(0, 'rgba(0,120,255,0)');
-      body.addColorStop(0.18, 'rgba(0,200,255,0.95)');
-      body.addColorStop(0.5, 'rgba(255,255,255,0.95)');
-      body.addColorStop(0.82, 'rgba(0,200,255,0.95)');
-      body.addColorStop(1, 'rgba(0,120,255,0)');
-
-      context.fillStyle = body;
-      drawRoundedRect(context, x, y, w, h, r);
-      context.fill();
-
-      context.globalAlpha = 0.95;
-      context.fillStyle = 'rgba(255,255,255,0.9)';
-      drawRoundedRect(
-        context,
-        x + w * 0.12,
-        y + h * 0.35,
-        w * 0.76,
-        h * 0.3,
-        h * 0.25
-      );
-      context.fill();
-
-      context.globalAlpha = 0.22 * pulse;
-      context.lineWidth = 2;
-
-      for (let i = 0; i < 7; i++) {
-        const px = x + (i / 7) * w;
-        const waveY = cy + Math.sin(t * 8 + i * 0.9) * (h * 0.25) + wobble;
-
-        context.strokeStyle = 'rgba(120,255,255,1)';
-        context.beginPath();
-        context.moveTo(px, y);
-        context.lineTo(px + Math.sin(t * 10 + i) * 6, waveY);
-        context.lineTo(px, y + h);
-        context.stroke();
-      }
-
-      context.globalAlpha = 0.55 * pulse;
-      context.shadowColor = 'rgba(0,220,255,0.95)';
-      context.shadowBlur = 16;
-      context.strokeStyle = 'rgba(0,220,255,0.85)';
-      context.lineWidth = 3;
-      drawRoundedRect(context, x, y, w, h, r);
-      context.stroke();
-
-      context.restore();
-    }
-  }
-
-  class SuperLaser {
-    constructor(game) {
-      this.game = game;
-
-      this.width = 40;
-      this.height = game.height;
-      this.lifeTime = 4000;
-      this.timer = 0;
-      this.x = 0;
-      this.y = 0;
-      this.damagePerTick = 1.2;
-      this.hitInterval = 200;
-      this.markedForDeletion = false;
-
-      this.hitTimers = new Map();
-    }
-
-    update(deltaTime) {
-      const p = this.game.player;
-      const centerX = p.x + p.width / 2;
-      this.x = centerX - this.width / 2;
-
-      this.timer += deltaTime;
-      if (this.timer >= this.lifeTime) {
-        this.markedForDeletion = true;
-        return;
-      }
-
-      for (const [enemy, t] of this.hitTimers.entries()) {
-        if (!enemy || enemy.markedForDeletion) this.hitTimers.delete(enemy);
-        else this.hitTimers.set(enemy, t + deltaTime);
-      }
-
-      this.game.enemies.forEach((enemy) => {
-        if (enemy.markedForDeletion) return;
-
-        if (checkCollision(this, enemy)) {
-          const t = this.hitTimers.get(enemy) ?? this.hitInterval;
-          if (t >= this.hitInterval) {
-            enemy.lives -= this.damagePerTick;
-            this.hitTimers.set(enemy, 0);
-
-            if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-              enemy.markedForDeletion = true;
-              this.game.score++;
-
-              const px = enemy.x + enemy.width / 2;
-              const py = enemy.y + enemy.height / 2;
-              this.game.explosions.push(new Explosion(this.game, px, py));
-            }
-          }
-        }
-      });
-
-      this.game.enemies.forEach((enemy) => {
-        if (!enemy.enemyBullets) return;
-        enemy.enemyBullets.forEach((bullet) => {
-          if (!bullet.markedForDeletion && checkCollision(this, bullet)) {
-            bullet.markedForDeletion = true;
-          }
-        });
-      });
-    }
-
-    draw(ctx) {
-      const t = performance.now() * 0.01;
-
-      const pulse = 0.85 + 0.15 * Math.sin(t);
-
-      const glowW = this.width * (2.6 + 0.4 * Math.sin(t * 1.4));
-      const coreW = this.width * (1.2 + 0.15 * Math.sin(t * 2));
-      const hotW = Math.max(4, this.width * 0.18);
-
-      const cx = this.x + this.width / 2;
-
-      ctx.save();
-
-      ctx.globalAlpha = 0.22 * pulse;
-      ctx.fillStyle = 'rgba(255, 0, 30, 1)';
-      ctx.fillRect(cx - glowW / 2, this.y, glowW, this.height);
-
-      ctx.globalAlpha = 0.65 * pulse;
-      ctx.fillStyle = 'rgba(255, 40, 70, 1)';
-      ctx.fillRect(cx - coreW / 2, this.y, coreW, this.height);
-
-      ctx.globalAlpha = 0.95;
-      ctx.fillStyle = 'rgba(255, 108, 108, 1)';
-      ctx.fillRect(cx - hotW / 2, this.y, hotW, this.height);
-
-      ctx.globalAlpha = 1;
-      ctx.shadowColor = 'rgba(255, 0, 60, 0.95)';
-      ctx.shadowBlur = 26;
-      ctx.fillStyle = 'rgba(255, 0, 60, 0.18)';
-      ctx.fillRect(cx - coreW / 2, this.y, coreW, this.height);
-
-      ctx.restore();
-    }
-  }
-
-  const SUPER_TYPES = {
-    waveShield: { class: SuperAttack1, duration: 500, charge: 5 },
-    superLaser: { class: SuperLaser, duration: 4000, charge: 9 },
-  };
-
-  class Pet {
-    constructor(game) {
-      this.game = game;
-
-      this.image = document.getElementById('chimboSprite');
-
-      this.spriteWidth = 128;
-      this.spriteHeight = 192;
-      this.maxFrame = 7;
-
-      this.frameX = 0;
-      this.frameY = 0;
-      this.frameTimer = 0;
-      this.frameInterval = 90;
-
-      this.width = 80;
-      this.height = Math.round(
-        this.width * (this.spriteHeight / this.spriteWidth)
-      );
-
-      this.offsetX = -60;
-      this.offsetY = 60;
-
-      this.x = 0;
-      this.y = 0;
-
-      this.lives = 3;
-      this.invulnerable = false;
-      this.invulnerableTimer = 0;
-      this.invulnerableInterval = 2000;
-
-      this.petBullets = [];
-      this.shootTimer = 0;
-
-      this.baseShootInterval = 8000;
-      this.markedForDeletion = false;
-    }
-
-    update(deltaTime) {
-      const p = this.game.player;
-
-      const px = p.x + p.width / 2 - 40;
-      const py = p.y + p.height / 2 + 60;
-
-      this.x = px + this.offsetX;
-      this.y = py - this.offsetY;
-
-      this.frameTimer += deltaTime;
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % (this.maxFrame + 1);
-        this.frameTimer = 0;
-      }
-
-      this.shootTimer += deltaTime;
-      const interval = Math.max(
-        this.game.petCooldownMin,
-        this.baseShootInterval * this.game.petCooldownMult
-      );
-      if (!this.game.gameOver && this.shootTimer >= interval) {
-        this.shoot();
-        this.shootTimer = 0;
-      }
-
-      this.petBullets.forEach((b) => b.update(deltaTime));
-      this.petBullets = this.petBullets.filter((b) => !b.markedForDeletion);
-    }
-
-    shoot() {
-      const target = this.game.getClosestEnemy(
-        this.x + this.width / 2,
-        this.y + this.height / 2
-      );
-      if (!target) return;
-
-      this.petBullets.push(
-        new Pet1Bullet(this.game, this.x + this.width / 2, this.y + 10, target)
-      );
-    }
-
-    draw(ctx) {
-      if (!this.image) return;
-
-      ctx.save();
-      if (this.invulnerable) ctx.globalAlpha = 0.65;
-
-      ctx.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        this.frameY * this.spriteHeight,
-        this.spriteWidth,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-
-      ctx.restore();
-
-      this.petBullets.forEach((b) => b.draw(ctx));
-    }
-  }
-
-  class Pet1Bullet {
-    constructor(game, x, y, target) {
-      this.game = game;
-      this.x = x;
-      this.y = y;
-
-      this.size = 12;
-      this.speed = 3;
-      this.damage = 8;
-
-      this.target = target;
-      this.markedForDeletion = false;
-      this.r = this.size * 0.5;
-      this.width = this.size;
-      this.height = this.size;
-
-      this.vx = 0;
-      this.vy = -this.speed;
-
-      this.turnRate = 0.08;
-
-      this.trail = [];
-      this.trailMax = 10;
-
-      this.hue = 185;
-    }
-
-    update(deltaTime) {
-      this.trail.push({ x: this.x, y: this.y });
-      if (this.trail.length > this.trailMax) this.trail.shift();
-
-      if (!this.target || this.target.markedForDeletion) {
-        this.target = this.game.getClosestEnemy(this.x, this.y);
-      }
-
-      if (!this.target) {
-        this.x += this.vx;
-        this.y += this.vy;
-
-        if (
-          this.x < -50 ||
-          this.x > this.game.width + 50 ||
-          this.y < -50 ||
-          this.y > this.game.height + 50
-        ) {
-          this.markedForDeletion = true;
-        }
-        return;
-      }
-
-      const tx = this.target.x + this.target.width / 2;
-      const ty = this.target.y + this.target.height / 2;
-
-      const desiredX = tx - this.x;
-      const desiredY = ty - this.y;
-
-      const desiredDist = Math.hypot(desiredX, desiredY);
-
-      if (desiredDist < 12) {
-        this.target.lives -= this.damage;
-        this.markedForDeletion = true;
-        return;
-      }
-
-      const desiredVX = (desiredX / desiredDist) * this.speed;
-      const desiredVY = (desiredY / desiredDist) * this.speed;
-
-      this.vx += (desiredVX - this.vx) * this.turnRate;
-      this.vy += (desiredVY - this.vy) * this.turnRate;
-
-      this.x += this.vx;
-      this.y += this.vy;
-    }
-
-    draw(ctx) {
-      const r = this.size * 0.5;
-
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-
-      for (let i = 0; i < this.trail.length; i++) {
-        const t = this.trail[i];
-        const a = (i + 1) / this.trail.length;
-
-        ctx.globalAlpha = 0.25 * a;
-        ctx.fillStyle = `hsla(${this.hue}, 100%, 60%, 1)`;
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, r * (0.35 + 0.65 * a), 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.globalAlpha = 0.75;
-      ctx.shadowColor = `hsla(${this.hue}, 100%, 60%, 1)`;
-      ctx.shadowBlur = 18;
-      ctx.fillStyle = `hsla(${this.hue}, 100%, 60%, 1)`;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, r * 1.15, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.shadowBlur = 0;
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = `hsla(${this.hue}, 100%, 92%, 1)`;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, r * 0.55, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
-  class Siren {
-    constructor(game) {
-      this.game = game;
-      this.image = document.getElementById('sirenSprite');
-
-      this.maxFrame = 6;
-      this.spriteWidth = this.image.width / (this.maxFrame + 1);
-      this.spriteHeight = this.image.height;
-
-      this.width = 50;
-      this.height = this.width * (this.spriteHeight / this.spriteWidth);
-
-      this.offsetX = 60;
-      this.offsetY = 120;
-
-      this.x = this.game.player.x - this.distanceX;
-      this.y = this.game.player.y - this.distanceY;
-
-      this.lives = 2;
-      this.markedForDeletion = false;
-
-      this.frameX = 0;
-      this.frameTimer = 0;
-      this.frameInterval = 90;
-    }
-
-    draw(context) {
-      context.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        0,
-        this.spriteWidth,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-    }
-    update(deltaTime) {
-      const p = this.game.player;
-
-      const px = p.x + p.width / 2;
-      const py = p.y + p.height / 2;
-
-      this.x = px + this.offsetX;
-      this.y = py + this.offsetY;
-
-      this.controlInterval = Math.max(
-        this.game.petCooldownMin,
-        Math.round(this.baseControlInterval * this.game.petCooldownMult)
-      );
-
-      this.frameTimer += deltaTime;
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % (this.maxFrame + 1);
-        this.frameTimer = 0;
-      }
-
-      this.controlTimer += deltaTime;
-      if (this.controlTimer >= this.controlInterval && !this.game.gameOver) {
-        this.findTarget();
-        this.controlTimer = 0;
-      }
-    }
-
-    findTarget() {
-      const enemies = this.game.enemies.filter(
-        (e) => !e.markedForDeletion && !e.mindControlled
-      );
-      if (enemies.length < 2) return;
-
-      const controller = enemies[Math.floor(Math.random() * enemies.length)];
-
-      let target;
-      do {
-        target = enemies[Math.floor(Math.random() * enemies.length)];
-      } while (target === controller);
-
-      controller.mindControlled = true;
-      controller.mindTarget = target;
-      controller.mindTimer = 0;
-    }
-
-    draw(ctx) {
-      if (!this.image) return;
-
-      const drawX = this.x - this.width / 2;
-      const drawY = this.y - this.height;
-
-      const clampedX = Math.max(
-        0,
-        Math.min(this.game.width - this.width, drawX)
-      );
-
-      const clampedY = Math.max(
-        0,
-        Math.min(this.game.height - this.height, drawY)
-      );
-
-      ctx.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        0,
-        this.spriteWidth,
-        this.spriteHeight,
-        clampedX,
-        clampedY,
-        this.width,
-        this.height
-      );
-    }
-  }
-
   const PET_CLASSES = {
     dog: Pet,
     siren: Siren,
-  };
-
-  class Enemy {
-    constructor(game) {
-      this.game = game;
-
-      this.width = 100;
-      this.height = 100;
-      this.y = -this.height;
-      this.speedY = 1;
-      this.lives = 3;
-
-      this.hitBySuper = false;
-      this.markedForDeletion = false;
-      this.color = 'red';
-
-      // 🧠 Siren states
-      this.mindControlled = false;
-      this.mindTimer = 0;
-      this.mindDuration = 3000;
-      this.mindTarget = null;
-    }
-
-    update(deltaTime) {
-      if (this.mindControlled && this.mindTarget) {
-        this.mindTimer += deltaTime;
-
-        const tx = this.mindTarget.x + this.mindTarget.width / 2;
-        const ty = this.mindTarget.y + this.mindTarget.height / 2;
-
-        this.x += (tx - (this.x + this.width / 2)) * 0.06;
-        this.y += (ty - (this.y + this.height / 2)) * 0.06;
-
-        if (checkCollision(this, this.mindTarget)) {
-          this.mindTarget.lives -= this.lives;
-          this.markedForDeletion = true;
-        }
-
-        if (
-          this.mindTimer >= this.mindDuration ||
-          this.mindTarget.markedForDeletion
-        ) {
-          this.clearMindControl();
-        }
-
-        return;
-      }
-
-      this.y += this.speedY;
-      if (this.y > this.game.height) this.markedForDeletion = true;
-    }
-
-    clearMindControl() {
-      this.mindControlled = false;
-      this.mindTimer = 0;
-      this.mindTarget = null;
-    }
-
-    draw(ctx) {
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-  }
-
-  class Angler1 extends Enemy {
-    constructor(game) {
-      super(game);
-
-      this.width = 70;
-      this.height = 90;
-
-      this.lives = 4;
-      this.speedY = 1.5;
-
-      this.x = Math.random() * (this.game.width - this.width);
-
-      this.image = document.getElementById('angler1Sprite');
-
-      this.frameX = 0;
-      this.frameY = 0;
-
-      this.frameTimer = 0;
-      this.frameInterval = 90;
-
-      this.frames = 8;
-      this.maxFrame = this.frames - 1;
-
-      this.spriteWidth = 0;
-      this.spriteHeight = 0;
-
-      if (this.image && (this.image.naturalWidth || this.image.width)) {
-        const iw = this.image.naturalWidth || this.image.width;
-        const ih = this.image.naturalHeight || this.image.height;
-        this.spriteWidth = Math.floor(iw / this.frames);
-        this.spriteHeight = ih;
-      }
-    }
-    update(deltaTime) {
-      super.update(deltaTime);
-
-      this.frameTimer += deltaTime;
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % (this.maxFrame + 1);
-        this.frameTimer = 0;
-      }
-    }
-
-    draw(ctx) {
-      if (this.image && this.image.complete && this.image.naturalWidth) {
-        ctx.drawImage(
-          this.image,
-          this.frameX * this.spriteWidth,
-          this.frameY * this.spriteHeight,
-          this.spriteWidth,
-          this.spriteHeight,
-          this.x,
-          this.y,
-          this.width,
-          this.height
-        );
-      } else {
-        ctx.fillStyle = 'red';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-      }
-    }
-  }
-
-  class Angler2 extends Enemy {
-    constructor(game) {
-      super(game);
-
-      this.width = 90;
-      this.height = 90;
-
-      this.lives = 9;
-      this.speedY = Math.random() * (2 - 1.5) + 1.5;
-      this.x = Math.random() * (this.game.width - this.width);
-
-      this.image = document.getElementById('angler2Sprite');
-
-      this.frames = 8;
-      this.frameX = 0;
-      this.frameY = 0;
-
-      this.fps = 5;
-      this.frameTimer = 0;
-      this.frameInterval = 1000 / this.fps;
-
-      this.frameCuts = [0, 57, 110, 163, 215, 270, 323, 375, 428];
-      this.spriteHeight = 80;
-    }
-
-    update(deltaTime) {
-      super.update(deltaTime);
-
-      this.frameTimer += deltaTime;
-
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % this.frames;
-        this.frameTimer = 0;
-      }
-    }
-
-    draw(ctx) {
-      if (this.image && this.image.complete && this.image.naturalWidth) {
-        const sx = this.frameCuts[this.frameX];
-        const sw = this.frameCuts[this.frameX + 1] - sx;
-
-        ctx.drawImage(
-          this.image,
-          sx,
-          0,
-          sw,
-          this.spriteHeight,
-          this.x,
-          this.y,
-          this.width,
-          this.height
-        );
-      } else {
-        ctx.fillStyle = 'purple';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-      }
-    }
-  }
-
-  class Angler3 extends Enemy {
-    constructor(game) {
-      super(game);
-
-      this.width = 80;
-      this.height = 80;
-
-      this.lives = 6;
-      this.speedY = 0.5;
-      this.x = Math.random() * (this.game.width - this.width);
-
-      this.shooterTimer = 0;
-      this.shooterInterval = Math.random() * (3000 - 2000) + 2000;
-      this.enemyBullets = [];
-
-      this.image = document.getElementById('angler3Sprite');
-
-      this.frames = 8;
-      this.frameX = 0;
-
-      this.fps = 5;
-      this.frameTimer = 0;
-      this.frameInterval = 1000 / this.fps;
-
-      this.frameCuts = [0, 57, 110, 163, 215, 270, 323, 375, 428];
-      this.spriteHeight = 80;
-    }
-
-    update(deltaTime) {
-      super.update(deltaTime);
-
-      this.frameTimer += deltaTime;
-      if (this.frameTimer > this.frameInterval) {
-        this.frameX = (this.frameX + 1) % this.frames;
-        this.frameTimer = 0;
-      }
-
-      this.shooterTimer += deltaTime;
-      if (this.shooterTimer >= this.shooterInterval && !this.game.gameOver) {
-        this.shootTop();
-        this.shooterTimer = 0;
-      }
-
-      if (this.y >= 100) this.speedY = 0;
-
-      this.enemyBullets.forEach((b) => b.update(deltaTime));
-      this.enemyBullets = this.enemyBullets.filter(
-        (b) => !b.markedForDeletion && b.y <= this.game.height
-      );
-
-      this.enemyBullets.forEach((b) => {
-        if (checkCollision(this.game.player, b)) {
-          this.game.player.lives--;
-          this.game.triggerShake(520, 26);
-          b.markedForDeletion = true;
-        }
-      });
-    }
-
-    shootTop() {
-      this.enemyBullets.push(
-        new Angler3Shooter(
-          this.game,
-          this.x + this.width / 2 - 2,
-          this.y + this.height
-        )
-      );
-    }
-
-    draw(ctx) {
-      if (this.image && this.image.complete && this.image.naturalWidth) {
-        const sx = this.frameCuts[this.frameX];
-        const sw = this.frameCuts[this.frameX + 1] - sx;
-
-        ctx.drawImage(
-          this.image,
-          sx,
-          0,
-          sw,
-          this.spriteHeight,
-          this.x,
-          this.y,
-          this.width,
-          this.height
-        );
-      } else {
-        super.draw(ctx);
-      }
-
-      this.enemyBullets.forEach((b) => b.draw(ctx));
-    }
-  }
-
-  class Angler3Shooter {
-    constructor(game, x, y) {
-      this.game = game;
-      this.x = x;
-      this.y = y;
-      this.width = 20;
-      this.height = 20;
-      this.speedY = 5;
-      this.markedForDeletion = false;
-    }
-
-    update(deltaTime) {
-      this.y += this.speedY;
-      if (this.y > this.game.height) this.markedForDeletion = true;
-
-      const shots = this.game.player.projectiles;
-      for (let i = 0; i < shots.length; i++) {
-        const p = shots[i];
-        if (p.markedForDeletion) continue;
-
-        if (checkCollision(p, this)) {
-          p.markedForDeletion = true;
-          this.markedForDeletion = true;
-          break;
-        }
-      }
-    }
-
-    draw(ctx) {
-      const t = performance.now() * 0.01;
-      const pulse = 0.85 + 0.15 * Math.sin(t * 4);
-
-      const cx = this.x + this.width / 2;
-      const cy = this.y + this.height / 2;
-      const r = this.width * 0.6;
-
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-
-      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3);
-      glow.addColorStop(0, 'rgba(255,200,255,0.8)');
-      glow.addColorStop(0.4, 'rgba(180,120,255,0.6)');
-      glow.addColorStop(1, 'rgba(120,60,255,0)');
-
-      ctx.globalAlpha = 0.7 * pulse;
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r * 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      core.addColorStop(0, 'white');
-      core.addColorStop(0.4, 'rgba(200,150,255,1)');
-      core.addColorStop(1, 'rgba(140,80,255,1)');
-
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = core;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.globalAlpha = 0.4;
-      ctx.fillStyle = 'rgba(160,125,255,1)';
-      ctx.beginPath();
-      ctx.ellipse(cx, cy - r * 2.2, r * 0.7, r * 2.2, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-    }
-  }
-
-  class BossBase extends Enemy {
-    constructor(game) {
-      super(game);
-
-      this.isBoss = true;
-
-      this.maxLives = 100;
-      this.lives = this.maxLives;
-
-      this.speedX = 2;
-      this.speedY = 1;
-
-      this.phase = 1;
-    }
-
-    update(deltaTime) {
-      super.update(deltaTime);
-
-      this.handlePhases();
-    }
-
-    handlePhases() {
-      const hpPercent = this.lives / this.maxLives;
-
-      if (hpPercent < 0.6 && this.phase === 1) {
-        this.phase = 2;
-        this.speedX *= 1.4;
-      }
-
-      if (hpPercent < 0.3 && this.phase === 2) {
-        this.phase = 3;
-        this.speedX *= 1.5;
-      }
-    }
-
-    drawHealthBar(ctx) {
-      const barW = 260;
-      const barH = 16;
-      const bx = this.game.width / 2 - barW / 2;
-      const by = 22;
-
-      const p = Math.max(0, this.lives / this.maxLives);
-
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.fillRect(bx, by, barW, barH);
-
-      ctx.fillStyle = '#ff2d55';
-      ctx.fillRect(bx, by, barW * p, barH);
-
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(bx, by, barW, barH);
-    }
-  }
-
-  class Boss1 extends BossBase {
-    constructor(game) {
-      super(game);
-
-      this.width = 180;
-      this.height = 180;
-
-      this.x = game.width / 2 - this.width / 2;
-      this.y = -this.height;
-
-      this.speedY = 1.2;
-      this.speedX = 2.2;
-
-      this.maxLives = 100;
-      this.lives = this.maxLives;
-
-      this.color = '#ff2d55';
-
-      this.time = 0;
-
-      this.baseY = 80;
-      this.hoverAmp = 10;
-
-      this.moveAmp = game.width * 0.18;
-      this.moveSmooth = 0.12;
-
-      this.shootTimer = 0;
-      this.shootInterval = 750;
-
-      this.enemyBullets = [];
-
-      this.hitFlash = 0;
-    }
-
-    update(deltaTime) {
-      if (this.game.upgradeCardsShowing) return;
-      const dt = deltaTime / 16.67;
-
-      if (this.y < this.baseY) {
-        this.y += this.speedY * dt;
-        return;
-      }
-
-      this.time += deltaTime * 0.001;
-
-      const centerX = this.game.width / 2 - this.width / 2;
-      const targetX = centerX + Math.sin(this.time) * this.moveAmp;
-      this.x += (targetX - this.x) * this.moveSmooth;
-
-      const targetY = this.baseY + Math.sin(this.time * 1.5) * this.hoverAmp;
-      this.y += (targetY - this.y) * 0.18;
-
-      this.shootTimer += deltaTime;
-      if (!this.game.gameOver && this.shootTimer >= this.shootInterval) {
-        this.shootTimer = 0;
-
-        const px = this.game.player.x + this.game.player.width / 2;
-        const py = this.game.player.y + this.game.player.height / 2;
-
-        const bx = this.x + this.width / 2;
-        const by = this.y + this.height;
-
-        const dx = px - bx;
-        const dy = py - by;
-
-        const len = Math.hypot(dx, dy) || 1;
-
-        const speed = 7.2;
-        const vx = (dx / len) * speed;
-        const vy = (dy / len) * speed;
-
-        this.enemyBullets.push(new Boss1Bullet(this.game, bx - 5, by, vx, vy));
-      }
-
-      this.enemyBullets.forEach((b) => b.update(deltaTime));
-      this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
-
-      this.enemyBullets.forEach((b) => {
-        if (b.markedForDeletion) return;
-
-        if (
-          !this.game.player.invulnerable &&
-          checkCollision(this.game.player, b)
-        ) {
-          this.game.player.lives--;
-          this.game.triggerShake(520, 26);
-          this.game.player.invulnerable = true;
-          this.game.player.invulnerableTimer = 0;
-          b.markedForDeletion = true;
-          this.hitFlash = 120;
-        }
-      });
-
-      if (this.hitFlash > 0) this.hitFlash -= deltaTime;
-
-      super.handlePhases();
-    }
-
-    draw(ctx) {
-      ctx.save();
-
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-
-      ctx.restore();
-
-      this.drawHealthBar(ctx);
-
-      this.enemyBullets.forEach((b) => b.draw(ctx));
-    }
-  }
-
-  class Boss1Bullet {
-    constructor(game, x, y, vx, vy) {
-      this.game = game;
-      this.x = x;
-      this.y = y;
-      this.vx = vx;
-      this.vy = vy;
-      this.width = 10;
-      this.height = 18;
-      this.markedForDeletion = false;
-    }
-
-    update(deltaTime) {
-      const dt = deltaTime / 16.67;
-      this.x += this.vx * dt;
-      this.y += this.vy * dt;
-
-      if (this.y > this.game.height + this.height)
-        this.markedForDeletion = true;
-    }
-
-    draw(ctx) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.shadowColor = 'rgba(255,45,85,0.9)';
-      ctx.shadowBlur = 14;
-      ctx.fillStyle = 'rgba(255,45,85,1)';
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-      ctx.restore();
-    }
-  }
-
-  const ENEMY_SPAWN_TABLE = {
-    1: {
-      stages: {
-        1: [{ type: Angler1, weight: 1 }],
-        2: [{ type: Angler1, weight: 1 }],
-        3: [{ type: Angler1, weight: 1 }],
-      },
-    },
-
-    2: {
-      stages: {
-        1: [{ type: Angler1, weight: 1 }],
-        2: [
-          { type: Angler1, weight: 0.7 },
-          { type: Angler2, weight: 0.3 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.5 },
-          { type: Angler2, weight: 0.5 },
-        ],
-      },
-    },
-
-    3: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.75 },
-          { type: Angler2, weight: 0.25 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.5 },
-          { type: Angler2, weight: 0.5 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.6 },
-          { type: Angler2, weight: 0.4 },
-        ],
-      },
-    },
-
-    4: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.65 },
-          { type: Angler2, weight: 0.35 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.45 },
-          { type: Angler2, weight: 0.48 },
-          { type: Angler3, weight: 0.07 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.22 },
-          { type: Angler2, weight: 0.6 },
-          { type: Angler3, weight: 0.18 },
-        ],
-      },
-    },
-
-    5: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.55 },
-          { type: Angler2, weight: 0.42 },
-          { type: Angler3, weight: 0.03 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.35 },
-          { type: Angler2, weight: 0.55 },
-          { type: Angler3, weight: 0.1 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.18 },
-          { type: Angler2, weight: 0.62 },
-          { type: Angler3, weight: 0.2 },
-        ],
-      },
-    },
-
-    6: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.45 },
-          { type: Angler2, weight: 0.5 },
-          { type: Angler3, weight: 0.05 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.28 },
-          { type: Angler2, weight: 0.58 },
-          { type: Angler3, weight: 0.14 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.14 },
-          { type: Angler2, weight: 0.62 },
-          { type: Angler3, weight: 0.24 },
-        ],
-      },
-    },
-
-    7: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.38 },
-          { type: Angler2, weight: 0.54 },
-          { type: Angler3, weight: 0.08 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.22 },
-          { type: Angler2, weight: 0.6 },
-          { type: Angler3, weight: 0.18 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.1 },
-          { type: Angler2, weight: 0.62 },
-          { type: Angler3, weight: 0.28 },
-        ],
-      },
-    },
-
-    8: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.3 },
-          { type: Angler2, weight: 0.58 },
-          { type: Angler3, weight: 0.12 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.18 },
-          { type: Angler2, weight: 0.62 },
-          { type: Angler3, weight: 0.2 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.08 },
-          { type: Angler2, weight: 0.6 },
-          { type: Angler3, weight: 0.32 },
-        ],
-      },
-    },
-
-    9: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.24 },
-          { type: Angler2, weight: 0.6 },
-          { type: Angler3, weight: 0.16 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.14 },
-          { type: Angler2, weight: 0.62 },
-          { type: Angler3, weight: 0.24 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.06 },
-          { type: Angler2, weight: 0.58 },
-          { type: Angler3, weight: 0.36 },
-        ],
-      },
-    },
-
-    10: {
-      stages: {
-        1: [
-          { type: Angler1, weight: 0.2 },
-          { type: Angler2, weight: 0.6 },
-          { type: Angler3, weight: 0.2 },
-        ],
-        2: [
-          { type: Angler1, weight: 0.12 },
-          { type: Angler2, weight: 0.6 },
-          { type: Angler3, weight: 0.28 },
-        ],
-        3: [
-          { type: Angler1, weight: 0.05 },
-          { type: Angler2, weight: 0.55 },
-          { type: Angler3, weight: 0.4 },
-        ],
-      },
-    },
   };
 
   class UI {
@@ -3108,13 +1924,14 @@ window.addEventListener('load', function () {
 
       this.nextRageScore = 10;
       if (this.level == 1) this.winningScore = 15;
-      else this.winningScore = 30;
+      else if (this.level > 1) this.winningScore = 1;
 
       this.equippedSuper =
         localStorage.getItem('equippedSuper') || 'waveShield';
       this.superAttacks = [];
       this.superAttackGauge = 0;
-      const superData = SUPER_TYPES[this.equippedSuper];
+      const superMap = window.SUPER_TYPES || {};
+      const superData = superMap[this.equippedSuper];
       this.superAttackReadyGauge = superData?.charge ?? 5;
       this.superReady = false;
       this.superActive = false;
@@ -3247,58 +2064,109 @@ window.addEventListener('load', function () {
       this.player.projectiles.forEach((p) => {
         this.enemies.forEach((enemy) => {
           if (p.markedForDeletion || enemy.markedForDeletion) return;
-          if (!checkCollision(p, enemy)) return;
 
-          if (p instanceof Missile) {
-            enemy.lives -= p.damage ?? 1;
-            p.markedForDeletion = true;
-          } else {
-            if (p instanceof TriangleProjectile && p.grace > 0) return;
+          let collided = false;
 
-            enemy.lives -= p.damage ?? 1;
+          if (enemy instanceof Boss2) {
+            if (!enemy.coreBroken) {
+              collided = checkCollision(p, enemy.getHitBoxRect());
+              if (!collided) return;
 
-            if (p instanceof TriangleProjectile && p.split) {
-              p.split = false;
+              enemy.damageCore(p.damage ?? 1);
+              p.markedForDeletion = true;
+            } else {
+              collided = checkCollision(p, enemy);
+              if (!collided) return;
 
-              const cy = p.y + p.height * 0.35;
-              const leftX = p.x - 6;
-              const rightX = p.x + 6;
-              const grace = 140;
+              enemy.damageBoss(p.damage ?? 1);
 
-              this.player.projectiles.push(
-                new TriangleProjectile(
-                  this,
-                  leftX - 8,
-                  cy - 10,
-                  -6,
-                  -1,
-                  false,
-                  grace
-                )
-              );
+              if (p instanceof TriangleProjectile && p.split) {
+                p.split = false;
 
-              this.player.projectiles.push(
-                new TriangleProjectile(
-                  this,
-                  rightX + 8,
-                  cy - 10,
-                  6,
-                  -1,
-                  false,
-                  grace
-                )
-              );
+                const cy = p.y + p.height * 0.35;
+                const leftX = p.x - 6;
+                const rightX = p.x + 6;
+                const grace = 140;
+
+                this.player.projectiles.push(
+                  new TriangleProjectile(
+                    this,
+                    leftX - 8,
+                    cy - 10,
+                    -6,
+                    -1,
+                    false,
+                    grace
+                  )
+                );
+
+                this.player.projectiles.push(
+                  new TriangleProjectile(
+                    this,
+                    rightX + 8,
+                    cy - 10,
+                    6,
+                    -1,
+                    false,
+                    grace
+                  )
+                );
+              }
 
               p.markedForDeletion = true;
             }
+          } else {
+            if (!checkCollision(p, enemy)) return;
 
-            p.markedForDeletion = true;
+            if (p instanceof Missile) {
+              enemy.lives -= p.damage ?? 1;
+              p.markedForDeletion = true;
+            } else {
+              if (p instanceof TriangleProjectile && p.grace > 0) return;
+
+              enemy.lives -= p.damage ?? 1;
+
+              if (p instanceof TriangleProjectile && p.split) {
+                p.split = false;
+
+                const cy = p.y + p.height * 0.35;
+                const leftX = p.x - 6;
+                const rightX = p.x + 6;
+                const grace = 140;
+
+                this.player.projectiles.push(
+                  new TriangleProjectile(
+                    this,
+                    leftX - 8,
+                    cy - 10,
+                    -6,
+                    -1,
+                    false,
+                    grace
+                  )
+                );
+
+                this.player.projectiles.push(
+                  new TriangleProjectile(
+                    this,
+                    rightX + 8,
+                    cy - 10,
+                    6,
+                    -1,
+                    false,
+                    grace
+                  )
+                );
+              }
+
+              p.markedForDeletion = true;
+            }
           }
 
           if (enemy.lives <= 0 && !enemy.markedForDeletion) {
             enemy.markedForDeletion = true;
 
-            if (enemy instanceof Boss1) {
+            if (enemy instanceof Boss1 || enemy instanceof Boss2) {
               this.bossActive = false;
               this.bossKilled = true;
             } else {
@@ -3364,6 +2232,18 @@ window.addEventListener('load', function () {
         this.enemies.push(new Boss1(this));
       }
 
+      if (
+        this.level === 10 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss2(this));
+      }
+
       if (this.player.lives <= 0 && !this.gameOver) {
         this.gameOver = true;
         this.lost = true;
@@ -3376,6 +2256,7 @@ window.addEventListener('load', function () {
 
       if (
         this.level !== 1 &&
+        this.level !== 10 &&
         !this.gameOver &&
         !this.upgradeCardsShowing &&
         this.score >= this.winningScore
@@ -3411,35 +2292,54 @@ window.addEventListener('load', function () {
           this.enemies.forEach((enemy) => {
             if (enemy.markedForDeletion) return;
 
-            if (checkCollision(bulletRect, enemy)) {
+            let collided = false;
+
+            if (enemy instanceof Boss2) {
+              if (!enemy.coreBroken) {
+                collided = checkCollision(bulletRect, enemy.getHitBoxRect());
+                if (!collided) return;
+
+                enemy.damageCore(bullet.damage ?? 1);
+                bullet.markedForDeletion = true;
+              } else {
+                collided = checkCollision(bulletRect, enemy);
+                if (!collided) return;
+
+                enemy.damageBoss(bullet.damage ?? 1);
+                bullet.markedForDeletion = true;
+              }
+            } else {
+              if (!checkCollision(bulletRect, enemy)) return;
+
               enemy.lives -= bullet.damage ?? 1;
               bullet.markedForDeletion = true;
+            }
 
-              if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-                enemy.markedForDeletion = true;
+            if (enemy.lives <= 0 && !enemy.markedForDeletion) {
+              enemy.markedForDeletion = true;
 
-                if (enemy instanceof Boss1) {
-                  this.bossActive = false;
-                  this.bossKilled = true;
-                } else {
-                  this.score++;
-                  this.addSuperCharge(1);
-                }
-
-                this.explosions.push(
-                  new Explosion(
-                    this,
-                    enemy.x + enemy.width / 2,
-                    enemy.y + enemy.height / 2
-                  )
-                );
+              if (enemy instanceof Boss1 || enemy instanceof Boss2) {
+                this.bossActive = false;
+                this.bossKilled = true;
+              } else {
+                this.score++;
+                this.addSuperCharge(1);
               }
+
+              this.explosions.push(
+                new Explosion(
+                  this,
+                  enemy.x + enemy.width / 2,
+                  enemy.y + enemy.height / 2
+                )
+              );
             }
           });
         });
       }
 
       if (this.gameOver && !this.rewardGiven) {
+        if (bgMusic) bgMusic.pause();
         if (this.win) {
           const reward = 30 + Math.floor(this.score * 1.2) + this.level * 8;
 
@@ -3458,32 +2358,50 @@ window.addEventListener('load', function () {
         if (superAtk instanceof SuperLaser) return;
 
         this.enemies.forEach((enemy) => {
-          if (
-            !enemy.markedForDeletion &&
-            !enemy.hitBySuper &&
-            checkCollision(superAtk, enemy)
-          ) {
+          if (enemy.markedForDeletion || enemy.hitBySuper) return;
+
+          let collided = false;
+
+          if (enemy instanceof Boss2) {
+            if (!enemy.coreBroken) {
+              collided = checkCollision(superAtk, enemy.getHitBoxRect());
+              if (!collided) return;
+
+              enemy.damageCore(superAtk.damage);
+              enemy.hitBySuper = true;
+            } else {
+              collided = checkCollision(superAtk, enemy);
+              if (!collided) return;
+
+              enemy.damageBoss(superAtk.damage);
+              enemy.hitBySuper = true;
+            }
+          } else {
+            collided = checkCollision(superAtk, enemy);
+            if (!collided) return;
+
             enemy.lives -= superAtk.damage;
             enemy.hitBySuper = true;
-            if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-              enemy.markedForDeletion = true;
+          }
 
-              if (enemy instanceof Boss1) {
-                this.bossActive = false;
-                this.bossKilled = true;
-              } else {
-                this.score++;
-                this.addSuperCharge(1);
-              }
+          if (enemy.lives <= 0 && !enemy.markedForDeletion) {
+            enemy.markedForDeletion = true;
 
-              this.explosions.push(
-                new Explosion(
-                  this,
-                  enemy.x + enemy.width / 2,
-                  enemy.y + enemy.height / 2
-                )
-              );
+            if (enemy instanceof Boss1 || enemy instanceof Boss2) {
+              this.bossActive = false;
+              this.bossKilled = true;
+            } else {
+              this.score++;
+              this.addSuperCharge(1);
             }
+
+            this.explosions.push(
+              new Explosion(
+                this,
+                enemy.x + enemy.width / 2,
+                enemy.y + enemy.height / 2
+              )
+            );
           }
 
           if (enemy.enemyBullets) {
@@ -3541,8 +2459,6 @@ window.addEventListener('load', function () {
         );
       }
 
-      this.player.draw(context);
-
       if (this.pet) this.pet.draw(context);
 
       this.superAttacks.forEach((sa) => sa.draw(context));
@@ -3554,6 +2470,8 @@ window.addEventListener('load', function () {
       if (this.upgradeCardsShowing) {
         this.upgradeCards.forEach((card) => card.draw(context));
       }
+
+      this.player.draw(context);
 
       context.restore();
 
@@ -3697,12 +2615,10 @@ window.addEventListener('load', function () {
     }
 
     activateSuper() {
+      const superMap = window.SUPER_TYPES || {};
+      const superData = superMap[this.equippedSuper];
+      if (!superData || !superData.class) return;
       if (this.superActive) return;
-
-      const superData = SUPER_TYPES[this.equippedSuper];
-      if (!superData) {
-        return;
-      }
 
       this.superAttackReadyGauge =
         superData.charge ?? this.superAttackReadyGauge;
@@ -3732,6 +2648,8 @@ window.addEventListener('load', function () {
       rect1.y + rect1.height > rect2.y
     );
   }
+
+  window.checkCollision = checkCollision;
 
   function grantCoins(amount) {
     const current = Number(localStorage.getItem('coins')) || 0;
@@ -3765,6 +2683,7 @@ window.addEventListener('load', function () {
       'angler1Sprite',
       'angler2Sprite',
       'angler3Sprite',
+      'boss1Sprite',
     ];
 
     async function preload() {
@@ -3782,8 +2701,9 @@ window.addEventListener('load', function () {
         cached.dom[PRELOAD_DOM_IMAGES[i]] = domImgs[i];
       }
     }
-
+    setupMusic();
     await preload();
+    applyGameMusicSettings();
 
     EXPLOSION_IMG = cached.explosionImg;
 
@@ -3826,6 +2746,9 @@ function restartGame() {
 }
 
 function showVictoryScreen(data) {
+  if (typeof bgMusic !== 'undefined' && bgMusic) {
+    bgMusic.pause();
+  }
   const screen = document.getElementById('victoryScreen');
   const text = document.getElementById('rewardText');
   const title = screen.querySelector('h2');
