@@ -58,6 +58,7 @@ class BossBase {
     ctx.strokeRect(bx, by, barW, barH);
   }
 }
+
 class Boss1 extends BossBase {
   constructor(game) {
     super(game);
@@ -164,6 +165,7 @@ class Boss1 extends BossBase {
 
     this.enemyBullets.forEach((b) => {
       if (b.markedForDeletion) return;
+      if (b.isFake) return;
 
       if (
         !this.game.player.invulnerable &&
@@ -749,7 +751,723 @@ class Boss2Bullets {
   }
 }
 
+class Boss3 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 140;
+    this.height = 140;
+
+    this.x = game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 95;
+    this.speedY = 1.6;
+    this.speedX = 2.8;
+
+    this.maxLives = 140;
+    this.lives = this.maxLives;
+
+    this.time = 0;
+    this.hitFlash = 0;
+    this.entered = false;
+
+    this.enemyBullets = [];
+
+    this.clones = [];
+    this.cloneCount = 0;
+    this.hasSplit = false;
+
+    this.splitTimer = 0;
+    this.splitDelay = 3500;
+
+    this.swapTimer = 0;
+    this.swapInterval = 2200;
+
+    this.shootTimer = 0;
+    this.shootInterval = 900;
+
+    this.color = '#58d7ff';
+
+    this.image = document.getElementById('boss3Sprite') || null;
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 100;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
+  }
+
+  handlePhases() {
+    const hpPercent = this.lives / this.maxLives;
+
+    if (hpPercent < 0.65 && this.phase === 1) {
+      this.phase = 2;
+      this.speedX *= 1.15;
+
+      if (!this.hasSplit) {
+        this.createClones(2);
+        this.hasSplit = true;
+      }
+    }
+
+    if (hpPercent < 0.3 && this.phase === 2) {
+      this.phase = 3;
+      this.speedX *= 1.15;
+      this.shootInterval = 700;
+      this.swapInterval = 1500;
+    }
+  }
+
+  createClones(count = 2) {
+    this.clones = [];
+
+    for (let i = 0; i < count; i++) {
+      this.clones.push({
+        x: this.x,
+        y: this.y,
+        width: this.width,
+        height: this.height,
+
+        mode: i % 3,
+        offsetX: i === 0 ? -220 : 220,
+        offsetY: i === 0 ? -20 : 20,
+
+        waveSpeed: 1.2 + Math.random() * 1.3,
+        waveAmpX: 30 + Math.random() * 45,
+        waveAmpY: 20 + Math.random() * 35,
+        phase: Math.random() * Math.PI * 2,
+
+        followSmooth: 0.04 + Math.random() * 0.04,
+        driftTimer: 0,
+        driftInterval: 900 + Math.random() * 900,
+        driftX: 0,
+        driftY: 0,
+      });
+    }
+  }
+
+  refreshClonePositions(deltaTime = 16.67) {
+    if (!this.clones.length) return;
+
+    const dt = deltaTime / 16.67;
+    const t = this.time;
+
+    this.clones.forEach((clone) => {
+      clone.driftTimer += deltaTime;
+
+      if (clone.driftTimer >= clone.driftInterval) {
+        clone.driftTimer = 0;
+        clone.driftInterval = 900 + Math.random() * 900;
+        clone.driftX = (Math.random() - 0.5) * 120;
+        clone.driftY = (Math.random() - 0.5) * 80;
+      }
+
+      let targetX = this.x + clone.offsetX;
+      let targetY = this.y + clone.offsetY;
+
+      if (clone.mode === 0) {
+        targetX += Math.sin(t * clone.waveSpeed + clone.phase) * clone.waveAmpX;
+        targetY +=
+          Math.cos(t * (clone.waveSpeed * 1.3) + clone.phase) * clone.waveAmpY;
+      }
+
+      if (clone.mode === 1) {
+        targetX +=
+          Math.cos(t * clone.waveSpeed + clone.phase) * (clone.waveAmpX * 0.6);
+        targetY +=
+          Math.sin(t * (clone.waveSpeed * 2.1) + clone.phase) *
+          (clone.waveAmpY * 1.4);
+      }
+
+      if (clone.mode === 2) {
+        const pull = Math.sin(t * clone.waveSpeed + clone.phase);
+        targetX += clone.driftX + pull * 70;
+        targetY +=
+          clone.driftY +
+          Math.cos(t * (clone.waveSpeed * 1.7) + clone.phase) * 30;
+      }
+
+      targetX = Math.max(
+        10,
+        Math.min(this.game.width - clone.width - 10, targetX)
+      );
+      targetY = Math.max(40, Math.min(this.game.height * 0.45, targetY));
+
+      clone.x += (targetX - clone.x) * clone.followSmooth * dt * 1.8;
+      clone.y += (targetY - clone.y) * clone.followSmooth * dt * 1.8;
+    });
+  }
+
+  swapWithClone() {
+    if (!this.clones.length) return;
+
+    const index = Math.floor(Math.random() * this.clones.length);
+    const clone = this.clones[index];
+
+    const oldX = this.x;
+    const oldY = this.y;
+
+    this.x = clone.x;
+    this.y = clone.y;
+
+    clone.x = oldX;
+    clone.y = oldY;
+  }
+
+  shootFrom(x, y, speed = 6.5, spread = 0, isFake = false) {
+    const px = this.game.player.x + this.game.player.width / 2;
+    const py = this.game.player.y + this.game.player.height / 2;
+
+    const bx = x + this.width / 2;
+    const by = y + this.height * 0.72;
+
+    const dx = px - bx;
+    const dy = py - by;
+
+    const len = Math.hypot(dx, dy) || 1;
+
+    let vx = (dx / len) * speed;
+    let vy = (dy / len) * speed;
+
+    if (spread !== 0) {
+      const angle = Math.atan2(vy, vx) + spread;
+      vx = Math.cos(angle) * speed;
+      vy = Math.sin(angle) * speed;
+    }
+
+    this.enemyBullets.push(
+      new Boss3Bullet(this.game, bx - 10, by - 10, vx, vy, isFake)
+    );
+  }
+
+  update(deltaTime) {
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+      }
+
+      return;
+    }
+
+    this.time += deltaTime * 0.001;
+    this.x += this.speedX * dt;
+
+    if (this.x <= 0) {
+      this.x = 0;
+      this.speedX = Math.abs(this.speedX);
+    } else if (this.x + this.width >= this.game.width) {
+      this.x = this.game.width - this.width;
+      this.speedX = -Math.abs(this.speedX);
+    }
+
+    this.y = this.baseY + Math.sin(this.time * 1.8) * 18;
+
+    if (!this.hasSplit) {
+      this.splitTimer += deltaTime;
+      if (this.splitTimer >= this.splitDelay) {
+        this.createClones(2);
+        this.hasSplit = true;
+      }
+    }
+
+    this.handlePhases();
+    this.refreshClonePositions(deltaTime);
+
+    if (this.hasSplit) {
+      this.swapTimer += deltaTime;
+      if (this.swapTimer >= this.swapInterval) {
+        this.swapTimer = 0;
+        this.swapWithClone();
+      }
+    }
+
+    this.shootTimer += deltaTime;
+    if (!this.game.gameOver && this.shootTimer >= this.shootInterval) {
+      this.shootTimer = 0;
+
+      this.shootFrom(this.x, this.y - 20, this.phase === 3 ? 7.1 : 6.5);
+
+      if (this.phase >= 2) {
+        this.shootFrom(this.x, this.y, 6.3, -0.18);
+        this.shootFrom(this.x, this.y, 6.3, 0.18);
+      }
+
+      if (this.hasSplit) {
+        this.clones.forEach((clone) => {
+          this.shootFrom(clone.x, clone.y, 5.4, 0, true);
+
+          if (this.phase >= 3) {
+            this.shootFrom(clone.x, clone.y, 5.1, -0.2, true);
+            this.shootFrom(clone.x, clone.y, 5.1, 0.2, true);
+          }
+        });
+      }
+    }
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    this.enemyBullets.forEach((b) => {
+      if (b.markedForDeletion) return;
+      if (b.isFake) return;
+
+      if (
+        !this.game.player.invulnerable &&
+        window.checkCollision(this.game.player, b)
+      ) {
+        this.game.player.lives--;
+        this.game.player.invulnerable = true;
+        this.game.player.invulnerableTimer = 0;
+        this.game.triggerShake(520, 24);
+        b.markedForDeletion = true;
+        this.hitFlash = 100;
+      }
+    });
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  drawBossBlock(ctx, x, y, alpha = 1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    if (
+      this.image &&
+      this.image.complete &&
+      this.image.naturalWidth &&
+      this.spriteWidth > 0 &&
+      this.spriteHeight > 0
+    ) {
+      ctx.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        0,
+        this.spriteWidth,
+        this.spriteHeight,
+        x,
+        y,
+        this.width,
+        this.height
+      );
+    } else {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(x, y, this.width, this.height);
+    }
+
+    ctx.restore();
+  }
+
+  draw(ctx) {
+    this.clones.forEach((clone) => {
+      this.drawBossBlock(ctx, clone.x, clone.y, 1);
+    });
+
+    let alpha = 1;
+    if (this.hitFlash > 0) {
+      alpha = 0.78 + Math.sin(performance.now() * 0.04) * 0.22;
+    }
+
+    this.drawBossBlock(ctx, this.x, this.y, alpha);
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+
+class Boss3Bullet {
+  constructor(game, x, y, vx, vy, isFake = false) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.width = 20;
+    this.height = 20;
+    this.lives = 1;
+    this.markedForDeletion = false;
+    this.rotation = 0;
+    this.isFake = isFake;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += 0.18 * dt;
+
+    if (
+      this.y > this.game.height + this.height ||
+      this.x < -this.width ||
+      this.x > this.game.width + this.width ||
+      this.y < -this.height
+    ) {
+      this.markedForDeletion = true;
+      return;
+    }
+
+    if (!this.isFake) {
+      const shots = this.game.player.projectiles;
+      for (let i = 0; i < shots.length; i++) {
+        const p = shots[i];
+        if (p.markedForDeletion) continue;
+
+        if (window.checkCollision(p, this)) {
+          p.markedForDeletion = true;
+          this.lives -= p.damage ?? 1;
+
+          if (this.lives <= 0) {
+            this.markedForDeletion = true;
+          }
+
+          break;
+        }
+      }
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.rotation);
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.globalAlpha = this.isFake ? 0.3 : 1;
+
+    ctx.fillStyle = 'rgba(90,220,255,0.2)';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#68e7ff';
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.75);
+    ctx.lineTo(this.width * 0.45, 0);
+    ctx.lineTo(0, this.height * 0.75);
+    ctx.lineTo(-this.width * 0.45, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class Boss4 extends BossBase {
+  constructor(game, x = null, y = null, splitLevel = 0) {
+    super(game);
+
+    this.splitLevel = splitLevel;
+    this.hasSplit = false;
+    this.entered = false;
+
+    if (splitLevel === 0) {
+      this.width = 180;
+      this.height = 180;
+      this.maxLives = 80;
+      this.speedX = 2.2;
+      this.speedY = 1.2;
+      this.shootInterval = 1300;
+      this.color = '#62ff6b';
+      this.scoreValue = 10;
+    } else if (splitLevel === 1) {
+      this.width = 88;
+      this.height = 88;
+      this.maxLives = 20;
+      this.speedX = 2.6;
+      this.speedY = 1.4;
+      this.shootInterval = 1300;
+      this.color = '#45d7ff';
+      this.scoreValue = 6;
+    } else {
+      this.width = 42;
+      this.height = 42;
+      this.maxLives = 8;
+      this.speedX = 2.8;
+      this.speedY = 1.4;
+      this.shootInterval = 1800;
+      this.color = '#b884ff';
+      this.scoreValue = 3;
+    }
+
+    this.lives = this.maxLives;
+
+    this.x = x !== null ? x : this.game.width / 2 - this.width / 2;
+    this.y = y !== null ? y : -this.height;
+
+    this.targetY = splitLevel === 0 ? 90 : Math.max(40, y ?? 80);
+
+    this.dirX = Math.random() < 0.5 ? -1 : 1;
+    this.shootTimer = 0;
+    this.enemyBullets = [];
+    this.hitFlash = 0;
+  }
+
+  update(deltaTime) {
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+
+      if (this.y >= this.targetY) {
+        this.y = this.targetY;
+        this.entered = true;
+      }
+    } else {
+      this.x += this.speedX * this.dirX * dt;
+
+      if (this.x <= 0) {
+        this.x = 0;
+        this.dirX = 1;
+      } else if (this.x + this.width >= this.game.width) {
+        this.x = this.game.width - this.width;
+        this.dirX = -1;
+      }
+
+      if (this.splitLevel > 0) {
+        this.y += Math.sin(performance.now() * 0.002 + this.x * 0.01) * 0.35;
+      }
+
+      this.shootTimer += deltaTime;
+      if (!this.game.gameOver && this.shootTimer >= this.shootInterval) {
+        this.shootTimer = 0;
+        this.shoot();
+      }
+    }
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    this.enemyBullets.forEach((b) => {
+      if (b.markedForDeletion) return;
+
+      if (
+        !this.game.player.invulnerable &&
+        window.checkCollision(this.game.player, b)
+      ) {
+        this.game.player.lives--;
+        this.game.player.invulnerable = true;
+        this.game.player.invulnerableTimer = 0;
+        this.game.triggerShake(520, 24);
+        b.markedForDeletion = true;
+      }
+    });
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  shoot() {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height;
+
+    const px = this.game.player.x + this.game.player.width / 2;
+    const py = this.game.player.y + this.game.player.height / 2;
+
+    const dx = px - cx;
+    const dy = py - cy;
+    const len = Math.hypot(dx, dy) || 1;
+
+    if (this.splitLevel === 0) {
+      const speed = 4.8;
+      this.enemyBullets.push(
+        new Boss4Bullet(
+          this.game,
+          cx - 9,
+          cy,
+          (dx / len) * speed,
+          (dy / len) * speed,
+          16,
+          '#62ff6b'
+        )
+      );
+    } else if (this.splitLevel === 1) {
+      const speed = 4.6;
+      const angle = Math.atan2(dy, dx);
+
+      this.enemyBullets.push(
+        new Boss4Bullet(
+          this.game,
+          cx - 6,
+          cy,
+          Math.cos(angle - 0.1) * speed,
+          Math.sin(angle - 0.1) * speed,
+          11,
+          '#45d7ff'
+        )
+      );
+      this.enemyBullets.push(
+        new Boss4Bullet(
+          this.game,
+          cx - 6,
+          cy,
+          Math.cos(angle + 0.1) * speed,
+          Math.sin(angle + 0.1) * speed,
+          11,
+          '#45d7ff'
+        )
+      );
+    } else {
+      const speed = 4.2;
+      const angle = Math.atan2(dy, dx);
+
+      this.enemyBullets.push(
+        new Boss4Bullet(
+          this.game,
+          cx - 4,
+          cy,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
+          7,
+          '#b884ff'
+        )
+      );
+    }
+  }
+
+  split() {
+    if (this.hasSplit) return;
+    if (this.splitLevel >= 2) return;
+
+    this.hasSplit = true;
+
+    const nextLevel = this.splitLevel + 1;
+    const centerX = this.x + this.width / 2;
+    const centerY = this.y + this.height / 2;
+
+    const childA = new Boss4(this.game, centerX - 35, centerY - 10, nextLevel);
+    const childB = new Boss4(this.game, centerX + 5, centerY - 10, nextLevel);
+
+    childA.entered = true;
+    childB.entered = true;
+
+    childA.dirX = -1;
+    childB.dirX = 1;
+
+    this.game.enemies.push(childA, childB);
+  }
+
+  draw(ctx) {
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+  }
+
+  drawTopHealthBar(ctx, index = 0, total = 1) {
+    const barW = this.splitLevel === 0 ? 220 : this.splitLevel === 1 ? 120 : 70;
+
+    const barH = this.splitLevel === 0 ? 14 : this.splitLevel === 1 ? 10 : 7;
+
+    const gap = 10;
+    const totalWidth = total * barW + (total - 1) * gap;
+    const startX = this.game.width / 2 - totalWidth / 2;
+    const x = startX + index * (barW + gap);
+    const y = 22;
+
+    const p = Math.max(0, this.lives / this.maxLives);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(x, y, barW, barH);
+
+    ctx.fillStyle = this.color;
+    ctx.fillRect(x, y, barW * p, barH);
+
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, barW, barH);
+  }
+}
+
+class Boss4Bullet {
+  constructor(game, x, y, vx, vy, size = 14, color = '#62ff6b') {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.width = size;
+    this.height = size;
+    this.color = color;
+    this.markedForDeletion = false;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    const shots = this.game.player.projectiles;
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      if (window.checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.markedForDeletion = true;
+        break;
+      }
+    }
+
+    if (
+      this.y > this.game.height + this.height ||
+      this.x < -this.width ||
+      this.x > this.game.width + this.width ||
+      this.y < -this.height
+    ) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    ctx.restore();
+  }
+}
+
 window.Boss1 = Boss1;
 window.Boss1Bullet = Boss1Bullet;
 window.Boss2 = Boss2;
 window.Boss2Bullets = Boss2Bullets;
+window.Boss3 = Boss3;
+window.Boss3Bullet = Boss3Bullet;
+window.Boss4 = Boss4;
+window.Boss4Bullet = Boss4Bullet;

@@ -1498,10 +1498,6 @@ window.addEventListener('load', function () {
 
       this.drawSuperGauge(ctx);
 
-      if (this.game.gameOver) {
-        this.drawGameOver(ctx);
-      }
-
       ctx.restore();
     }
 
@@ -1588,41 +1584,6 @@ window.addEventListener('load', function () {
         ctx.textAlign = 'center';
         ctx.fillText('SUPER READY', this.game.width / 2, y - 6);
       }
-
-      ctx.restore();
-    }
-
-    drawGameOver(ctx) {
-      let message1, message2, color;
-
-      if (this.game.win) {
-        message1 = 'YOU WIN!';
-        message2 = `Score: ${this.game.score}`;
-        color = '#FFD700';
-      } else {
-        message1 = 'GAME OVER';
-        message2 = `Score: ${this.game.score}`;
-        color = '#FF5555';
-      }
-
-      ctx.save();
-      ctx.fillStyle = color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      ctx.font = `48px ${this.fontFamily}`;
-      ctx.fillText(message1, this.game.width / 2, this.game.height / 2 - 60);
-
-      ctx.font = `28px ${this.fontFamily}`;
-      ctx.fillText(message2, this.game.width / 2, this.game.height / 2 + 10);
-
-      ctx.font = `22px ${this.fontFamily}`;
-      ctx.fillStyle = 'white';
-      ctx.fillText(
-        'Press R to Restart',
-        this.game.width / 2,
-        this.game.height / 2 + 70
-      );
 
       ctx.restore();
     }
@@ -1907,7 +1868,8 @@ window.addEventListener('load', function () {
       this.score = 0;
 
       this.enemyTimer = 0;
-      this.enemyInterval = this.getEnemyInterval();
+      const spawnSettings = this.getSpawnSettings();
+      this.enemyInterval = spawnSettings.enemyInterval;
       this.enemies = [];
 
       this.player = new Player(this);
@@ -1924,7 +1886,8 @@ window.addEventListener('load', function () {
 
       this.nextRageScore = 10;
       if (this.level == 1) this.winningScore = 15;
-      else if (this.level > 1) this.winningScore = 1;
+      else if (this.level <= 10) this.winningScore = 30;
+      else if (this.level > 10) this.winningScore = 50;
 
       this.equippedSuper =
         localStorage.getItem('equippedSuper') || 'waveShield';
@@ -1997,9 +1960,9 @@ window.addEventListener('load', function () {
 
       if (!this.bossActive) {
         if (this.enemyTimer >= this.enemyInterval && !this.gameOver) {
-          const cfg = getLevelCfg(this.level);
+          const spawnSettings = this.getSpawnSettings();
 
-          if (this.enemies.length < cfg.maxOnScreen) {
+          if (this.enemies.length < spawnSettings.maxOnScreen) {
             this.addEnemy();
           }
 
@@ -2164,19 +2127,7 @@ window.addEventListener('load', function () {
           }
 
           if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-            enemy.markedForDeletion = true;
-
-            if (enemy instanceof Boss1 || enemy instanceof Boss2) {
-              this.bossActive = false;
-              this.bossKilled = true;
-            } else {
-              this.score++;
-              this.addSuperCharge(1);
-            }
-
-            const px = enemy.x + enemy.width / 2;
-            const py = enemy.y + enemy.height / 2;
-            this.explosions.push(new Explosion(this, px, py));
+            this.handleEnemyDeath(enemy);
           }
         });
       });
@@ -2198,7 +2149,7 @@ window.addEventListener('load', function () {
         });
 
         this.stage++;
-        this.enemyInterval = this.getEnemyInterval();
+        this.enemyInterval = this.getSpawnSettings().enemyInterval;
         this.createUpgradeCards();
       }
 
@@ -2244,6 +2195,30 @@ window.addEventListener('load', function () {
         this.enemies.push(new Boss2(this));
       }
 
+      if (
+        this.level === 20 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss3(this));
+      }
+
+      if (
+        this.level === 30 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss4(this));
+      }
+
       if (this.player.lives <= 0 && !this.gameOver) {
         this.gameOver = true;
         this.lost = true;
@@ -2257,6 +2232,8 @@ window.addEventListener('load', function () {
       if (
         this.level !== 1 &&
         this.level !== 10 &&
+        this.level !== 20 &&
+        this.level !== 30 &&
         !this.gameOver &&
         !this.upgradeCardsShowing &&
         this.score >= this.winningScore
@@ -2290,6 +2267,29 @@ window.addEventListener('load', function () {
           };
 
           this.enemies.forEach((enemy) => {
+            if (enemy instanceof Boss3) {
+              let hitClone = false;
+
+              for (const clone of enemy.clones) {
+                if (checkCollision(bulletRect, clone)) {
+                  bullet.markedForDeletion = true;
+                  hitClone = true;
+                  break;
+                }
+              }
+
+              if (hitClone) return;
+
+              if (!checkCollision(bulletRect, enemy)) return;
+
+              enemy.lives -= bullet.damage ?? 1;
+              bullet.markedForDeletion = true;
+              if (enemy.lives <= 0 && !enemy.markedForDeletion) {
+                this.handleEnemyDeath(enemy);
+              }
+
+              return;
+            }
             if (enemy.markedForDeletion) return;
 
             let collided = false;
@@ -2314,25 +2314,8 @@ window.addEventListener('load', function () {
               enemy.lives -= bullet.damage ?? 1;
               bullet.markedForDeletion = true;
             }
-
             if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-              enemy.markedForDeletion = true;
-
-              if (enemy instanceof Boss1 || enemy instanceof Boss2) {
-                this.bossActive = false;
-                this.bossKilled = true;
-              } else {
-                this.score++;
-                this.addSuperCharge(1);
-              }
-
-              this.explosions.push(
-                new Explosion(
-                  this,
-                  enemy.x + enemy.width / 2,
-                  enemy.y + enemy.height / 2
-                )
-              );
+              this.handleEnemyDeath(enemy);
             }
           });
         });
@@ -2383,25 +2366,8 @@ window.addEventListener('load', function () {
             enemy.lives -= superAtk.damage;
             enemy.hitBySuper = true;
           }
-
           if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-            enemy.markedForDeletion = true;
-
-            if (enemy instanceof Boss1 || enemy instanceof Boss2) {
-              this.bossActive = false;
-              this.bossKilled = true;
-            } else {
-              this.score++;
-              this.addSuperCharge(1);
-            }
-
-            this.explosions.push(
-              new Explosion(
-                this,
-                enemy.x + enemy.width / 2,
-                enemy.y + enemy.height / 2
-              )
-            );
+            this.handleEnemyDeath(enemy);
           }
 
           if (enemy.enemyBullets) {
@@ -2463,6 +2429,15 @@ window.addEventListener('load', function () {
 
       this.superAttacks.forEach((sa) => sa.draw(context));
       this.enemies.forEach((enemy) => enemy.draw(context));
+      this.enemies.forEach((enemy) => enemy.draw(ctx));
+
+      const boss4s = this.enemies
+        .filter((enemy) => enemy instanceof Boss4)
+        .sort((a, b) => a.x - b.x);
+
+      boss4s.forEach((boss, index) => {
+        boss.drawTopHealthBar(ctx, index, boss4s.length);
+      });
       this.explosions.forEach((explosion) => explosion.draw(context));
 
       this.particles.forEach((p) => p.draw(context));
@@ -2478,19 +2453,100 @@ window.addEventListener('load', function () {
       this.ui.draw(context);
     }
 
+    handleEnemyDeath(enemy) {
+      if (!enemy || enemy.markedForDeletion) return;
+
+      if (enemy instanceof Boss4) {
+        if (enemy.splitLevel < 2) {
+          enemy.split();
+          enemy.markedForDeletion = true;
+
+          this.explosions.push(
+            new Explosion(
+              this,
+              enemy.x + enemy.width / 2,
+              enemy.y + enemy.height / 2
+            )
+          );
+
+          return;
+        }
+
+        enemy.markedForDeletion = true;
+        this.bossActive = false;
+        this.bossKilled = true;
+
+        this.explosions.push(
+          new Explosion(
+            this,
+            enemy.x + enemy.width / 2,
+            enemy.y + enemy.height / 2
+          )
+        );
+
+        return;
+      }
+
+      if (enemy instanceof Angler5) {
+        enemy.split();
+      }
+
+      enemy.markedForDeletion = true;
+
+      if (
+        enemy instanceof Boss1 ||
+        enemy instanceof Boss2 ||
+        enemy instanceof Boss3
+      ) {
+        this.bossActive = false;
+        this.bossKilled = true;
+      } else {
+        this.score++;
+        this.addSuperCharge(1);
+      }
+
+      this.explosions.push(
+        new Explosion(
+          this,
+          enemy.x + enemy.width / 2,
+          enemy.y + enemy.height / 2
+        )
+      );
+    }
+
     addEnemy() {
       if (this.level === 1) {
         this.enemies.push(new Angler1(this));
         return;
       }
 
+      if (this.bossActive) return;
+
       const levelData = ENEMY_SPAWN_TABLE[this.level] || ENEMY_SPAWN_TABLE[1];
       const stageData =
         levelData.stages[this.stage] ||
-        levelData.stages[Math.max(...Object.keys(levelData.stages))];
+        levelData.stages[
+          Math.max(...Object.keys(levelData.stages).map(Number))
+        ];
+
+      if (!stageData || !stageData.length) return;
 
       const enemyClass = this.pickWeighted(stageData);
+      if (!enemyClass) return;
+
       this.enemies.push(new enemyClass(this));
+    }
+
+    pickWeighted(pool) {
+      const total = pool.reduce((sum, entry) => sum + entry.weight, 0);
+      let roll = Math.random() * total;
+
+      for (const entry of pool) {
+        roll -= entry.weight;
+        if (roll <= 0) return entry.type;
+      }
+
+      return pool[pool.length - 1]?.type || null;
     }
 
     pickWeighted(pool) {
@@ -2503,26 +2559,22 @@ window.addEventListener('load', function () {
       }
     }
 
-    getEnemyInterval() {
+    getSpawnSettings() {
       const level = this.level;
       const stage = this.stage;
 
-      const levelBase =
-        {
-          1: 1300,
-          2: 1500,
-          3: 1350,
-          4: 1200,
-        }[level] ?? Math.max(850, 1250 - level * 25);
+      const baseInterval = Math.max(700, 1750 - level * 35);
+      const stageIntervalBonus = Math.max(0.72, 1 - (stage - 1) * 0.07);
+      const enemyInterval = Math.max(500, baseInterval * stageIntervalBonus);
 
-      const stageMul =
-        {
-          1: 1.0,
-          2: 0.92,
-          3: 0.85,
-        }[stage] ?? Math.max(0.75, 1 - stage * 0.07);
+      const baseMaxOnScreen = Math.min(5 + Math.floor(level / 3), 10);
+      const stageBonus = Math.min(stage - 1, 4);
+      const maxOnScreen = Math.min(baseMaxOnScreen + stageBonus, 14);
 
-      return Math.max(500, levelBase * stageMul);
+      return {
+        enemyInterval,
+        maxOnScreen,
+      };
     }
 
     createUpgradeCards() {

@@ -218,7 +218,6 @@ document.addEventListener(
         audioUnlocked = true;
       })
       .catch((err) => {
-        console.warn('Unlock failed:', err);
         audioUnlocked = false;
       });
   },
@@ -279,10 +278,6 @@ document.addEventListener('pointerdown', (e) => {
 // ---------- MAP BUTTON SOUND ----------
 const mapClickSound = new Audio('./sounds/backgroundSoundEffect/mapClick.wav');
 mapClickSound.preload = 'auto';
-
-mapClickSound.addEventListener('canplaythrough', () => {
-  console.log('🗺️ MAP click sound loaded');
-});
 
 function playMapClick() {
   if (localStorage.getItem('audio') === 'off') return;
@@ -479,6 +474,15 @@ function openMap(e) {
   const levels = document.getElementById('levelsContainer');
 
   map.classList.add('open');
+  const maxLevel = getMaxUnlockedLevel();
+
+  map.classList.remove('level-green', 'level-pink');
+
+  if (maxLevel >= 21) {
+    map.classList.add('level-pink');
+  } else if (maxLevel >= 11) {
+    map.classList.add('level-green');
+  }
 
   setTimeout(() => {
     updateLevelsMap();
@@ -487,7 +491,6 @@ function openMap(e) {
     if (!currentNode) return;
 
     const target = currentNode.offsetTop - levels.clientHeight * 0.35;
-
     const maxScroll = levels.scrollHeight - levels.clientHeight;
     const safeTop = Math.max(0, Math.min(target, maxScroll));
 
@@ -733,11 +736,9 @@ audioVolume.addEventListener('input', () => {
   if (value === 0) {
     audioToggle.checked = false;
     localStorage.setItem('audio', 'off');
-    console.log('🔕 Audio muted');
   } else {
     audioToggle.checked = true;
     localStorage.setItem('audio', 'on');
-    console.log('🔊 Audio volume:', value);
   }
 });
 
@@ -972,8 +973,6 @@ function equipPet(id) {
 
   setEquippedPet(id);
   updatePetUI();
-
-  console.log('🐾 Equipped pet:', id);
 }
 
 function toggleEquipPet(id) {
@@ -998,7 +997,6 @@ document.querySelectorAll('.petCard').forEach((card) => {
 document.querySelectorAll('.petBuyBtn').forEach((btn) => {
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    console.log('Equip clicked');
   });
 });
 
