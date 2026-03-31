@@ -862,4 +862,388 @@ window.ENEMY_SPAWN_TABLE = {
       ],
     },
   },
+  31: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.11 },
+        { type: Angler3, weight: 0.32 },
+        { type: Angler4, weight: 0.2 },
+        { type: Angler5, weight: 0.29 },
+        { type: Angler6, weight: 0.08 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.1 },
+        { type: Angler3, weight: 0.31 },
+        { type: Angler4, weight: 0.2 },
+        { type: Angler5, weight: 0.29 },
+        { type: Angler6, weight: 0.1 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.09 },
+        { type: Angler3, weight: 0.31 },
+        { type: Angler4, weight: 0.2 },
+        { type: Angler5, weight: 0.28 },
+        { type: Angler6, weight: 0.12 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.08 },
+        { type: Angler3, weight: 0.3 },
+        { type: Angler4, weight: 0.2 },
+        { type: Angler5, weight: 0.28 },
+        { type: Angler6, weight: 0.14 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.07 },
+        { type: Angler3, weight: 0.3 },
+        { type: Angler4, weight: 0.2 },
+        { type: Angler5, weight: 0.27 },
+        { type: Angler6, weight: 0.16 },
+      ],
+    },
+  },
+
+  32: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.1 },
+        { type: Angler3, weight: 0.31 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.26 },
+        { type: Angler6, weight: 0.14 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.09 },
+        { type: Angler3, weight: 0.3 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.26 },
+        { type: Angler6, weight: 0.16 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.08 },
+        { type: Angler3, weight: 0.3 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.25 },
+        { type: Angler6, weight: 0.18 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.07 },
+        { type: Angler3, weight: 0.29 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.25 },
+        { type: Angler6, weight: 0.2 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.06 },
+        { type: Angler3, weight: 0.29 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.24 },
+        { type: Angler6, weight: 0.22 },
+      ],
+    },
+  },
+
+  33: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.09 },
+        { type: Angler3, weight: 0.3 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.24 },
+        { type: Angler6, weight: 0.18 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.08 },
+        { type: Angler3, weight: 0.29 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.24 },
+        { type: Angler6, weight: 0.2 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.07 },
+        { type: Angler3, weight: 0.29 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.23 },
+        { type: Angler6, weight: 0.22 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.06 },
+        { type: Angler3, weight: 0.28 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.23 },
+        { type: Angler6, weight: 0.24 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.05 },
+        { type: Angler3, weight: 0.28 },
+        { type: Angler4, weight: 0.19 },
+        { type: Angler5, weight: 0.22 },
+        { type: Angler6, weight: 0.26 },
+      ],
+    },
+  },
+
+  34: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.08 },
+        { type: Angler3, weight: 0.29 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.23 },
+        { type: Angler6, weight: 0.22 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.07 },
+        { type: Angler3, weight: 0.28 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.23 },
+        { type: Angler6, weight: 0.24 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.06 },
+        { type: Angler3, weight: 0.28 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.22 },
+        { type: Angler6, weight: 0.26 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.05 },
+        { type: Angler3, weight: 0.27 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.22 },
+        { type: Angler6, weight: 0.28 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.04 },
+        { type: Angler3, weight: 0.27 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.21 },
+        { type: Angler6, weight: 0.3 },
+      ],
+    },
+  },
+
+  35: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.07 },
+        { type: Angler3, weight: 0.28 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.22 },
+        { type: Angler6, weight: 0.25 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.06 },
+        { type: Angler3, weight: 0.27 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.22 },
+        { type: Angler6, weight: 0.27 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.05 },
+        { type: Angler3, weight: 0.27 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.21 },
+        { type: Angler6, weight: 0.29 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.04 },
+        { type: Angler3, weight: 0.26 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.21 },
+        { type: Angler6, weight: 0.31 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.03 },
+        { type: Angler3, weight: 0.26 },
+        { type: Angler4, weight: 0.18 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.33 },
+      ],
+    },
+  },
+
+  36: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.06 },
+        { type: Angler3, weight: 0.27 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.21 },
+        { type: Angler6, weight: 0.29 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.05 },
+        { type: Angler3, weight: 0.26 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.21 },
+        { type: Angler6, weight: 0.31 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.04 },
+        { type: Angler3, weight: 0.26 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.33 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.03 },
+        { type: Angler3, weight: 0.25 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.35 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.02 },
+        { type: Angler3, weight: 0.25 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.37 },
+      ],
+    },
+  },
+
+  37: {
+    stages: {
+      1: [
+        { type: Angler2, weight: 0.05 },
+        { type: Angler3, weight: 0.26 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.32 },
+      ],
+      2: [
+        { type: Angler2, weight: 0.04 },
+        { type: Angler3, weight: 0.25 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.34 },
+      ],
+      3: [
+        { type: Angler2, weight: 0.03 },
+        { type: Angler3, weight: 0.25 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.36 },
+      ],
+      4: [
+        { type: Angler2, weight: 0.02 },
+        { type: Angler3, weight: 0.24 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.38 },
+      ],
+      5: [
+        { type: Angler2, weight: 0.01 },
+        { type: Angler3, weight: 0.24 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.18 },
+        { type: Angler6, weight: 0.4 },
+      ],
+    },
+  },
+
+  38: {
+    stages: {
+      1: [
+        { type: Angler3, weight: 0.25 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.38 },
+      ],
+      2: [
+        { type: Angler3, weight: 0.24 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.2 },
+        { type: Angler6, weight: 0.39 },
+      ],
+      3: [
+        { type: Angler3, weight: 0.24 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.4 },
+      ],
+      4: [
+        { type: Angler3, weight: 0.23 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.41 },
+      ],
+      5: [
+        { type: Angler3, weight: 0.22 },
+        { type: Angler4, weight: 0.17 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.42 },
+      ],
+    },
+  },
+
+  39: {
+    stages: {
+      1: [
+        { type: Angler3, weight: 0.24 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.41 },
+      ],
+      2: [
+        { type: Angler3, weight: 0.23 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.42 },
+      ],
+      3: [
+        { type: Angler3, weight: 0.22 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.43 },
+      ],
+      4: [
+        { type: Angler3, weight: 0.21 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.44 },
+      ],
+      5: [
+        { type: Angler3, weight: 0.2 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.19 },
+        { type: Angler6, weight: 0.45 },
+      ],
+    },
+  },
+
+  40: {
+    stages: {
+      1: [
+        { type: Angler3, weight: 0.22 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.18 },
+        { type: Angler6, weight: 0.44 },
+      ],
+      2: [
+        { type: Angler3, weight: 0.21 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.18 },
+        { type: Angler6, weight: 0.45 },
+      ],
+      3: [
+        { type: Angler3, weight: 0.2 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.18 },
+        { type: Angler6, weight: 0.46 },
+      ],
+      4: [
+        { type: Angler3, weight: 0.19 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.18 },
+        { type: Angler6, weight: 0.47 },
+      ],
+      5: [
+        { type: Angler3, weight: 0.18 },
+        { type: Angler4, weight: 0.16 },
+        { type: Angler5, weight: 0.18 },
+        { type: Angler6, weight: 0.48 },
+      ],
+    },
+  },
 };

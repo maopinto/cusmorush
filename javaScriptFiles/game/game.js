@@ -149,9 +149,9 @@ function equipSkin(id) {
 
 window.addEventListener('load', function () {
   function getBackgroundForLevel(level) {
-    if (level <= 10) return './images/game/background/blueSpace.png';
-    if (level <= 20) return './images/game/background/greenSpace.png';
-    if (level <= 30) return './images/game/background/pinkSpace.png';
+    if (level >= 31) return './images/game/background/redSpace.png';
+    if (level >= 21) return './images/game/background/pinkSpace.png';
+    if (level >= 11) return './images/game/background/greenSpace.png';
     return './images/game/background/blueSpace.png';
   }
 
@@ -1871,6 +1871,7 @@ window.addEventListener('load', function () {
       const spawnSettings = this.getSpawnSettings();
       this.enemyInterval = spawnSettings.enemyInterval;
       this.enemies = [];
+      this.enemyMines = [];
 
       this.player = new Player(this);
 
@@ -1886,8 +1887,9 @@ window.addEventListener('load', function () {
 
       this.nextRageScore = 10;
       if (this.level == 1) this.winningScore = 15;
-      else if (this.level <= 10) this.winningScore = 30;
+      else if (this.level >= 30) this.winningScore = 70;
       else if (this.level > 10) this.winningScore = 50;
+      else if (this.level <= 10) this.winningScore = 30;
 
       this.equippedSuper =
         localStorage.getItem('equippedSuper') || 'waveShield';
@@ -2219,6 +2221,18 @@ window.addEventListener('load', function () {
         this.enemies.push(new Boss4(this));
       }
 
+      if (
+        this.level === 40 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss5(this));
+      }
+
       if (this.player.lives <= 0 && !this.gameOver) {
         this.gameOver = true;
         this.lost = true;
@@ -2234,6 +2248,7 @@ window.addEventListener('load', function () {
         this.level !== 10 &&
         this.level !== 20 &&
         this.level !== 30 &&
+        this.level !== 40 &&
         !this.gameOver &&
         !this.upgradeCardsShowing &&
         this.score >= this.winningScore
@@ -2401,45 +2416,42 @@ window.addEventListener('load', function () {
         this.shakeTime -= deltaTime;
         if (this.shakeTime < 0) this.shakeTime = 0;
       }
+
+      this.enemyMines.forEach((mine) => mine.update(deltaTime));
+      this.enemyMines = this.enemyMines.filter(
+        (mine) => !mine.markedForDeletion
+      );
     }
 
     draw(context) {
-      ctx.save();
+      let shakeX = 0;
+      let shakeY = 0;
 
       if (this.shakeTime > 0) {
         const p = this.shakeTime / this.shakeDuration;
         const ease = p * p;
         const mag = this.shakeMagnitude * ease;
 
-        const dx = (Math.random() * 2 - 1) * mag;
-        const dy = (Math.random() * 2 - 1) * mag;
-
-        ctx.translate(dx, dy);
+        shakeX += (Math.random() * 2 - 1) * mag;
+        shakeY += (Math.random() * 2 - 1) * mag;
       }
 
       if (this.shake > 0.2) {
         const s = this.shake;
-        context.translate(
-          (Math.random() * 2 - 1) * s,
-          (Math.random() * 2 - 1) * s
-        );
+        shakeX += (Math.random() * 2 - 1) * s;
+        shakeY += (Math.random() * 2 - 1) * s;
       }
+
+      context.save();
+      context.translate(shakeX, shakeY);
 
       if (this.pet) this.pet.draw(context);
 
       this.superAttacks.forEach((sa) => sa.draw(context));
+      this.enemyMines.forEach((mine) => mine.draw(context));
       this.enemies.forEach((enemy) => enemy.draw(context));
-      this.enemies.forEach((enemy) => enemy.draw(ctx));
 
-      const boss4s = this.enemies
-        .filter((enemy) => enemy instanceof Boss4)
-        .sort((a, b) => a.x - b.x);
-
-      boss4s.forEach((boss, index) => {
-        boss.drawTopHealthBar(ctx, index, boss4s.length);
-      });
       this.explosions.forEach((explosion) => explosion.draw(context));
-
       this.particles.forEach((p) => p.draw(context));
 
       if (this.upgradeCardsShowing) {
@@ -2449,6 +2461,14 @@ window.addEventListener('load', function () {
       this.player.draw(context);
 
       context.restore();
+
+      const boss4s = this.enemies
+        .filter((enemy) => enemy instanceof Boss4)
+        .sort((a, b) => a.x - b.x);
+
+      boss4s.forEach((boss, index) => {
+        boss.drawTopHealthBar(context, index, boss4s.length);
+      });
 
       this.ui.draw(context);
     }
@@ -2473,8 +2493,15 @@ window.addEventListener('load', function () {
         }
 
         enemy.markedForDeletion = true;
-        this.bossActive = false;
-        this.bossKilled = true;
+
+        const remainingBoss4 = this.enemies.filter(
+          (e) => e instanceof Boss4 && e !== enemy && !e.markedForDeletion
+        );
+
+        if (remainingBoss4.length === 0) {
+          this.bossActive = false;
+          this.bossKilled = true;
+        }
 
         this.explosions.push(
           new Explosion(

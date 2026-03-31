@@ -104,22 +104,17 @@ class Angler1 extends Enemy {
   }
 
   draw(ctx) {
-    if (this.image && this.image.complete && this.image.naturalWidth) {
-      ctx.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        this.frameY * this.spriteHeight,
-        this.spriteWidth,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-    } else {
-      ctx.fillStyle = 'red';
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      this.frameY * this.spriteHeight,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
   }
 }
 
@@ -160,25 +155,20 @@ class Angler2 extends Enemy {
   }
 
   draw(ctx) {
-    if (this.image && this.image.complete && this.image.naturalWidth) {
-      const sx = this.frameCuts[this.frameX];
-      const sw = this.frameCuts[this.frameX + 1] - sx;
+    const sx = this.frameCuts[this.frameX];
+    const sw = this.frameCuts[this.frameX + 1] - sx;
 
-      ctx.drawImage(
-        this.image,
-        sx,
-        0,
-        sw,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-    } else {
-      ctx.fillStyle = 'purple';
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
+    ctx.drawImage(
+      this.image,
+      sx,
+      0,
+      sw,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
   }
 }
 
@@ -635,22 +625,17 @@ class Angler5 extends Enemy {
   }
 
   draw(ctx) {
-    if (this.image && this.image.complete && this.image.naturalWidth) {
-      ctx.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        0,
-        this.spriteWidth,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-    } else {
-      ctx.fillStyle = 'limegreen';
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      0,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
   }
 }
 
@@ -732,10 +717,170 @@ class Angler5Mini extends Enemy {
   }
 
   draw(ctx) {
+    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+  }
+}
+
+class Angler6 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 70;
+    this.height = 90;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 10;
+    this.speedY = 1.4;
+
+    this.dropTimer = 0;
+    this.dropInterval = 1400;
+
+    this.image = document.getElementById('angler6Sprite');
+
+    this.frames = 8;
+    this.frameX = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 120;
+
+    this.frameCuts = [0, 60, 120, 180, 240, 300, 360, 420, 482];
+    this.spriteHeight = 90;
+  }
+
+  update(deltaTime) {
+    super.update(deltaTime);
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    this.dropTimer += deltaTime;
+    if (this.dropTimer >= this.dropInterval && !this.game.gameOver) {
+      this.dropMine();
+      this.dropTimer = 0;
+    }
+  }
+
+  dropMine() {
+    this.game.enemyMines.push(
+      new MineBomb(this.game, this.x + this.width / 2 - 16, this.y)
+    );
+  }
+
+  draw(ctx) {
+    if (this.image && this.image.complete && this.image.naturalWidth) {
+      const sx = this.frameCuts[this.frameX];
+      const sw = this.frameCuts[this.frameX + 1] - sx;
+
+      ctx.drawImage(
+        this.image,
+        sx,
+        0,
+        sw,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    } else {
+      super.draw(ctx);
+    }
+  }
+}
+
+class MineBomb {
+  constructor(game, x, y) {
+    this.game = game;
+
+    this.x = x;
+    this.y = y;
+
+    this.width = 32;
+    this.height = 32;
+
+    this.speedY = 1.2;
+    this.armTime = 700;
+    this.lifeTime = 4000;
+
+    this.timer = 0;
+    this.markedForDeletion = false;
+    this.exploded = false;
+
+    this.triggerDistance = 85;
+    this.explodeLine = this.game.height * 0.7;
+
+    this.image = document.getElementById('Angler6MiniBombSprite');
+  }
+
+  update(deltaTime) {
+    this.timer += deltaTime;
+    this.y += this.speedY;
+
+    if (this.y >= this.explodeLine) {
+      this.explode();
+      return;
+    }
+
+    if (this.y > this.game.height + this.height) {
+      this.markedForDeletion = true;
+      return;
+    }
+
+    if (this.timer >= this.armTime) {
+      const player = this.game.player;
+      const dx = player.x + player.width / 2 - (this.x + this.width / 2);
+      const dy = player.y + player.height / 2 - (this.y + this.height / 2);
+      const dist = Math.hypot(dx, dy);
+
+      if (dist <= this.triggerDistance) {
+        this.explode();
+        return;
+      }
+    }
+
+    const shots = this.game.player.projectiles;
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      if (checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.explode();
+        return;
+      }
+    }
+
+    if (this.timer >= this.lifeTime) {
+      this.explode();
+    }
+  }
+
+  explode() {
+    if (this.exploded) return;
+
+    this.exploded = true;
+    this.markedForDeletion = true;
+
+    this.game.explosions.push(
+      new BomberExplosion(
+        this.game,
+        this.x + this.width / 2,
+        this.y + this.height / 2,
+        90
+      )
+    );
+  }
+
+  draw(ctx) {
     if (this.image && this.image.complete && this.image.naturalWidth) {
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     } else {
-      ctx.fillStyle = 'green';
+      ctx.fillStyle = 'black';
       ctx.fillRect(this.x, this.y, this.width, this.height);
     }
   }
@@ -750,3 +895,5 @@ window.Angler4 = Angler4;
 window.BomberExplosion = BomberExplosion;
 window.Angler5 = Angler5;
 window.Angler5Mini = Angler5Mini;
+window.Angler6 = Angler6;
+window.MineBomb = MineBomb;

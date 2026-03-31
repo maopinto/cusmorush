@@ -520,29 +520,17 @@ class Boss2 extends BossBase {
     if (this.hitFlash > 0) {
       ctx.globalAlpha = 0.8;
     }
-
-    if (
-      this.image &&
-      this.image.complete &&
-      this.image.naturalWidth &&
-      this.spriteWidth > 0 &&
-      this.spriteHeight > 0
-    ) {
-      ctx.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        this.frameY * this.spriteHeight,
-        this.spriteWidth,
-        this.spriteHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-    } else {
-      ctx.fillStyle = this.color;
-      ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      this.frameY * this.spriteHeight,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
 
     ctx.restore();
 
@@ -1053,29 +1041,17 @@ class Boss3 extends BossBase {
   drawBossBlock(ctx, x, y, alpha = 1) {
     ctx.save();
     ctx.globalAlpha = alpha;
-
-    if (
-      this.image &&
-      this.image.complete &&
-      this.image.naturalWidth &&
-      this.spriteWidth > 0 &&
-      this.spriteHeight > 0
-    ) {
-      ctx.drawImage(
-        this.image,
-        this.frameX * this.spriteWidth,
-        0,
-        this.spriteWidth,
-        this.spriteHeight,
-        x,
-        y,
-        this.width,
-        this.height
-      );
-    } else {
-      ctx.fillStyle = this.color;
-      ctx.fillRect(x, y, this.width, this.height);
-    }
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      0,
+      this.spriteWidth,
+      this.spriteHeight,
+      x,
+      y,
+      this.width,
+      this.height
+    );
 
     ctx.restore();
   }
@@ -1192,32 +1168,35 @@ class Boss4 extends BossBase {
     this.entered = false;
 
     if (splitLevel === 0) {
-      this.width = 180;
+      this.width = 140;
       this.height = 180;
       this.maxLives = 80;
       this.speedX = 2.2;
       this.speedY = 1.2;
       this.shootInterval = 1300;
-      this.color = '#62ff6b';
+      this.color = '#cc00ff';
       this.scoreValue = 10;
+      this.image = document.getElementById('boss4PinkSprite');
     } else if (splitLevel === 1) {
-      this.width = 88;
-      this.height = 88;
+      this.width = 60;
+      this.height = 90;
       this.maxLives = 20;
       this.speedX = 2.6;
       this.speedY = 1.4;
       this.shootInterval = 1300;
       this.color = '#45d7ff';
       this.scoreValue = 6;
+      this.image = document.getElementById('boss4GreenSprite');
     } else {
-      this.width = 42;
-      this.height = 42;
+      this.width = 35;
+      this.height = 45;
       this.maxLives = 8;
       this.speedX = 2.8;
       this.speedY = 1.4;
       this.shootInterval = 1800;
       this.color = '#b884ff';
       this.scoreValue = 3;
+      this.image = document.getElementById('boss4PurpleSprite');
     }
 
     this.lives = this.maxLives;
@@ -1231,12 +1210,33 @@ class Boss4 extends BossBase {
     this.shootTimer = 0;
     this.enemyBullets = [];
     this.hitFlash = 0;
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 120;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
   }
 
   update(deltaTime) {
     if (this.game.upgradeCardsShowing) return;
 
     const dt = deltaTime / 16.67;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
 
     if (!this.entered) {
       this.y += this.speedY * dt;
@@ -1298,49 +1298,68 @@ class Boss4 extends BossBase {
     const dx = px - cx;
     const dy = py - cy;
     const len = Math.hypot(dx, dy) || 1;
+    const angle = Math.atan2(dy, dx);
 
     if (this.splitLevel === 0) {
       const speed = 4.8;
+
       this.enemyBullets.push(
         new Boss4Bullet(
           this.game,
-          cx - 9,
+          cx - 8,
           cy,
-          (dx / len) * speed,
-          (dy / len) * speed,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
           16,
-          '#62ff6b'
+          '#ff4fd8',
+          this.splitLevel
         )
       );
     } else if (this.splitLevel === 1) {
       const speed = 4.6;
-      const angle = Math.atan2(dy, dx);
+      const spread = 0.12;
 
       this.enemyBullets.push(
         new Boss4Bullet(
           this.game,
           cx - 6,
           cy,
-          Math.cos(angle - 0.1) * speed,
-          Math.sin(angle - 0.1) * speed,
+          Math.cos(angle - spread) * speed,
+          Math.sin(angle - spread) * speed,
           11,
-          '#45d7ff'
+          '#62ff6b',
+          this.splitLevel
         )
       );
+
       this.enemyBullets.push(
         new Boss4Bullet(
           this.game,
           cx - 6,
           cy,
-          Math.cos(angle + 0.1) * speed,
-          Math.sin(angle + 0.1) * speed,
+          Math.cos(angle + spread) * speed,
+          Math.sin(angle + spread) * speed,
           11,
-          '#45d7ff'
+          '#62ff6b',
+          this.splitLevel
         )
       );
     } else {
       const speed = 4.2;
-      const angle = Math.atan2(dy, dx);
+      const spread = 0.22;
+
+      this.enemyBullets.push(
+        new Boss4Bullet(
+          this.game,
+          cx - 4,
+          cy,
+          Math.cos(angle - spread) * speed,
+          Math.sin(angle - spread) * speed,
+          7,
+          '#b884ff',
+          this.splitLevel
+        )
+      );
 
       this.enemyBullets.push(
         new Boss4Bullet(
@@ -1350,7 +1369,21 @@ class Boss4 extends BossBase {
           Math.cos(angle) * speed,
           Math.sin(angle) * speed,
           7,
-          '#b884ff'
+          '#b884ff',
+          this.splitLevel
+        )
+      );
+
+      this.enemyBullets.push(
+        new Boss4Bullet(
+          this.game,
+          cx - 4,
+          cy,
+          Math.cos(angle + spread) * speed,
+          Math.sin(angle + spread) * speed,
+          7,
+          '#b884ff',
+          this.splitLevel
         )
       );
     }
@@ -1379,15 +1412,22 @@ class Boss4 extends BossBase {
   }
 
   draw(ctx) {
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      0,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
     this.enemyBullets.forEach((b) => b.draw(ctx));
   }
 
   drawTopHealthBar(ctx, index = 0, total = 1) {
     const barW = this.splitLevel === 0 ? 220 : this.splitLevel === 1 ? 120 : 70;
-
     const barH = this.splitLevel === 0 ? 14 : this.splitLevel === 1 ? 10 : 7;
 
     const gap = 10;
@@ -1411,7 +1451,16 @@ class Boss4 extends BossBase {
 }
 
 class Boss4Bullet {
-  constructor(game, x, y, vx, vy, size = 14, color = '#62ff6b') {
+  constructor(
+    game,
+    x,
+    y,
+    vx,
+    vy,
+    size = 14,
+    color = '#62ff6b',
+    splitLevel = 0
+  ) {
     this.game = game;
     this.x = x;
     this.y = y;
@@ -1420,7 +1469,9 @@ class Boss4Bullet {
     this.width = size;
     this.height = size;
     this.color = color;
+    this.splitLevel = splitLevel;
     this.markedForDeletion = false;
+    this.rotation = 0;
   }
 
   update(deltaTime) {
@@ -1428,6 +1479,494 @@ class Boss4Bullet {
 
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+    this.rotation += 0.12 * dt;
+
+    const shots = this.game.player.projectiles;
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      if (window.checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.markedForDeletion = true;
+        break;
+      }
+    }
+
+    if (
+      this.y > this.game.height + this.height ||
+      this.x < -this.width ||
+      this.x > this.game.width + this.width ||
+      this.y < -this.height
+    ) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  getPalette() {
+    if (this.splitLevel === 0) {
+      return {
+        main: '#ff4fd8',
+        dark: '#b1007f',
+        light: '#ffd0f5',
+        glow: 'rgba(255, 79, 216, 0.28)',
+      };
+    } else if (this.splitLevel === 1) {
+      return {
+        main: '#62ff6b',
+        dark: '#159a2d',
+        light: '#d8ffe0',
+        glow: 'rgba(98, 255, 107, 0.26)',
+      };
+    } else {
+      return {
+        main: '#b884ff',
+        dark: '#6c31c9',
+        light: '#efe2ff',
+        glow: 'rgba(184, 132, 255, 0.28)',
+      };
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+    const angle = Math.atan2(this.vy, this.vx);
+    const palette = this.getPalette();
+
+    const t = performance.now() * 0.01;
+    const pulse = 0.92 + Math.sin(t) * 0.08;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.fillStyle = palette.glow;
+    ctx.beginPath();
+    ctx.ellipse(
+      0,
+      0,
+      this.width * 1.6 * pulse,
+      this.height * 1.1 * pulse,
+      0,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    const tail = ctx.createLinearGradient(
+      -this.width * 2.8,
+      0,
+      this.width * 0.8,
+      0
+    );
+    tail.addColorStop(0, 'rgba(255,255,255,0)');
+    tail.addColorStop(0.35, palette.glow);
+    tail.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = tail;
+    ctx.fillRect(
+      -this.width * 2.8,
+      -this.height * 0.22,
+      this.width * 2.8,
+      this.height * 0.44
+    );
+
+    ctx.rotate(this.rotation);
+
+    ctx.fillStyle = palette.dark;
+    ctx.beginPath();
+    ctx.moveTo(this.width * 0.9, 0);
+    ctx.lineTo(this.width * 0.15, -this.height * 0.48);
+    ctx.lineTo(-this.width * 0.55, -this.height * 0.2);
+    ctx.lineTo(-this.width * 0.35, 0);
+    ctx.lineTo(-this.width * 0.55, this.height * 0.2);
+    ctx.lineTo(this.width * 0.15, this.height * 0.48);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = palette.main;
+    ctx.beginPath();
+    ctx.moveTo(this.width * 0.68, 0);
+    ctx.lineTo(this.width * 0.08, -this.height * 0.34);
+    ctx.lineTo(-this.width * 0.26, 0);
+    ctx.lineTo(this.width * 0.08, this.height * 0.34);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = palette.light;
+    ctx.beginPath();
+    ctx.moveTo(this.width * 0.24, 0);
+    ctx.lineTo(-this.width * 0.02, -this.height * 0.12);
+    ctx.lineTo(-this.width * 0.1, 0);
+    ctx.lineTo(-this.width * 0.02, this.height * 0.12);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class Boss5 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 170;
+    this.height = 190;
+
+    this.x = this.game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 90;
+    this.entered = false;
+
+    this.maxLives = 170;
+    this.lives = this.maxLives;
+
+    this.phase = 1;
+    this.hitBySuper = false;
+    this.markedForDeletion = false;
+
+    this.speedX = 2.2;
+    this.dirX = 1;
+
+    this.enemyBullets = [];
+    this.shootTimer = 0;
+    this.shootInterval = 1400;
+
+    this.specialMoveTimer = 0;
+    this.specialMoveInterval = 3200;
+
+    this.state = 'normal';
+    this.moveTargetX = this.x;
+    this.moveTargetY = this.baseY;
+    this.savedX = this.x;
+    this.savedY = this.baseY;
+
+    this.holdTimer = 0;
+    this.holdDuration = 650;
+
+    this.moveSmooth = 0.12;
+    this.hitFlash = 0;
+
+    this.image = document.getElementById('boss5Sprite') || null;
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 120;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
+  }
+
+  handlePhases() {
+    const hpPercent = this.lives / this.maxLives;
+
+    if (hpPercent < 0.65 && this.phase === 1) {
+      this.phase = 2;
+      this.shootInterval = 1050;
+      this.specialMoveInterval = 2700;
+      this.moveSmooth = 0.135;
+    }
+
+    if (hpPercent < 0.3 && this.phase === 2) {
+      this.phase = 3;
+      this.shootInterval = 820;
+      this.specialMoveInterval = 2200;
+      this.moveSmooth = 0.15;
+      this.holdDuration = 850;
+    }
+  }
+
+  update(deltaTime) {
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (!this.entered) {
+      this.y += 1.4 * dt;
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+        this.moveTargetY = this.baseY;
+        this.savedY = this.baseY;
+      }
+      return;
+    }
+
+    this.handlePhases();
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+
+    this.shootTimer += deltaTime;
+    this.specialMoveTimer += deltaTime;
+
+    if (this.state === 'normal') {
+      this.x += this.speedX * this.dirX * dt;
+
+      if (this.x <= 0) {
+        this.x = 0;
+        this.dirX = 1;
+      } else if (this.x + this.width >= this.game.width) {
+        this.x = this.game.width - this.width;
+        this.dirX = -1;
+      }
+
+      if (!this.game.gameOver && this.shootTimer >= this.shootInterval) {
+        this.shootTimer = 0;
+        this.shoot();
+      }
+
+      if (this.specialMoveTimer >= this.specialMoveInterval) {
+        this.specialMoveTimer = 0;
+        this.savedX = this.x;
+        this.savedY = this.y;
+        this.pickAttackPositionNearPlayer();
+        this.state = 'movingToPlayerZone';
+      }
+    } else if (this.state === 'movingToPlayerZone') {
+      this.x += (this.moveTargetX - this.x) * this.moveSmooth;
+      this.y += (this.moveTargetY - this.y) * this.moveSmooth;
+
+      if (!this.game.gameOver && this.shootTimer >= this.shootInterval * 0.9) {
+        this.shootTimer = 0;
+        this.shoot();
+      }
+
+      if (
+        Math.abs(this.x - this.moveTargetX) < 6 &&
+        Math.abs(this.y - this.moveTargetY) < 6
+      ) {
+        this.holdTimer = 0;
+        this.state = 'holdingNearPlayer';
+      }
+    } else if (this.state === 'holdingNearPlayer') {
+      this.holdTimer += deltaTime;
+
+      if (!this.game.gameOver && this.shootTimer >= this.shootInterval * 0.65) {
+        this.shootTimer = 0;
+        this.shoot();
+      }
+
+      if (this.holdTimer >= this.holdDuration) {
+        this.moveTargetX = this.savedX;
+        this.moveTargetY = this.savedY;
+        this.state = 'returning';
+      }
+    } else if (this.state === 'returning') {
+      this.x += (this.moveTargetX - this.x) * this.moveSmooth;
+      this.y += (this.moveTargetY - this.y) * this.moveSmooth;
+
+      if (!this.game.gameOver && this.shootTimer >= this.shootInterval) {
+        this.shootTimer = 0;
+        this.shoot();
+      }
+
+      if (
+        Math.abs(this.x - this.moveTargetX) < 6 &&
+        Math.abs(this.y - this.moveTargetY) < 6
+      ) {
+        this.x = this.moveTargetX;
+        this.y = this.moveTargetY;
+        this.state = 'normal';
+      }
+    }
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    this.enemyBullets.forEach((b) => {
+      if (b.markedForDeletion) return;
+
+      if (
+        !this.game.player.invulnerable &&
+        window.checkCollision(this.game.player, b)
+      ) {
+        this.game.player.lives--;
+        this.game.player.invulnerable = true;
+        this.game.player.invulnerableTimer = 0;
+        this.game.triggerShake(520, 24);
+        b.markedForDeletion = true;
+      }
+    });
+  }
+
+  pickAttackPositionNearPlayer() {
+    const player = this.game.player;
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+
+    const minDist = 140;
+    const maxDist = 240;
+
+    for (let i = 0; i < 24; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = minDist + Math.random() * (maxDist - minDist);
+
+      let nx = playerCenterX + Math.cos(angle) * dist - this.width / 2;
+      let ny = playerCenterY + Math.sin(angle) * dist - this.height / 2;
+
+      nx = Math.max(10, Math.min(this.game.width - this.width - 10, nx));
+      ny = Math.max(45, Math.min(this.game.height * 0.62, ny));
+
+      const dx = nx + this.width / 2 - playerCenterX;
+      const dy = ny + this.height / 2 - playerCenterY;
+      const realDist = Math.hypot(dx, dy);
+
+      if (realDist >= minDist - 10 && realDist <= maxDist + 15) {
+        this.moveTargetX = nx;
+        this.moveTargetY = ny;
+        return;
+      }
+    }
+
+    this.moveTargetX = Math.max(
+      10,
+      Math.min(
+        this.game.width - this.width - 10,
+        playerCenterX - this.width / 2
+      )
+    );
+    this.moveTargetY = Math.max(
+      45,
+      Math.min(this.game.height * 0.55, playerCenterY - 180)
+    );
+  }
+
+  shoot() {
+    const px = this.game.player.x + this.game.player.width / 2;
+    const py = this.game.player.y + this.game.player.height / 2;
+
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height * 0.78;
+
+    const dx = px - cx;
+    const dy = py - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    const angle = Math.atan2(dy, dx);
+
+    const speed = 5.4;
+
+    this.enemyBullets.push(
+      new Boss5Bullet(
+        this.game,
+        cx - 10,
+        cy - 10,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed
+      )
+    );
+
+    if (this.phase >= 2) {
+      const spread = 0.18;
+
+      this.enemyBullets.push(
+        new Boss5Bullet(
+          this.game,
+          cx - 10,
+          cy - 10,
+          Math.cos(angle - spread) * speed,
+          Math.sin(angle - spread) * speed
+        )
+      );
+
+      this.enemyBullets.push(
+        new Boss5Bullet(
+          this.game,
+          cx - 10,
+          cy - 10,
+          Math.cos(angle + spread) * speed,
+          Math.sin(angle + spread) * speed
+        )
+      );
+    }
+
+    if (this.phase >= 3) {
+      const sideSpread = 0.36;
+
+      this.enemyBullets.push(
+        new Boss5Bullet(
+          this.game,
+          cx - 10,
+          cy - 10,
+          Math.cos(angle - sideSpread) * (speed - 0.3),
+          Math.sin(angle - sideSpread) * (speed - 0.3)
+        )
+      );
+
+      this.enemyBullets.push(
+        new Boss5Bullet(
+          this.game,
+          cx - 10,
+          cy - 10,
+          Math.cos(angle + sideSpread) * (speed - 0.3),
+          Math.sin(angle + sideSpread) * (speed - 0.3)
+        )
+      );
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    if (this.hitFlash > 0) {
+      ctx.globalAlpha = 0.8 + Math.sin(performance.now() * 0.05) * 0.2;
+    }
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      this.frameY * this.spriteHeight,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
+    ctx.restore();
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+
+class Boss5Bullet {
+  constructor(game, x, y, vx, vy) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.width = 20;
+    this.height = 20;
+    this.markedForDeletion = false;
+    this.rotation = 0;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += 0.18 * dt;
 
     const shots = this.game.player.projectiles;
     for (let i = 0; i < shots.length; i++) {
@@ -1452,13 +1991,46 @@ class Boss4Bullet {
   }
 
   draw(ctx) {
-    ctx.save();
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
 
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
+    const t = performance.now() * 0.01;
+    const pulse = 0.9 + Math.sin(t) * 0.1;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.rotation);
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.globalAlpha = 0.25 * pulse;
+    ctx.fillStyle = 'rgba(255,40,40,1)';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#ff1f1f';
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.8);
+    ctx.lineTo(this.width * 0.5, 0);
+    ctx.lineTo(0, this.height * 0.8);
+    ctx.lineTo(-this.width * 0.5, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ff6a6a';
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.45);
+    ctx.lineTo(this.width * 0.25, 0);
+    ctx.lineTo(0, this.height * 0.45);
+    ctx.lineTo(-this.width * 0.25, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
   }
 }
@@ -1471,3 +2043,5 @@ window.Boss3 = Boss3;
 window.Boss3Bullet = Boss3Bullet;
 window.Boss4 = Boss4;
 window.Boss4Bullet = Boss4Bullet;
+window.Boss5 = Boss5;
+window.Boss5Bullet = Boss5Bullet;
