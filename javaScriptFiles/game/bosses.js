@@ -2035,6 +2035,932 @@ class Boss5Bullet {
   }
 }
 
+class Boss6 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 180;
+    this.height = 200;
+
+    this.x = this.game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 90;
+    this.entered = false;
+
+    this.maxLives = 220;
+    this.lives = this.maxLives;
+
+    this.speedX = 2.3;
+    this.speedY = 1.4;
+    this.dirX = 1;
+
+    this.enemyBullets = [];
+    this.shootTimer = 0;
+    this.shootInterval = 1100;
+
+    this.hitFlash = 0;
+
+    this.shieldRadius = 115;
+    this.shieldWidth = 140;
+    this.shieldHeight = 22;
+    this.shieldAngle = 0;
+    this.baseShieldSpeed = 0.025;
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 110;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    this.image =
+      document.getElementById('boss6Sprite') ||
+      cached?.dom?.boss6Sprite ||
+      null;
+
+    this.frames = 7;
+    this.frameX = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 185;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
+  }
+
+  getCenter() {
+    return {
+      x: this.x + this.width / 2,
+      y: this.y + this.height / 2,
+    };
+  }
+
+  getShieldPositions() {
+    const c = this.getCenter();
+
+    return [
+      {
+        x: c.x + Math.cos(this.shieldAngle) * this.shieldRadius,
+        y: c.y + Math.sin(this.shieldAngle) * this.shieldRadius,
+        width: this.shieldWidth,
+        height: this.shieldHeight,
+        angle: this.shieldAngle + Math.PI / 2,
+      },
+      {
+        x: c.x + Math.cos(this.shieldAngle + Math.PI) * this.shieldRadius,
+        y: c.y + Math.sin(this.shieldAngle + Math.PI) * this.shieldRadius,
+        width: this.shieldWidth,
+        height: this.shieldHeight,
+        angle: this.shieldAngle + Math.PI + Math.PI / 2,
+      },
+    ];
+  }
+
+  getShieldSpeed() {
+    const lostHp = 1 - this.lives / this.maxLives;
+    return this.baseShieldSpeed + lostHp * 0.08;
+  }
+
+  handlePlayerShots() {
+    const shots = this.game.player.projectiles;
+    const shields = this.getShieldPositions();
+
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      let blocked = false;
+
+      for (let j = 0; j < shields.length; j++) {
+        const shield = shields[j];
+
+        const dx = p.x + p.width / 2 - shield.x;
+        const dy = p.y + p.height / 2 - shield.y;
+
+        const cos = Math.cos(-shield.angle);
+        const sin = Math.sin(-shield.angle);
+
+        const localX = dx * cos - dy * sin;
+        const localY = dx * sin + dy * cos;
+
+        if (
+          Math.abs(localX) < shield.width / 2 + p.width / 2 &&
+          Math.abs(localY) < shield.height / 2 + p.height / 2
+        ) {
+          p.markedForDeletion = true;
+          blocked = true;
+          break;
+        }
+      }
+
+      if (blocked) continue;
+
+      if (window.checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.lives -= p.damage ?? 1;
+        this.hitFlash = 120;
+
+        if (this.lives <= 0) {
+          this.lives = 0;
+          this.markedForDeletion = true;
+        }
+      }
+    }
+  }
+
+  shoot() {
+    const px = this.game.player.x + this.game.player.width / 2;
+    const py = this.game.player.y + this.game.player.height / 2;
+
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height * 0.8;
+
+    const dx = px - cx;
+    const dy = py - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    const angle = Math.atan2(dy, dx);
+    const speed = 5.3;
+
+    this.enemyBullets.push(
+      new Boss6Bullet(
+        this.game,
+        cx - 10,
+        cy - 10,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed
+      )
+    );
+
+    if (this.lives < this.maxLives * 0.6) {
+      const spread = 0.18;
+
+      this.enemyBullets.push(
+        new Boss6Bullet(
+          this.game,
+          cx - 10,
+          cy - 10,
+          Math.cos(angle - spread) * speed,
+          Math.sin(angle - spread) * speed
+        )
+      );
+
+      this.enemyBullets.push(
+        new Boss6Bullet(
+          this.game,
+          cx - 10,
+          cy - 10,
+          Math.cos(angle + spread) * speed,
+          Math.sin(angle + spread) * speed
+        )
+      );
+    }
+  }
+
+  update(deltaTime) {
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+      }
+    } else {
+      this.x += this.speedX * this.dirX * dt;
+
+      if (this.x <= 0) {
+        this.x = 0;
+        this.dirX = 1;
+      } else if (this.x + this.width >= this.game.width) {
+        this.x = this.game.width - this.width;
+        this.dirX = -1;
+      }
+
+      this.shieldAngle += this.getShieldSpeed() * dt;
+
+      this.shootTimer += deltaTime;
+      if (!this.game.gameOver && this.shootTimer >= this.shootInterval) {
+        this.shootTimer = 0;
+        this.shoot();
+      }
+    }
+
+    this.handlePlayerShots();
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    this.enemyBullets.forEach((b) => {
+      if (b.markedForDeletion) return;
+
+      if (
+        !this.game.player.invulnerable &&
+        window.checkCollision(this.game.player, b)
+      ) {
+        this.game.player.lives--;
+        this.game.player.invulnerable = true;
+        this.game.player.invulnerableTimer = 0;
+        this.game.triggerShake(520, 24);
+        b.markedForDeletion = true;
+      }
+    });
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  drawShield(ctx, shield) {
+    const t = performance.now() * 0.008;
+    const pulse = 0.9 + Math.sin(t) * 0.1;
+
+    ctx.save();
+    ctx.translate(shield.x, shield.y);
+    ctx.rotate(shield.angle);
+    ctx.globalCompositeOperation = 'lighter';
+
+    const grad = ctx.createLinearGradient(
+      0,
+      -shield.height / 2,
+      0,
+      shield.height / 2
+    );
+    grad.addColorStop(0, 'rgba(180,240,255,0.9)');
+    grad.addColorStop(0.2, 'rgba(90,220,255,1)');
+    grad.addColorStop(0.5, 'rgba(0,140,255,0.9)');
+    grad.addColorStop(0.8, 'rgba(90,220,255,1)');
+    grad.addColorStop(1, 'rgba(180,240,255,0.9)');
+
+    ctx.shadowColor = 'rgba(80,220,255,0.9)';
+    ctx.shadowBlur = 22 * pulse;
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(
+      -shield.width / 2,
+      -shield.height / 2,
+      shield.width,
+      shield.height
+    );
+
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fillRect(
+      -shield.width * 0.2,
+      -shield.height / 2,
+      shield.width * 0.4,
+      shield.height
+    );
+
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(-shield.width / 2, -shield.height * 0.3, shield.width, 4);
+    ctx.fillRect(-shield.width / 2, shield.height * 0.25, shield.width, 4);
+
+    ctx.beginPath();
+    ctx.moveTo(0, -shield.height * 0.6);
+    ctx.lineTo(shield.width * 0.6, -shield.height * 0.4);
+    ctx.lineTo(-shield.width * 0.6, -shield.height * 0.4);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(120,240,255,0.8)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(0, shield.height * 0.6);
+    ctx.lineTo(shield.width * 0.6, shield.height * 0.4);
+    ctx.lineTo(-shield.width * 0.6, shield.height * 0.4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    if (this.hitFlash > 0) {
+      ctx.globalAlpha = 0.8 + Math.sin(performance.now() * 0.05) * 0.2;
+    }
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      0,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
+    ctx.restore();
+
+    const shields = this.getShieldPositions();
+    shields.forEach((shield) => this.drawShield(ctx, shield));
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+
+class Boss6Bullet {
+  constructor(game, x, y, vx, vy) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.width = 20;
+    this.height = 20;
+    this.markedForDeletion = false;
+    this.rotation = 0;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += 0.18 * dt;
+
+    const shots = this.game.player.projectiles;
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      if (window.checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.markedForDeletion = true;
+        break;
+      }
+    }
+
+    if (
+      this.y > this.game.height + this.height ||
+      this.x < -this.width ||
+      this.x > this.game.width + this.width ||
+      this.y < -this.height
+    ) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+
+    const angle = Math.atan2(this.vy, this.vx);
+    const t = performance.now() * 0.012;
+    const pulse = 0.92 + Math.sin(t) * 0.08;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle + Math.PI / 2);
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.fillStyle = 'rgba(80,180,255,0.16)';
+    ctx.beginPath();
+    ctx.ellipse(
+      0,
+      0,
+      this.width * 1.8 * pulse,
+      this.height * 1.3 * pulse,
+      0,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    const tail = ctx.createLinearGradient(
+      0,
+      this.height * 1.2,
+      0,
+      -this.height * 0.9
+    );
+    tail.addColorStop(0, 'rgba(0,120,255,0)');
+    tail.addColorStop(0.35, 'rgba(80,180,255,0.35)');
+    tail.addColorStop(1, 'rgba(255,255,255,0.15)');
+    ctx.fillStyle = tail;
+    ctx.beginPath();
+    ctx.moveTo(-this.width * 0.22, this.height * 0.9);
+    ctx.lineTo(this.width * 0.22, this.height * 0.9);
+    ctx.lineTo(this.width * 0.08, -this.height * 0.4);
+    ctx.lineTo(-this.width * 0.08, -this.height * 0.4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowColor = 'rgba(90,220,255,0.95)';
+    ctx.shadowBlur = 18 * pulse;
+
+    const body = ctx.createLinearGradient(
+      0,
+      -this.height * 0.9,
+      0,
+      this.height * 0.85
+    );
+    body.addColorStop(0, '#e8fbff');
+    body.addColorStop(0.22, '#8fe7ff');
+    body.addColorStop(0.55, '#3aa7ff');
+    body.addColorStop(1, '#123dff');
+
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.95);
+    ctx.lineTo(this.width * 0.42, -this.height * 0.2);
+    ctx.lineTo(this.width * 0.26, this.height * 0.75);
+    ctx.lineTo(0, this.height * 0.95);
+    ctx.lineTo(-this.width * 0.26, this.height * 0.75);
+    ctx.lineTo(-this.width * 0.42, -this.height * 0.2);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.62);
+    ctx.lineTo(this.width * 0.14, 0);
+    ctx.lineTo(0, this.height * 0.42);
+    ctx.lineTo(-this.width * 0.14, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(170,240,255,0.75)';
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.82);
+    ctx.lineTo(this.width * 0.12, -this.height * 0.55);
+    ctx.lineTo(-this.width * 0.12, -this.height * 0.55);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class Boss7 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 180;
+    this.height = 180;
+
+    this.x = this.game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 90;
+    this.entered = false;
+
+    this.maxLives = 300;
+    this.lives = this.maxLives;
+
+    this.speedX = 2.4;
+    this.speedY = 1.4;
+    this.dirX = 1;
+
+    this.phase = 1;
+
+    this.hitFlash = 0;
+
+    this.attackCooldown = 2600;
+    this.attackTimer = 0;
+
+    this.state = 'idle';
+    this.stateTimer = 0;
+
+    this.shotsToFire = 1;
+    this.shotsFired = 0;
+    this.shotDelay = 500;
+    this.chargeDuration = 950;
+    this.laserDuration = 180;
+    this.currentLaserWidth = 14;
+
+    this.lockedTarget = null;
+    this.activeLasers = [];
+  }
+
+  handlePhases() {
+    const hpPercent = this.lives / this.maxLives;
+
+    if (hpPercent < 0.65 && this.phase === 1) {
+      this.phase = 2;
+      this.attackCooldown = 2200;
+    }
+
+    if (hpPercent < 0.3 && this.phase === 2) {
+      this.phase = 3;
+      this.attackCooldown = 1800;
+    }
+  }
+
+  getPhaseShotCount() {
+    if (this.phase === 1) return 1;
+    if (this.phase === 2) return 2;
+    return 3;
+  }
+
+  getPhaseLaserWidth() {
+    if (this.phase === 1) return 20;
+    if (this.phase === 2) return 34;
+    return 52;
+  }
+
+  lockTarget() {
+    const player = this.game.player;
+
+    this.lockedTarget = {
+      x: player.x + player.width / 2,
+      y: player.y + player.height / 2,
+    };
+  }
+
+  getMuzzle() {
+    return {
+      x: this.x + this.width / 2,
+      y: this.y + this.height * 0.78,
+    };
+  }
+
+  getAttackInterval() {
+    const hpRatio = this.lives / this.maxLives;
+
+    const slow = 2200;
+    const fast = 500;
+
+    return fast + (slow - fast) * hpRatio;
+  }
+
+  fireLaser() {
+    const muzzle = this.getMuzzle();
+    if (!this.lockedTarget) this.lockTarget();
+
+    this.game.triggerShake(220, 14);
+
+    if (this.game.spawnSparks) {
+      this.game.spawnSparks(muzzle.x, muzzle.y, 18, 8);
+    }
+
+    this.activeLasers.push(
+      new Boss7Laser(
+        this.game,
+        muzzle.x,
+        muzzle.y,
+        this.lockedTarget.x,
+        this.lockedTarget.y,
+        this.currentLaserWidth,
+        this.laserDuration
+      )
+    );
+  }
+
+  startAttackSequence() {
+    this.shotsToFire = this.getPhaseShotCount();
+    this.currentLaserWidth = this.getPhaseLaserWidth();
+    this.shotDelay = this.getShotDelay();
+    this.shotsFired = 0;
+    this.lockTarget();
+    this.state = 'charging';
+    this.stateTimer = 0;
+  }
+
+  getShotDelay() {
+    const hpRatio = this.lives / this.maxLives;
+
+    const slow = 500;
+    const fast = 180;
+
+    return fast + (slow - fast) * hpRatio;
+  }
+
+  updateAttackState(deltaTime) {
+    if (this.state === 'idle') {
+      this.attackTimer += deltaTime;
+
+      const currentInterval = this.getAttackInterval();
+
+      if (this.attackTimer >= currentInterval) {
+        this.attackTimer = 0;
+        this.startAttackSequence();
+      }
+      return;
+    }
+
+    this.stateTimer += deltaTime;
+
+    if (this.state === 'charging') {
+      if (this.stateTimer >= this.chargeDuration) {
+        this.fireLaser();
+        this.shotsFired++;
+        this.state = 'betweenShots';
+        this.stateTimer = 0;
+      }
+      return;
+    }
+
+    if (this.state === 'betweenShots') {
+      if (this.shotsFired >= this.shotsToFire) {
+        this.state = 'idle';
+        this.stateTimer = 0;
+        return;
+      }
+
+      if (this.stateTimer >= this.shotDelay) {
+        this.lockTarget();
+        this.state = 'charging';
+        this.stateTimer = 0;
+      }
+    }
+  }
+
+  update(deltaTime) {
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+      }
+      return;
+    }
+
+    this.handlePhases();
+
+    this.x += this.speedX * this.dirX * dt;
+
+    if (this.x <= 0) {
+      this.x = 0;
+      this.dirX = 1;
+    } else if (this.x + this.width >= this.game.width) {
+      this.x = this.game.width - this.width;
+      this.dirX = -1;
+    }
+
+    this.updateAttackState(deltaTime);
+
+    this.activeLasers.forEach((laser) => laser.update(deltaTime));
+    this.activeLasers = this.activeLasers.filter(
+      (laser) => !laser.markedForDeletion
+    );
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  drawChargeLine(ctx) {
+    if (this.state !== 'charging' || !this.lockedTarget) return;
+
+    const muzzle = this.getMuzzle();
+    const progress = Math.min(1, this.stateTimer / this.chargeDuration);
+    const pulse = 0.9 + Math.sin(performance.now() * 0.05) * 0.12;
+
+    const dx = this.lockedTarget.x - muzzle.x;
+    const dy = this.lockedTarget.y - muzzle.y;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const dirX = dx / len;
+    const dirY = dy / len;
+
+    const EXTEND = 2000;
+
+    const xStart = muzzle.x - dirX * EXTEND;
+    const yStart = muzzle.y - dirY * EXTEND;
+    const xEnd = this.lockedTarget.x + dirX * EXTEND;
+    const yEnd = this.lockedTarget.y + dirY * EXTEND;
+
+    const width = Math.max(8, this.currentLaserWidth * (0.45 + progress * 0.9));
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.strokeStyle = `rgba(255,40,40,${0.16 + progress * 0.18})`;
+    ctx.lineWidth = width * 3.4 * pulse;
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(xEnd, yEnd);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(255,80,80,${0.45 + progress * 0.35})`;
+    ctx.lineWidth = width * 1.8 * pulse;
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(xEnd, yEnd);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(255,255,255,${0.65 + progress * 0.25})`;
+    ctx.lineWidth = Math.max(2, width * 0.22);
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(xEnd, yEnd);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = '#ff1e00';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.restore();
+
+    this.drawChargeLine(ctx);
+    this.activeLasers.forEach((laser) => laser.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+
+class Boss7Laser {
+  constructor(game, x1, y1, x2, y2, width, duration) {
+    this.game = game;
+    this.x1 = x1;
+    this.y1 = y1;
+    this.x2 = x2;
+    this.y2 = y2;
+    this.width = width;
+    this.duration = duration;
+    this.life = duration;
+    this.markedForDeletion = false;
+    this.didDamage = false;
+  }
+
+  update(deltaTime) {
+    this.life -= deltaTime;
+
+    if (!this.didDamage && this.hitPlayer()) {
+      if (!this.game.player.invulnerable) {
+        this.game.player.lives--;
+        this.game.player.invulnerable = true;
+        this.game.player.invulnerableTimer = 0;
+        this.game.triggerShake(520, 28);
+      }
+      this.didDamage = true;
+    }
+
+    if (this.life <= 0) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  hitPlayer() {
+    const player = this.game.player;
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+
+    const dx = this.x2 - this.x1;
+    const dy = this.y2 - this.y1;
+    const lenSq = dx * dx + dy * dy || 1;
+
+    let t = ((px - this.x1) * dx + (py - this.y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+
+    const nearestX = this.x1 + dx * t;
+    const nearestY = this.y1 + dy * t;
+
+    const dist = Math.hypot(px - nearestX, py - nearestY);
+    const hitRadius =
+      this.width / 2 + Math.max(player.width, player.height) * 0.28;
+
+    return dist <= hitRadius;
+  }
+
+  draw(ctx) {
+    const alpha = Math.max(0, this.life / this.duration);
+    const pulse = 0.92 + Math.sin(performance.now() * 0.05) * 0.08;
+
+    const dx = this.x2 - this.x1;
+    const dy = this.y2 - this.y1;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const dirX = dx / len;
+    const dirY = dy / len;
+
+    const EXTEND = 2200;
+
+    const xStart = this.x1;
+    const yStart = this.y1;
+    const xFullEnd = this.x2 + dirX * EXTEND;
+    const yFullEnd = this.y2 + dirY * EXTEND;
+    const rawProgress = 1 - this.life / (this.duration * 0.35);
+    const appearProgress = Math.max(0, Math.min(1, rawProgress));
+    const beamLen = Math.hypot(xFullEnd - xStart, yFullEnd - yStart);
+
+    const drawEndX = xStart + dirX * beamLen * appearProgress;
+    const drawEndY = yStart + dirY * beamLen * appearProgress;
+
+    const coreWidth = this.width * pulse;
+    const outerWidth = this.width * 2.8 * pulse;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    const ringR = Math.max(0, 20 + 26 * appearProgress);
+    ctx.globalAlpha = 0.28 * alpha;
+    ctx.fillStyle = 'rgba(255,60,60,1)';
+    ctx.beginPath();
+    ctx.arc(this.x1, this.y1, ringR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.9 * alpha;
+    ctx.strokeStyle = 'rgba(255,180,180,0.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(this.x1, this.y1, ringR * 0.72, 0, Math.PI * 2);
+    ctx.stroke();
+
+    const flashGrad = ctx.createRadialGradient(
+      this.x1,
+      this.y1,
+      0,
+      this.x1,
+      this.y1,
+      55 + 20 * pulse
+    );
+    flashGrad.addColorStop(0, 'rgba(255,255,255,0.95)');
+    flashGrad.addColorStop(0.18, 'rgba(255,210,210,0.95)');
+    flashGrad.addColorStop(0.45, 'rgba(255,70,70,0.65)');
+    flashGrad.addColorStop(1, 'rgba(255,0,0,0)');
+
+    ctx.globalAlpha = 0.95 * alpha;
+    ctx.fillStyle = flashGrad;
+    ctx.beginPath();
+    ctx.arc(this.x1, this.y1, 65 + 18 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(this.x1, this.y1);
+    ctx.rotate(Math.atan2(dy, dx));
+
+    ctx.globalAlpha = 0.9 * alpha;
+    ctx.fillStyle = 'rgba(255,120,120,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.lineTo(70 + 25 * appearProgress, 0);
+    ctx.lineTo(0, 18);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.beginPath();
+    ctx.moveTo(0, -8);
+    ctx.lineTo(42 + 16 * appearProgress, 0);
+    ctx.lineTo(0, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+
+    ctx.strokeStyle = `rgba(255,40,40,${0.22 * alpha})`;
+    ctx.lineWidth = outerWidth;
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(drawEndX, drawEndY);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(255,70,70,${0.95 * alpha})`;
+    ctx.lineWidth = coreWidth * 1.35;
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(drawEndX, drawEndY);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+    ctx.lineWidth = Math.max(3, this.width * 0.28);
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(drawEndX, drawEndY);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
 window.Boss1 = Boss1;
 window.Boss1Bullet = Boss1Bullet;
 window.Boss2 = Boss2;
@@ -2045,3 +2971,7 @@ window.Boss4 = Boss4;
 window.Boss4Bullet = Boss4Bullet;
 window.Boss5 = Boss5;
 window.Boss5Bullet = Boss5Bullet;
+window.Boss6 = Boss6;
+window.Boss6Bullet = Boss6Bullet;
+window.Boss7 = Boss7;
+window.Boss7Laser = Boss7Laser;

@@ -476,9 +476,19 @@ function openMap(e) {
   map.classList.add('open');
   const maxLevel = getMaxUnlockedLevel();
 
-  map.classList.remove('level-green', 'level-pink', 'level-red');
+  map.classList.remove(
+    'level-green',
+    'level-pink',
+    'level-red',
+    'level-white',
+    'level-orange'
+  );
 
-  if (maxLevel >= 31) {
+  if (maxLevel >= 51) {
+    map.classList.add('level-orange');
+  } else if (maxLevel >= 41) {
+    map.classList.add('level-purple');
+  } else if (maxLevel >= 31) {
     map.classList.add('level-red');
   } else if (maxLevel >= 21) {
     map.classList.add('level-pink');

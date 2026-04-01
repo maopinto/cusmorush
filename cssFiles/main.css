@@ -2099,6 +2099,34 @@ body {
   }
 }
 
+#mapDiv.level-purple {
+  border: 2px solid rgba(158, 0, 197, 0.9);
+  box-shadow:
+    0 0 40px rgba(159, 0, 173, 0.671),
+    0 0 100px rgba(85, 0, 182, 0.6);
+}
+
+#mapDiv.level-purple #levelsContainer {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(195, 0, 255, 0.4), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(81, 0, 83, 0.3), transparent 65%),
+    linear-gradient(180deg, #6b005da4, #6f00799c);
+}
+
+#mapDiv.level-ogange {
+  border: 2px solid rgba(252, 172, 0, 0.9);
+  box-shadow:
+    0 0 40px rgba(173, 141, 0, 0.671),
+    0 0 100px rgba(182, 124, 0, 0.6);
+}
+
+#mapDiv.level-orange #levelsContainer {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 166, 0, 0.4), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(83, 68, 0, 0.3), transparent 65%),
+    linear-gradient(180deg, #967f00a4, #eec2009c);
+}
+
 /* ================= RTL FIX ================= */
 [dir='rtl'] {
   direction: rtl;

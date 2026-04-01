@@ -886,6 +886,502 @@ class MineBomb {
   }
 }
 
+class Angler7 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 84;
+    this.height = 92;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 14;
+    this.speedY = 1.2;
+
+    this.reflectCooldown = 0;
+    this.reflectInterval = 120;
+
+    this.image = document.getElementById('angler7Sprite');
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 100;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+
+      this.spriteWidth = Math.floor(iw / this.frames);
+      this.spriteHeight = ih;
+    }
+  }
+
+  update(deltaTime) {
+    super.update(deltaTime);
+
+    if (this.reflectCooldown > 0) {
+      this.reflectCooldown -= deltaTime;
+    }
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+  }
+
+  reflectProjectile(projectile) {
+    if (this.reflectCooldown > 0) return;
+
+    this.reflectCooldown = this.reflectInterval;
+
+    const startX = projectile.x + projectile.width / 2;
+    const startY = projectile.y + projectile.height / 2;
+
+    const player = this.game.player;
+    const targetX = player.x + player.width / 2;
+    const targetY = player.y + player.height / 2;
+
+    const dx = targetX - startX;
+    const dy = targetY - startY;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const speed = 5.5;
+
+    this.game.enemyBullets.push(
+      new ReflectedShot(
+        this.game,
+        startX - 8,
+        startY - 8,
+        (dx / len) * speed,
+        (dy / len) * speed
+      )
+    );
+  }
+
+  draw(ctx) {
+    if (
+      this.image &&
+      this.image.complete &&
+      this.image.naturalWidth &&
+      this.spriteWidth > 0
+    ) {
+      ctx.save();
+
+      ctx.shadowColor = 'rgba(0,140,255,0.65)';
+      ctx.shadowBlur = 14;
+
+      ctx.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+
+      ctx.restore();
+    } else {
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+  }
+}
+
+class ReflectedShot {
+  constructor(game, x, y, vx, vy) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+
+    this.width = 16;
+    this.height = 16;
+
+    this.damage = 1;
+    this.markedForDeletion = false;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    if (
+      this.x < -30 ||
+      this.x > this.game.width + 30 ||
+      this.y < -30 ||
+      this.y > this.game.height + 30
+    ) {
+      this.markedForDeletion = true;
+      return;
+    }
+
+    if (
+      !this.game.player.invulnerable &&
+      checkCollision(this, this.game.player) &&
+      !this.game.gameOver
+    ) {
+      this.game.player.lives -= this.damage;
+      this.game.player.invulnerable = true;
+      this.game.player.invulnerableTimer = 0;
+      this.game.triggerShake(520, 22);
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+    const r = this.width * 0.5;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 2.5);
+    glow.addColorStop(0, 'rgba(255,255,255,1)');
+    glow.addColorStop(0.35, 'rgba(255,120,120,0.95)');
+    glow.addColorStop(1, 'rgba(255,0,0,0)');
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,180,180,1)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class Angler8 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 80;
+    this.height = 100;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 12;
+    this.speedY = 1.2;
+
+    this.stopY = 110 + Math.random() * 70;
+    this.shootTimer = 0;
+    this.shootInterval = 1700;
+
+    this.enemyBullets = [];
+
+    this.image = document.getElementById('angler8Sprite');
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 120;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = Math.floor(iw / this.frames);
+      this.spriteHeight = ih;
+    }
+  }
+
+  update(deltaTime) {
+    if (this.mindControlled && this.mindTarget) {
+      super.update(deltaTime);
+      return;
+    }
+
+    if (this.y < this.stopY) {
+      this.y += this.speedY;
+    }
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    this.shootTimer += deltaTime;
+    if (this.shootTimer >= this.shootInterval && !this.game.gameOver) {
+      this.shootTimer = 0;
+      this.shootFreeze();
+    }
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    if (this.y > this.game.height + this.height) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  shootFreeze() {
+    const px = this.game.player.x + this.game.player.width / 2;
+    const py = this.game.player.y + this.game.player.height / 2;
+
+    const sx = this.x + this.width / 2;
+    const sy = this.y + this.height * 0.78;
+
+    const dx = px - sx;
+    const dy = py - sy;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const speed = 4.2;
+
+    this.enemyBullets.push(
+      new FreezeBullet(
+        this.game,
+        sx - 11,
+        sy - 11,
+        (dx / len) * speed,
+        (dy / len) * speed
+      )
+    );
+  }
+
+  draw(ctx) {
+    if (
+      this.image &&
+      this.image.complete &&
+      this.image.naturalWidth &&
+      this.spriteWidth > 0
+    ) {
+      ctx.save();
+
+      ctx.shadowColor = 'rgba(120,220,255,0.45)';
+      ctx.shadowBlur = 12;
+
+      ctx.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.fillStyle = '#7fe7ff';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.restore();
+    }
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+  }
+}
+
+class FreezeBullet {
+  constructor(game, x, y, vx, vy) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+
+    this.width = 22;
+    this.height = 22;
+
+    this.markedForDeletion = false;
+    this.rotation = 0;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += 0.08 * dt;
+
+    const shots = this.game.player.projectiles;
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      if (checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.markedForDeletion = true;
+        return;
+      }
+    }
+
+    if (
+      !this.game.player.invulnerable &&
+      checkCollision(this, this.game.player) &&
+      !this.game.gameOver
+    ) {
+      this.game.player.lives--;
+      this.game.player.invulnerable = true;
+      this.game.player.invulnerableTimer = 0;
+
+      this.game.player.slowed = true;
+      this.game.player.slowTimer = 0;
+
+      this.game.triggerShake(520, 22);
+      this.markedForDeletion = true;
+      return;
+    }
+
+    if (
+      this.x < -40 ||
+      this.x > this.game.width + 40 ||
+      this.y < -40 ||
+      this.y > this.game.height + 40
+    ) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+
+    const angle = Math.atan2(this.vy, this.vx) + Math.PI / 2;
+    const t = performance.now() * 0.01;
+    const pulse = 0.94 + Math.sin(t) * 0.06;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle + this.rotation * 0.35);
+    ctx.globalCompositeOperation = 'lighter';
+
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, this.width * 1.6);
+    glow.addColorStop(0, 'rgba(0, 217, 255, 0.35)');
+    glow.addColorStop(0.3, 'rgba(160, 241, 255, 0.37)');
+    glow.addColorStop(0.7, 'rgba(0, 136, 255, 0.18)');
+    glow.addColorStop(1, 'rgba(0, 136, 255, 0)');
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 1.2 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = 'rgba(150,240,255,0.95)';
+    ctx.shadowBlur = 18 * pulse;
+
+    const body = ctx.createLinearGradient(
+      0,
+      -this.height * 0.8,
+      0,
+      this.height * 0.9
+    );
+    body.addColorStop(0, '#00f7ff');
+    body.addColorStop(0.2, '#00ccff');
+    body.addColorStop(0.5, '#8be8ff');
+    body.addColorStop(0.78, '#46bbff');
+    body.addColorStop(1, '#1f6dff');
+
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.72);
+    ctx.quadraticCurveTo(
+      this.width * 0.42,
+      -this.height * 0.46,
+      this.width * 0.48,
+      -this.height * 0.05
+    );
+    ctx.quadraticCurveTo(
+      this.width * 0.42,
+      this.height * 0.24,
+      this.width * 0.18,
+      this.height * 0.38
+    );
+    ctx.lineTo(this.width * 0.08, this.height * 0.72);
+    ctx.lineTo(0, this.height * 0.9);
+    ctx.lineTo(-this.width * 0.08, this.height * 0.72);
+    ctx.lineTo(-this.width * 0.18, this.height * 0.38);
+    ctx.quadraticCurveTo(
+      -this.width * 0.42,
+      this.height * 0.24,
+      -this.width * 0.48,
+      -this.height * 0.05
+    );
+    ctx.quadraticCurveTo(
+      -this.width * 0.42,
+      -this.height * 0.46,
+      0,
+      -this.height * 0.72
+    );
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(0, 217, 255, 0.95)';
+    ctx.beginPath();
+    ctx.ellipse(
+      0,
+      -this.height * 0.18,
+      this.width * 0.2,
+      this.height * 0.18,
+      0,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(0, 204, 255, 0.95)';
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.48);
+    ctx.lineTo(this.width * 0.1, -this.height * 0.22);
+    ctx.lineTo(0, this.height * 0.08);
+    ctx.lineTo(-this.width * 0.1, -this.height * 0.22);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(0, 217, 255, 0.75)';
+    ctx.beginPath();
+    ctx.moveTo(-this.width * 0.22, -this.height * 0.08);
+    ctx.lineTo(-this.width * 0.34, this.height * 0.08);
+    ctx.lineTo(-this.width * 0.16, this.height * 0.14);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(this.width * 0.22, -this.height * 0.08);
+    ctx.lineTo(this.width * 0.34, this.height * 0.08);
+    ctx.lineTo(this.width * 0.16, this.height * 0.14);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.9)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.height * 0.56);
+    ctx.lineTo(0, this.height * 0.72);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
 window.Enemy = Enemy;
 window.Angler1 = Angler1;
 window.Angler2 = Angler2;
@@ -897,3 +1393,7 @@ window.Angler5 = Angler5;
 window.Angler5Mini = Angler5Mini;
 window.Angler6 = Angler6;
 window.MineBomb = MineBomb;
+window.Angler7 = Angler7;
+window.ReflectedShot = ReflectedShot;
+window.Angler8 = Angler8;
+window.FreezeBullet = FreezeBullet;

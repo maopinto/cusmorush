@@ -149,6 +149,8 @@ function equipSkin(id) {
 
 window.addEventListener('load', function () {
   function getBackgroundForLevel(level) {
+    if (level >= 51) return './images/game/background/orangeSpace.png';
+    if (level >= 41) return './images/game/background/purpleSpace.png';
     if (level >= 31) return './images/game/background/redSpace.png';
     if (level >= 21) return './images/game/background/pinkSpace.png';
     if (level >= 11) return './images/game/background/greenSpace.png';
@@ -936,6 +938,11 @@ window.addEventListener('load', function () {
         if (Number.isFinite(skinDef.frameY)) frameY = skinDef.frameY;
       }
 
+      this.slowed = false;
+      this.slowTimer = 0;
+      this.slowDuration = 1400;
+      this.moveSlowMultiplier = 0.15;
+
       this.image =
         document.getElementById(imgId) ||
         cached?.dom?.[imgId] ||
@@ -960,12 +967,21 @@ window.addEventListener('load', function () {
         this.frameTimer = 0;
       }
 
+      if (this.slowed) {
+        this.slowTimer += deltaTime;
+        if (this.slowTimer >= this.slowDuration) {
+          this.slowed = false;
+          this.slowTimer = 0;
+        }
+      }
+
       if (this.game.mouse.pressed) {
         const targetX = this.game.mouse.x - this.width / 2;
         const targetY = this.game.mouse.y - this.height / 2;
+        const moveFactor = this.slowed ? 0.22 * this.moveSlowMultiplier : 0.22;
 
-        this.x += (targetX - this.x) * 0.22;
-        this.y += (targetY - this.y) * 0.22;
+        this.x += (targetX - this.x) * moveFactor;
+        this.y += (targetY - this.y) * moveFactor;
 
         canvas.style.cursor = 'none';
       } else {
@@ -1471,6 +1487,10 @@ window.addEventListener('load', function () {
       this.fontFamily = '"Archivo Black", system-ui, sans-serif';
       this.color = 'white';
 
+      this.bossText = '';
+      this.bossTimer = 0;
+      this.bossDuration = 4500;
+
       this.prevLives = game.player.lives;
       this.hurtPulse = 0;
 
@@ -1484,6 +1504,11 @@ window.addEventListener('load', function () {
     }
 
     draw(ctx) {
+      if (this.bossTimer > 0) {
+        this.bossTimer -= 16.67;
+        if (this.bossTimer < 0) this.bossTimer = 0;
+      }
+
       ctx.save();
 
       ctx.fillStyle = this.color;
@@ -1495,10 +1520,11 @@ window.addEventListener('load', function () {
       );
 
       this.drawLives(ctx);
-
       this.drawSuperGauge(ctx);
 
       ctx.restore();
+
+      this.drawBossText(ctx);
     }
 
     drawLives(ctx) {
@@ -1611,6 +1637,62 @@ window.addEventListener('load', function () {
       ${Math.round(this.lerp(c1.g, c2.g, t))},
       ${Math.round(this.lerp(c1.b, c2.b, t))}
     )`;
+    }
+
+    showBoss(text) {
+      this.bossText = text;
+      this.bossTimer = this.bossDuration;
+    }
+
+    drawBossText(ctx) {
+      if (this.bossTimer <= 0 || !this.bossText) return;
+
+      const progress = 1 - this.bossTimer / this.bossDuration;
+      const fadeIn = Math.min(progress / 0.2, 1);
+      const fadeOut = Math.min(this.bossTimer / 600, 1);
+      const alpha = Math.min(fadeIn, fadeOut);
+
+      const pulse = 1 + Math.sin(performance.now() * 0.01) * 0.05;
+      const scale = (0.9 + fadeIn * 0.25) * pulse;
+
+      const x = this.game.width / 2;
+      const y = this.game.height / 2;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const fontSize = Math.min(this.game.width * 0.09, 70);
+      ctx.font = `900 ${fontSize}px ${this.fontFamily}`;
+
+      const textWidth = ctx.measureText(this.bossText).width;
+
+      const gradient = ctx.createLinearGradient(
+        -textWidth / 2,
+        0,
+        textWidth / 2,
+        0
+      );
+      gradient.addColorStop(0, '#ff2a2a');
+      gradient.addColorStop(0.5, '#ffffff');
+      gradient.addColorStop(1, '#ff2a2a');
+
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = 'rgba(255,0,0,1)';
+      ctx.shadowBlur = 35;
+
+      ctx.fillStyle = gradient;
+      ctx.fillText(this.bossText, 0, 0);
+
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#5a0000';
+      ctx.strokeText(this.bossText, 0, 0);
+
+      ctx.restore();
     }
   }
 
@@ -1884,11 +1966,13 @@ window.addEventListener('load', function () {
       this.mouse = new Mouse(this);
       this.ui = new UI(this);
       this.explosions = [];
+      this.enemyBullets = [];
 
       this.nextRageScore = 10;
       if (this.level == 1) this.winningScore = 15;
-      else if (this.level >= 30) this.winningScore = 70;
-      else if (this.level > 10) this.winningScore = 50;
+      else if (this.level >= 51) this.winningScore = 1;
+      else if (this.level >= 31) this.winningScore = 70;
+      else if (this.level > 21) this.winningScore = 50;
       else if (this.level <= 10) this.winningScore = 30;
 
       this.equippedSuper =
@@ -2010,6 +2094,9 @@ window.addEventListener('load', function () {
         }
       });
 
+      this.enemyBullets.forEach((b) => b.update(deltaTime));
+      this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
       if (this.player.invulnerable && !this.gameOver) {
         this.player.invulnerableTimer += deltaTime;
         if (this.player.invulnerableTimer >= this.player.invulnerableInterval) {
@@ -2085,11 +2172,20 @@ window.addEventListener('load', function () {
 
             if (p instanceof Missile) {
               enemy.lives -= p.damage ?? 1;
+
+              if (enemy instanceof Angler7) {
+                enemy.reflectProjectile(p);
+              }
+
               p.markedForDeletion = true;
             } else {
               if (p instanceof TriangleProjectile && p.grace > 0) return;
 
               enemy.lives -= p.damage ?? 1;
+
+              if (enemy instanceof Angler7) {
+                enemy.reflectProjectile(p);
+              }
 
               if (p instanceof TriangleProjectile && p.split) {
                 p.split = false;
@@ -2127,7 +2223,6 @@ window.addEventListener('load', function () {
               p.markedForDeletion = true;
             }
           }
-
           if (enemy.lives <= 0 && !enemy.markedForDeletion) {
             this.handleEnemyDeath(enemy);
           }
@@ -2183,6 +2278,7 @@ window.addEventListener('load', function () {
 
         this.enemies = [];
         this.enemies.push(new Boss1(this));
+        this.ui.showBoss('BOSS INCOMING!');
       }
 
       if (
@@ -2195,6 +2291,7 @@ window.addEventListener('load', function () {
 
         this.enemies = [];
         this.enemies.push(new Boss2(this));
+        this.ui.showBoss('BOSS INCOMING!');
       }
 
       if (
@@ -2207,6 +2304,7 @@ window.addEventListener('load', function () {
 
         this.enemies = [];
         this.enemies.push(new Boss3(this));
+        this.ui.showBoss('BOSS INCOMING!');
       }
 
       if (
@@ -2219,6 +2317,7 @@ window.addEventListener('load', function () {
 
         this.enemies = [];
         this.enemies.push(new Boss4(this));
+        this.ui.showBoss('BOSS INCOMING!');
       }
 
       if (
@@ -2231,6 +2330,33 @@ window.addEventListener('load', function () {
 
         this.enemies = [];
         this.enemies.push(new Boss5(this));
+        this.ui.showBoss('BOSS INCOMING!');
+      }
+
+      if (
+        this.level === 50 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss6(this));
+        this.ui.showBoss('BOSS INCOMING!');
+      }
+
+      if (
+        this.level === 60 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss7(this));
+        this.ui.showBoss('BOSS INCOMING!');
       }
 
       if (this.player.lives <= 0 && !this.gameOver) {
@@ -2249,6 +2375,8 @@ window.addEventListener('load', function () {
         this.level !== 20 &&
         this.level !== 30 &&
         this.level !== 40 &&
+        this.level !== 50 &&
+        this.level !== 60 &&
         !this.gameOver &&
         !this.upgradeCardsShowing &&
         this.score >= this.winningScore
@@ -2457,6 +2585,7 @@ window.addEventListener('load', function () {
       if (this.upgradeCardsShowing) {
         this.upgradeCards.forEach((card) => card.draw(context));
       }
+      this.enemyBullets.forEach((b) => b.draw(ctx));
 
       this.player.draw(context);
 
@@ -2523,7 +2652,10 @@ window.addEventListener('load', function () {
       if (
         enemy instanceof Boss1 ||
         enemy instanceof Boss2 ||
-        enemy instanceof Boss3
+        enemy instanceof Boss3 ||
+        enemy instanceof Boss5 ||
+        enemy instanceof Boss6 ||
+        enemy instanceof Boss7
       ) {
         this.bossActive = false;
         this.bossKilled = true;
