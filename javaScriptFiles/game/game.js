@@ -1974,11 +1974,11 @@ window.addEventListener('load', function () {
       if (this.level == 1) this.winningScore = 15;
       else if (this.level >= 51) this.winningScore = 100;
       else if (this.level >= 31) this.winningScore = 70;
-      else if (this.level > 21) this.winningScore = 50;
-      else if (this.level <= 10) this.winningScore = 30;
+      else if (this.level >= 11) this.winningScore = 50;
+      else this.winningScore = 30;
 
       this.equippedSuper =
-        localStorage.getItem('equippedSuper') || 'waveShield';
+        localStorage.getItem('equippedSuper') || 'superLaser';
       this.superAttacks = [];
       this.superAttackGauge = 0;
       const superMap = window.SUPER_TYPES || {};
@@ -2484,7 +2484,7 @@ window.addEventListener('load', function () {
       if (this.gameOver && !this.rewardGiven) {
         if (bgMusic) bgMusic.pause();
         if (this.win) {
-          const reward = 30 + Math.floor(this.score * 1.2) + this.level * 8;
+          const reward = Math.floor(22 + this.level * 3.5 + this.score * 0.4);
 
           grantCoins(reward);
           unlockNextLevel(this.level);
@@ -2977,12 +2977,20 @@ function showVictoryScreen(data) {
   if (typeof bgMusic !== 'undefined' && bgMusic) {
     bgMusic.pause();
   }
+
   const screen = document.getElementById('victoryScreen');
+  const box = screen.querySelector('.victoryBox');
   const text = document.getElementById('rewardText');
   const title = screen.querySelector('h2');
   const nextBtn = document.getElementById('btnNext');
 
+  screen.classList.remove('hidden', 'is-win', 'is-lose');
+  box.classList.remove('is-win', 'is-lose');
+
   if (data.win) {
+    screen.classList.add('is-win');
+    box.classList.add('is-win');
+
     title.textContent = 'Victory!';
     text.textContent = `You earned ${data.reward} coins`;
     nextBtn.textContent = 'Next Level';
@@ -2991,6 +2999,9 @@ function showVictoryScreen(data) {
       window.location.href = `game.html?level=${data.level + 1}`;
     };
   } else {
+    screen.classList.add('is-lose');
+    box.classList.add('is-lose');
+
     title.textContent = 'Game Over!';
     text.textContent = 'Better luck next time!';
     nextBtn.textContent = 'Try Again';
@@ -2999,8 +3010,6 @@ function showVictoryScreen(data) {
       window.location.href = `game.html?level=${data.level}`;
     };
   }
-
-  screen.classList.remove('hidden');
 
   document.getElementById('btnLobby').onclick = () => {
     window.location.href = 'index.html';

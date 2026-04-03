@@ -118,11 +118,11 @@ class SuperLaser {
     this.game = game;
     this.width = 40;
     this.height = game.height;
-    this.lifeTime = 4000;
+    this.lifeTime = 6000;
     this.timer = 0;
     this.x = 0;
     this.y = 0;
-    this.damagePerTick = 1.2;
+    this.damagePerTick = 1;
     this.hitInterval = 200;
     this.markedForDeletion = false;
     this.hitTimers = new Map();
@@ -213,5 +213,5 @@ window.SuperAttack1 = SuperAttack1;
 window.SuperLaser = SuperLaser;
 window.SUPER_TYPES = {
   waveShield: { class: SuperAttack1, duration: 500, charge: 5 },
-  superLaser: { class: SuperLaser, duration: 4000, charge: 9 },
+  superLaser: { class: SuperLaser, duration: 4000, charge: 5 },
 };

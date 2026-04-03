@@ -257,6 +257,148 @@ body {
   filter: brightness(1.06);
 }
 
+#victoryScreen.is-win .victoryBox,
+.victoryBox.is-win {
+  color: rgba(255, 248, 220, 0.98);
+  background:
+    radial-gradient(
+      120% 140% at 20% 10%,
+      rgba(255, 230, 120, 0.28),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 140% at 80% 90%,
+      rgba(255, 180, 0, 0.2),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(42, 28, 6, 0.96), rgba(18, 12, 3, 0.96));
+  border: 1px solid rgba(255, 215, 80, 0.65);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 28px rgba(255, 210, 80, 0.3);
+}
+
+#victoryScreen.is-win .victoryBox::after,
+.victoryBox.is-win::after {
+  background: radial-gradient(
+    80% 60% at 50% 0%,
+    rgba(255, 225, 120, 0.24),
+    transparent 60%
+  );
+}
+
+#victoryScreen.is-win #btnLobby {
+  color: rgba(255, 248, 230, 0.96);
+  background: linear-gradient(
+    145deg,
+    rgba(140, 100, 30, 0.85),
+    rgba(70, 45, 10, 0.95)
+  );
+  border: 1px solid rgba(255, 210, 100, 0.35);
+  box-shadow:
+    0 8px 0 rgba(55, 32, 8, 0.95),
+    0 0 18px rgba(255, 200, 70, 0.18);
+}
+
+#victoryScreen.is-win #btnLobby:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(55, 32, 8, 0.95),
+    0 0 14px rgba(255, 200, 70, 0.14);
+}
+
+#victoryScreen.is-win #btnNext {
+  color: rgba(40, 24, 0, 0.95);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 236, 140, 1),
+    rgba(255, 190, 40, 0.98)
+  );
+  border: 1px solid rgba(255, 230, 120, 0.65);
+  box-shadow:
+    0 8px 0 rgba(150, 95, 0, 0.95),
+    0 0 24px rgba(255, 220, 90, 0.28);
+}
+
+#victoryScreen.is-win #btnNext:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(150, 95, 0, 0.95),
+    0 0 18px rgba(255, 220, 90, 0.22);
+}
+
+#victoryScreen.is-lose .victoryBox,
+.victoryBox.is-lose {
+  color: rgba(255, 230, 230, 0.97);
+  background:
+    radial-gradient(
+      120% 140% at 20% 10%,
+      rgba(255, 70, 70, 0.24),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 140% at 80% 90%,
+      rgba(140, 0, 0, 0.22),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(34, 6, 10, 0.96), rgba(16, 3, 6, 0.96));
+  border: 1px solid rgba(255, 90, 90, 0.58);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 24px rgba(255, 60, 60, 0.24);
+}
+
+#victoryScreen.is-lose .victoryBox::after,
+.victoryBox.is-lose::after {
+  background: radial-gradient(
+    80% 60% at 50% 0%,
+    rgba(255, 80, 80, 0.18),
+    transparent 60%
+  );
+}
+
+#victoryScreen.is-lose #btnLobby {
+  color: rgba(255, 235, 235, 0.95);
+  background: linear-gradient(
+    145deg,
+    rgba(110, 35, 35, 0.88),
+    rgba(45, 10, 10, 0.96)
+  );
+  border: 1px solid rgba(255, 120, 120, 0.24);
+  box-shadow:
+    0 8px 0 rgba(35, 8, 8, 0.96),
+    0 0 18px rgba(255, 80, 80, 0.16);
+}
+
+#victoryScreen.is-lose #btnLobby:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(35, 8, 8, 0.96),
+    0 0 14px rgba(255, 80, 80, 0.12);
+}
+
+#victoryScreen.is-lose #btnNext {
+  color: rgba(255, 245, 245, 0.98);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 90, 90, 0.98),
+    rgba(180, 10, 10, 0.98)
+  );
+  border: 1px solid rgba(255, 130, 130, 0.45);
+  box-shadow:
+    0 8px 0 rgba(100, 0, 0, 0.95),
+    0 0 22px rgba(255, 70, 70, 0.24);
+}
+
+#victoryScreen.is-lose #btnNext:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(100, 0, 0, 0.95),
+    0 0 16px rgba(255, 70, 70, 0.18);
+}
+
 @keyframes shine {
   from {
     left: -150%;

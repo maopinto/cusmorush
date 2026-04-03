@@ -121,7 +121,7 @@ const SUPERS = {
     titleKey: 'super.waveShield.title',
     descKey: 'super.waveShield.desc',
     img: './images/logosImage/superLogosImage/waveShield.png',
-    price: 0,
+    price: 1500,
     stats: {
       Duration: '6s',
       Cooldown: '20s',
@@ -133,7 +133,7 @@ const SUPERS = {
     titleKey: 'super.superLaser.title',
     descKey: 'super.superLaser.desc',
     img: './images/logosImage/superLogosImage/superLaser.png',
-    price: 1500,
+    price: 0,
     stats: {
       Duration: '5s',
       Damage: '0.5 Per second',
@@ -847,9 +847,12 @@ document.getElementById('buyConfirmBtn').addEventListener('click', () => {
   owned.push(selectedWeaponId);
   saveOwnedWeapons(owned);
 
+  setEquippedWeapon(selectedWeaponId);
+  playEquipSound();
+
   document.getElementById('buyWeaponPopup')?.classList.remove('open');
 
-  showToast(`You bought ${weapon.name}!`, 'success');
+  showToast(`You bought and equipped ${weapon.name}!`, 'success');
 
   renderInventoryOverview();
   updateEquipUI();
@@ -932,15 +935,15 @@ function buyPet(id) {
   coins -= pet.price;
   saveCoins();
   updateCoinsUI();
-
   const owned = getOwnedPets();
   owned.push(id);
   saveOwnedPets(owned);
 
   setEquippedPet(id);
+  playEquipSound();
   updatePetUI();
 
-  showToast(`You bought ${pet.name}!`, 'success');
+  showToast(`You bought and equipped ${pet.name}!`, 'success');
 
   const card = document.querySelector(`.petCard[data-pet="${id}"]`);
   if (card) {
@@ -1184,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const key = 'equippedSuper';
 
   if (!localStorage.getItem(key)) {
-    localStorage.setItem(key, 'waveShield');
+    localStorage.setItem(key, 'superLaser');
   }
 
   ensureEquippedSuper();
@@ -1206,7 +1209,7 @@ function ensureEquippedSuper() {
 
   if (equipped && SUPERS[equipped]) return;
 
-  setEquippedSuper('waveShield');
+  setEquippedSuper('superLaser');
 }
 
 function setEquippedSuper(id) {
@@ -1274,8 +1277,9 @@ function buySuper(id) {
   owned.push(id);
   saveOwnedSupers(owned);
 
+  setEquippedSuper(id);
   playEquipSound();
-  showToast(`${superData.title} purchased!`, 'success');
+  showToast(`Super purchased and equipped!`, 'success');
 
   updateSuperEquipUI();
 }
@@ -1315,13 +1319,14 @@ function confirmBuySuper() {
   owned.push(pendingSuperBuy);
   saveOwnedSupers(owned);
 
-  showToast(`${data.title} unlocked!`, 'success');
+  setEquippedSuper(pendingSuperBuy);
   playEquipSound();
+
+  showToast(`Super unlocked and equipped!`, 'success');
 
   pendingSuperBuy = null;
   closeBuySuperConfirm();
   updateSuperEquipUI();
-  ensureEquippedSuper();
 }
 
 function closeBuySuperConfirm() {
@@ -1373,30 +1378,51 @@ function updateLevelsMap() {
 
   document.querySelectorAll('.levelNode').forEach((node) => {
     const btn = node.querySelector('.levelsBtn');
-    const level = Number(btn.textContent);
+    const level = Number(btn.textContent.trim());
+    const isBossLevel = level % 10 === 0;
+    const isLocked = level > maxLevel;
+    const isCurrent = level === maxLevel;
 
-    if (level > maxLevel) {
+    node.classList.remove(
+      'locked',
+      'current-node',
+      'boss-node',
+      'boss-current'
+    );
+    btn.classList.remove(
+      'locked-btn',
+      'current',
+      'boss-btn',
+      'boss-current-btn'
+    );
+
+    if (isLocked) {
       node.classList.add('locked');
-      btn.classList.remove('current');
-    } else if (level === maxLevel) {
-      node.classList.remove('locked');
-      btn.classList.add('current');
-    } else {
-      node.classList.remove('locked');
-      btn.classList.remove('current');
+      btn.classList.add('locked-btn');
     }
 
-    if (level === maxLevel) {
-      node.classList.remove('locked');
+    if (isCurrent) {
       node.classList.add('current-node');
       btn.classList.add('current');
+    }
+
+    if (isBossLevel) {
+      node.classList.add('boss-node');
+      btn.classList.add('boss-btn');
+
+      if (isLocked) {
+        btn.classList.add('boss-locked-btn');
+      }
+
+      if (isCurrent) {
+        node.classList.add('boss-current');
+        btn.classList.add('boss-current-btn');
+      }
     } else {
-      node.classList.remove('current-node');
-      btn.classList.remove('current');
+      btn.classList.remove('boss-locked-btn');
     }
   });
 }
-
 function toggleSocial(e) {
   e.stopPropagation();
 
