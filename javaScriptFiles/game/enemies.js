@@ -1382,6 +1382,200 @@ class FreezeBullet {
   }
 }
 
+class Angler9 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 90;
+    this.height = 90;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 16;
+    this.speedY = 1.15;
+    this.speedX = Math.random() < 0.5 ? -1.6 : 1.6;
+
+    this.trailTimer = 0;
+    this.trailInterval = 170;
+
+    this.image = document.getElementById('angler9Sprite');
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 100;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = Math.floor(iw / this.frames);
+      this.spriteHeight = ih;
+    }
+  }
+
+  update(deltaTime) {
+    if (this.mindControlled && this.mindTarget) {
+      super.update(deltaTime);
+      return;
+    }
+
+    this.y += this.speedY;
+    this.x += this.speedX;
+
+    if (this.x <= 0) {
+      this.x = 0;
+      this.speedX *= -1;
+    }
+
+    if (this.x + this.width >= this.game.width) {
+      this.x = this.game.width - this.width;
+      this.speedX *= -1;
+    }
+
+    this.trailTimer += deltaTime;
+    if (this.trailTimer >= this.trailInterval) {
+      this.dropFireTrail();
+      this.trailTimer = 0;
+    }
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (this.y > this.game.height + this.height) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  dropFireTrail() {
+    this.game.fireTrails.push(
+      new FireTrail(
+        this.game,
+        this.x + this.width / 2 - 24,
+        this.y + this.height - 10
+      )
+    );
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    ctx.shadowColor = 'rgba(255,120,0,0.55)';
+    ctx.shadowBlur = 16;
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      this.frameY * this.spriteHeight,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
+    ctx.restore();
+  }
+}
+
+class FireTrail {
+  constructor(game, x, y) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+
+    this.width = 52;
+    this.height = 52;
+
+    this.life = 0;
+    this.maxLife = 2400;
+
+    this.damageCooldown = 0;
+    this.markedForDeletion = false;
+  }
+
+  update(deltaTime) {
+    this.life += deltaTime;
+
+    if (this.damageCooldown > 0) {
+      this.damageCooldown -= deltaTime;
+    }
+
+    if (
+      !this.game.player.invulnerable &&
+      checkCollision(this, this.game.player) &&
+      !this.game.gameOver &&
+      this.damageCooldown <= 0
+    ) {
+      this.game.player.lives--;
+      this.game.player.invulnerable = true;
+      this.game.player.invulnerableTimer = 0;
+      this.game.triggerShake(400, 16);
+      this.damageCooldown = 300;
+    }
+
+    if (this.life >= this.maxLife) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const p = this.life / this.maxLife;
+    const fade = 1 - p;
+
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, this.width * 0.9);
+    glow.addColorStop(0, `rgba(255,255,180,${0.95 * fade})`);
+    glow.addColorStop(0.25, `rgba(255,180,0,${0.85 * fade})`);
+    glow.addColorStop(0.6, `rgba(255,80,0,${0.55 * fade})`);
+    glow.addColorStop(1, 'rgba(255,0,0,0)');
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.width * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+
+    const t = performance.now() * 0.015;
+
+    ctx.fillStyle = `rgba(255,220,120,${0.85 * fade})`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 18);
+    ctx.quadraticCurveTo(cx - 14, cy + 2, cx - 7, cy - 16 + Math.sin(t) * 3);
+    ctx.quadraticCurveTo(cx, cy - 28 + Math.sin(t * 1.2) * 4, cx + 7, cy - 14);
+    ctx.quadraticCurveTo(cx + 15, cy + 3, cx, cy + 18);
+    ctx.fill();
+
+    ctx.fillStyle = `rgba(255,90,0,${0.9 * fade})`;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 15);
+    ctx.quadraticCurveTo(
+      cx - 10,
+      cy + 2,
+      cx - 5,
+      cy - 9 + Math.sin(t * 1.4) * 2
+    );
+    ctx.quadraticCurveTo(cx, cy - 18 + Math.sin(t * 1.1) * 3, cx + 5, cy - 8);
+    ctx.quadraticCurveTo(cx + 11, cy + 2, cx, cy + 15);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
 window.Enemy = Enemy;
 window.Angler1 = Angler1;
 window.Angler2 = Angler2;
@@ -1397,3 +1591,5 @@ window.Angler7 = Angler7;
 window.ReflectedShot = ReflectedShot;
 window.Angler8 = Angler8;
 window.FreezeBullet = FreezeBullet;
+window.Angler9 = Angler9;
+window.FireTrail = FireTrail;

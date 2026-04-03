@@ -2523,7 +2523,7 @@ class Boss7 extends BossBase {
     super(game);
 
     this.width = 180;
-    this.height = 180;
+    this.height = 210;
 
     this.x = this.game.width / 2 - this.width / 2;
     this.y = -this.height;
@@ -2531,58 +2531,89 @@ class Boss7 extends BossBase {
     this.baseY = 90;
     this.entered = false;
 
-    this.maxLives = 300;
+    this.maxLives = 420;
     this.lives = this.maxLives;
 
-    this.speedX = 2.4;
-    this.speedY = 1.4;
+    this.speedX = 3.2;
+    this.speedY = 1.5;
     this.dirX = 1;
 
     this.phase = 1;
 
     this.hitFlash = 0;
 
-    this.attackCooldown = 2600;
+    this.attackCooldown = 2000;
     this.attackTimer = 0;
 
     this.state = 'idle';
     this.stateTimer = 0;
 
-    this.shotsToFire = 1;
+    this.shotsToFire = 2;
     this.shotsFired = 0;
-    this.shotDelay = 500;
-    this.chargeDuration = 950;
-    this.laserDuration = 180;
-    this.currentLaserWidth = 14;
+    this.shotDelay = 380;
+    this.chargeDuration = 760;
+    this.laserDuration = 240;
+    this.currentLaserWidth = 20;
 
     this.lockedTarget = null;
     this.activeLasers = [];
+
+    this.hoverTime = 0;
+    this.hoverAmp = 18;
+
+    this.image =
+      document.getElementById('boss7Sprite') ||
+      cached?.dom?.boss7Sprite ||
+      null;
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 100;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
   }
 
   handlePhases() {
     const hpPercent = this.lives / this.maxLives;
 
-    if (hpPercent < 0.65 && this.phase === 1) {
+    if (hpPercent < 0.75 && this.phase === 1) {
       this.phase = 2;
-      this.attackCooldown = 2200;
+      this.speedX = 4;
+      this.attackCooldown = 1450;
+      this.chargeDuration = 620;
+      this.laserDuration = 270;
+      this.hoverAmp = 24;
     }
 
-    if (hpPercent < 0.3 && this.phase === 2) {
+    if (hpPercent < 0.4 && this.phase === 2) {
       this.phase = 3;
-      this.attackCooldown = 1800;
+      this.speedX = 4.9;
+      this.attackCooldown = 950;
+      this.chargeDuration = 500;
+      this.laserDuration = 320;
+      this.hoverAmp = 30;
     }
   }
 
   getPhaseShotCount() {
-    if (this.phase === 1) return 1;
+    if (this.phase === 1) return 2;
     if (this.phase === 2) return 2;
     return 3;
   }
 
   getPhaseLaserWidth() {
-    if (this.phase === 1) return 20;
-    if (this.phase === 2) return 34;
-    return 52;
+    if (this.phase === 1) return 24;
+    if (this.phase === 2) return 40;
+    return 60;
   }
 
   lockTarget() {
@@ -2597,15 +2628,23 @@ class Boss7 extends BossBase {
   getMuzzle() {
     return {
       x: this.x + this.width / 2,
-      y: this.y + this.height * 0.78,
+      y: this.y + this.height * 0.6,
     };
   }
 
   getAttackInterval() {
     const hpRatio = this.lives / this.maxLives;
-
-    const slow = 2200;
+    const slow = 1900;
     const fast = 500;
+
+    return fast + (slow - fast) * hpRatio;
+  }
+
+  getShotDelay() {
+    const hpRatio = this.lives / this.maxLives;
+
+    const slow = 420;
+    const fast = 180;
 
     return fast + (slow - fast) * hpRatio;
   }
@@ -2620,17 +2659,35 @@ class Boss7 extends BossBase {
       this.game.spawnSparks(muzzle.x, muzzle.y, 18, 8);
     }
 
-    this.activeLasers.push(
-      new Boss7Laser(
-        this.game,
-        muzzle.x,
-        muzzle.y,
-        this.lockedTarget.x,
-        this.lockedTarget.y,
-        this.currentLaserWidth,
-        this.laserDuration
-      )
-    );
+    const targets = [{ x: this.lockedTarget.x, y: this.lockedTarget.y }];
+
+    if (this.phase >= 2) {
+      targets.push(
+        { x: this.lockedTarget.x - 90, y: this.lockedTarget.y },
+        { x: this.lockedTarget.x + 90, y: this.lockedTarget.y }
+      );
+    }
+
+    if (this.phase >= 3) {
+      targets.push(
+        { x: this.lockedTarget.x - 170, y: this.lockedTarget.y },
+        { x: this.lockedTarget.x + 170, y: this.lockedTarget.y }
+      );
+    }
+
+    targets.forEach((target) => {
+      this.activeLasers.push(
+        new Boss7Laser(
+          this.game,
+          muzzle.x,
+          muzzle.y,
+          target.x,
+          target.y,
+          this.currentLaserWidth,
+          this.laserDuration
+        )
+      );
+    });
   }
 
   startAttackSequence() {
@@ -2641,15 +2698,6 @@ class Boss7 extends BossBase {
     this.lockTarget();
     this.state = 'charging';
     this.stateTimer = 0;
-  }
-
-  getShotDelay() {
-    const hpRatio = this.lives / this.maxLives;
-
-    const slow = 500;
-    const fast = 180;
-
-    return fast + (slow - fast) * hpRatio;
   }
 
   updateAttackState(deltaTime) {
@@ -2693,15 +2741,14 @@ class Boss7 extends BossBase {
   }
 
   update(deltaTime) {
-    if (this.game.upgradeCardsShowing) return;
-
-    const dt = deltaTime / 16.67;
-
     this.frameTimer += deltaTime;
     if (this.frameTimer >= this.frameInterval) {
       this.frameX = (this.frameX + 1) % this.frames;
       this.frameTimer = 0;
     }
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
 
     if (!this.entered) {
       this.y += this.speedY * dt;
@@ -2714,7 +2761,9 @@ class Boss7 extends BossBase {
 
     this.handlePhases();
 
+    this.hoverTime += deltaTime * 0.0018;
     this.x += this.speedX * this.dirX * dt;
+    this.y = this.baseY + Math.sin(this.hoverTime * 2.2) * this.hoverAmp;
 
     if (this.x <= 0) {
       this.x = 0;
@@ -2755,27 +2804,27 @@ class Boss7 extends BossBase {
     const xEnd = this.lockedTarget.x + dirX * EXTEND;
     const yEnd = this.lockedTarget.y + dirY * EXTEND;
 
-    const width = Math.max(8, this.currentLaserWidth * (0.45 + progress * 0.9));
+    const width = Math.max(10, this.currentLaserWidth * (0.5 + progress));
 
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
 
-    ctx.strokeStyle = `rgba(255,40,40,${0.16 + progress * 0.18})`;
-    ctx.lineWidth = width * 3.4 * pulse;
+    ctx.strokeStyle = `rgba(255,40,40,${0.18 + progress * 0.2})`;
+    ctx.lineWidth = width * 3.6 * pulse;
     ctx.beginPath();
     ctx.moveTo(xStart, yStart);
     ctx.lineTo(xEnd, yEnd);
     ctx.stroke();
 
-    ctx.strokeStyle = `rgba(255,80,80,${0.45 + progress * 0.35})`;
-    ctx.lineWidth = width * 1.8 * pulse;
+    ctx.strokeStyle = `rgba(255,80,80,${0.5 + progress * 0.35})`;
+    ctx.lineWidth = width * 2 * pulse;
     ctx.beginPath();
     ctx.moveTo(xStart, yStart);
     ctx.lineTo(xEnd, yEnd);
     ctx.stroke();
 
-    ctx.strokeStyle = `rgba(255,255,255,${0.65 + progress * 0.25})`;
-    ctx.lineWidth = Math.max(2, width * 0.22);
+    ctx.strokeStyle = `rgba(255,255,255,${0.7 + progress * 0.25})`;
+    ctx.lineWidth = Math.max(2, width * 0.24);
     ctx.beginPath();
     ctx.moveTo(xStart, yStart);
     ctx.lineTo(xEnd, yEnd);
@@ -2786,13 +2835,32 @@ class Boss7 extends BossBase {
 
   draw(ctx) {
     ctx.save();
-    ctx.fillStyle = '#ff1e00';
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      0,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
     ctx.restore();
 
     this.drawChargeLine(ctx);
     this.activeLasers.forEach((laser) => laser.draw(ctx));
     this.drawHealthBar(ctx);
+
+    if (this.state === 'charging') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(255,0,0,0.4)';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.restore();
+    }
   }
 }
 
@@ -2961,6 +3029,551 @@ class Boss7Laser {
   }
 }
 
+class Boss8 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 160;
+    this.height = 190;
+
+    this.x = this.game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 85;
+    this.entered = false;
+
+    this.maxLives = 520;
+    this.lives = this.maxLives;
+
+    this.speedX = 3.2;
+    this.speedY = 1.4;
+    this.dirX = 1;
+
+    this.phase = 1;
+    this.hitFlash = 0;
+
+    this.enemyBullets = [];
+
+    this.hoverTime = 0;
+    this.hoverAmp = 16;
+
+    this.normalShootTimer = 0;
+    this.normalShootInterval = 420;
+
+    this.burstTimer = 0;
+    this.burstInterval = 1800;
+
+    this.magnetShootTimer = 0;
+    this.magnetShootInterval = 3600;
+
+    this.pullPlayerTimer = 0;
+    this.pullPlayerDuration = 1400;
+    this.pullStrength = 5.2;
+
+    this.image = document.getElementById('boss8Sprite') || null;
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 120;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
+  }
+
+  handlePhases() {
+    const hpPercent = this.lives / this.maxLives;
+
+    if (hpPercent < 0.7 && this.phase === 1) {
+      this.phase = 2;
+      this.speedX = 3.8;
+      this.normalShootInterval = 360;
+      this.burstInterval = 1550;
+      this.hoverAmp = 22;
+    }
+
+    if (hpPercent < 0.35 && this.phase === 2) {
+      this.phase = 3;
+      this.speedX = 4.5;
+      this.normalShootInterval = 300;
+      this.burstInterval = 1250;
+      this.pullStrength = 2.2;
+      this.pullPlayerDuration = 1200;
+      this.hoverAmp = 28;
+    }
+  }
+
+  getMuzzle() {
+    return {
+      x: this.x + this.width / 2,
+      y: this.y + this.height * 0.72,
+    };
+  }
+
+  startPullEffect() {
+    this.pullPlayerTimer = this.pullPlayerDuration;
+    this.game.player.magnetLocked = true;
+    this.game.triggerShake(500, 20);
+  }
+
+  getMagnetShootInterval() {
+    const hpRatio = this.lives / this.maxLives;
+    const slow = 3600;
+    const fast = 1200;
+    return fast + (slow - fast) * hpRatio;
+  }
+
+  applyPullToPlayer(deltaTime) {
+    if (this.pullPlayerTimer <= 0) {
+      this.game.player.magnetLocked = false;
+      return;
+    }
+
+    const player = this.game.player;
+    const dt = deltaTime / 16.67;
+
+    const playerCenterX = player.x + player.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+
+    const bossCenterX = this.x + this.width / 2;
+    const bossCenterY = this.y + this.height / 2;
+
+    const dx = bossCenterX - playerCenterX;
+    const dy = bossCenterY - playerCenterY;
+    const dist = Math.hypot(dx, dy) || 1;
+
+    const dirX = dx / dist;
+    const dirY = dy / dist;
+
+    const progress = this.pullPlayerTimer / this.pullPlayerDuration;
+
+    let force = this.pullStrength;
+
+    if (dist > 260) force *= 1.9;
+    else if (dist > 180) force *= 1.45;
+    else if (dist > 100) force *= 1.15;
+
+    if (progress > 0.65) force *= 1.35;
+
+    player.x += dirX * force * dt;
+    player.y += dirY * force * dt;
+
+    if (player.x < 0) player.x = 0;
+    if (player.x + player.width > this.game.width) {
+      player.x = this.game.width - player.width;
+    }
+
+    if (player.y < 0) player.y = 0;
+    if (player.y + player.height > this.game.height) {
+      player.y = this.game.height - player.height;
+    }
+
+    this.pullPlayerTimer -= deltaTime;
+
+    if (this.pullPlayerTimer <= 0) {
+      this.pullPlayerTimer = 0;
+      this.game.player.magnetLocked = false;
+    }
+  }
+
+  shootNormalSpread(count = 3, spread = 0.22, speed = 5.6) {
+    const muzzle = this.getMuzzle();
+    const player = this.game.player;
+
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+
+    const dx = px - muzzle.x;
+    const dy = py - muzzle.y;
+    const angle = Math.atan2(dy, dx);
+
+    if (count === 1) {
+      this.enemyBullets.push(
+        new Boss8Bullet(
+          this.game,
+          muzzle.x - 8,
+          muzzle.y - 8,
+          Math.cos(angle) * speed,
+          Math.sin(angle) * speed,
+          false
+        )
+      );
+      return;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1);
+      const a = angle - spread + t * spread * 2;
+
+      this.enemyBullets.push(
+        new Boss8Bullet(
+          this.game,
+          muzzle.x - 8,
+          muzzle.y - 8,
+          Math.cos(a) * speed,
+          Math.sin(a) * speed,
+          false
+        )
+      );
+    }
+  }
+
+  shootMagnetBullet() {
+    const muzzle = this.getMuzzle();
+    const player = this.game.player;
+
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+
+    const dx = px - muzzle.x;
+    const dy = py - muzzle.y;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const speed = this.phase === 1 ? 4.3 : this.phase === 2 ? 4.9 : 5.4;
+
+    this.enemyBullets.push(
+      new Boss8Bullet(
+        this.game,
+        muzzle.x - 14,
+        muzzle.y - 14,
+        (dx / len) * speed,
+        (dy / len) * speed,
+        true,
+        this
+      )
+    );
+  }
+
+  update(deltaTime) {
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    if (this.game.upgradeCardsShowing) return;
+
+    const dt = deltaTime / 16.67;
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+      }
+      return;
+    }
+
+    this.handlePhases();
+
+    this.hoverTime += deltaTime * 0.0018;
+    this.x += this.speedX * this.dirX * dt;
+    this.y = this.baseY + Math.sin(this.hoverTime * 2.1) * this.hoverAmp;
+
+    if (this.x <= 0) {
+      this.x = 0;
+      this.dirX = 1;
+    } else if (this.x + this.width >= this.game.width) {
+      this.x = this.game.width - this.width;
+      this.dirX = -1;
+    }
+
+    this.normalShootTimer += deltaTime;
+    this.burstTimer += deltaTime;
+    this.magnetShootTimer += deltaTime;
+
+    if (
+      !this.game.gameOver &&
+      this.normalShootTimer >= this.normalShootInterval
+    ) {
+      this.normalShootTimer = 0;
+      this.shootNormalSpread(1, 0, this.phase === 3 ? 5.8 : 5.2);
+    }
+
+    if (!this.game.gameOver && this.burstTimer >= this.burstInterval) {
+      this.burstTimer = 0;
+
+      if (this.phase === 1) {
+        this.shootNormalSpread(2, 0.16, 5.1);
+      } else if (this.phase === 2) {
+        this.shootNormalSpread(3, 0.24, 5.3);
+      } else {
+        this.shootNormalSpread(5, 0.34, 5.6);
+      }
+    }
+
+    const magnetInterval = this.getMagnetShootInterval();
+
+    if (!this.game.gameOver && this.magnetShootTimer >= magnetInterval) {
+      this.magnetShootTimer = 0;
+      this.shootMagnetBullet();
+
+      if (this.phase >= 3) {
+        setTimeout(() => {
+          if (!this.markedForDeletion && !this.game.gameOver) {
+            this.shootMagnetBullet();
+          }
+        }, 420);
+      }
+    }
+
+    this.applyPullToPlayer(deltaTime);
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  drawPullAura(ctx) {
+    if (this.pullPlayerTimer <= 0) return;
+
+    const p = this.pullPlayerTimer / this.pullPlayerDuration;
+    const r = 80 + (1 - p) * 70;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = `rgba(120,220,255,${0.22 + p * 0.35})`;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.arc(
+      this.x + this.width / 2,
+      this.y + this.height / 2,
+      r,
+      0,
+      Math.PI * 2
+    );
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(255,255,255,${0.15 + p * 0.2})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(
+      this.x + this.width / 2,
+      this.y + this.height / 2,
+      r * 0.72,
+      0,
+      Math.PI * 2
+    );
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    if (this.hitFlash > 0) {
+      ctx.globalAlpha = 0.78 + Math.sin(performance.now() * 0.05) * 0.22;
+    }
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      0,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
+    ctx.restore();
+
+    this.drawPullAura(ctx);
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+class Boss8Bullet {
+  constructor(game, x, y, vx, vy, isMagnet = false, bossRef = null) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.isMagnet = isMagnet;
+    this.bossRef = bossRef;
+
+    this.width = isMagnet ? 28 : 24;
+    this.height = isMagnet ? 28 : 24;
+
+    this.markedForDeletion = false;
+    this.rotation = 0;
+    this.rotationSpeed = isMagnet ? 0.16 : 0.24;
+    this.lives = isMagnet ? 5 : 1;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += this.rotationSpeed * dt;
+
+    if (!this.isMagnet) {
+      const shots = this.game.player.projectiles;
+      for (let i = 0; i < shots.length; i++) {
+        const p = shots[i];
+        if (p.markedForDeletion) continue;
+
+        if (window.checkCollision(p, this)) {
+          p.markedForDeletion = true;
+          this.markedForDeletion = true;
+          break;
+        }
+      }
+    }
+
+    if (
+      !this.game.player.invulnerable &&
+      window.checkCollision(this.game.player, this)
+    ) {
+      this.game.player.lives--;
+      this.game.player.invulnerable = true;
+      this.game.player.invulnerableTimer = 0;
+      this.game.triggerShake(520, this.isMagnet ? 30 : 22);
+
+      if (this.isMagnet && this.bossRef) {
+        this.bossRef.startPullEffect();
+      }
+
+      this.markedForDeletion = true;
+    }
+
+    if (
+      this.y > this.game.height + this.height ||
+      this.x < -this.width ||
+      this.x > this.game.width + this.width ||
+      this.y < -this.height
+    ) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    if (this.isMagnet) {
+      ctx.rotate(this.rotation);
+      ctx.globalCompositeOperation = 'lighter';
+
+      const pulse = 0.88 + Math.sin(performance.now() * 0.015) * 0.12;
+
+      ctx.fillStyle = 'rgba(90,190,255,0.18)';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width * 1.25 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#5bd4ff';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width * 0.48, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width * 0.78, Math.PI * 0.15, Math.PI * 0.85);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width * 0.78, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.width * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      const angle = Math.atan2(this.vy, this.vx);
+      const t = performance.now() * 0.01;
+      const pulse = 0.9 + Math.sin(t * 3) * 0.1;
+
+      ctx.rotate(angle);
+      ctx.globalCompositeOperation = 'lighter';
+
+      ctx.fillStyle = 'rgba(180,80,255,0.14)';
+      ctx.beginPath();
+      ctx.ellipse(
+        0,
+        0,
+        this.width * 1.45 * pulse,
+        this.height * 1.05,
+        0,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      const trailGrad = ctx.createLinearGradient(
+        -this.width * 1.5,
+        0,
+        this.width * 0.2,
+        0
+      );
+      trailGrad.addColorStop(0, 'rgba(80,0,180,0)');
+      trailGrad.addColorStop(0.35, 'rgba(120,40,255,0.22)');
+      trailGrad.addColorStop(1, 'rgba(220,140,255,0.08)');
+
+      ctx.fillStyle = trailGrad;
+      ctx.beginPath();
+      ctx.moveTo(-this.width * 1.4, 0);
+      ctx.lineTo(-this.width * 0.2, -this.height * 0.3);
+      ctx.lineTo(-this.width * 0.2, this.height * 0.3);
+      ctx.closePath();
+      ctx.fill();
+
+      const bodyGrad = ctx.createLinearGradient(
+        -this.width * 0.8,
+        0,
+        this.width * 0.95,
+        0
+      );
+      bodyGrad.addColorStop(0, '#4e00c8');
+      bodyGrad.addColorStop(0.45, '#b55cff');
+      bodyGrad.addColorStop(1, '#ffe8ff');
+
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.moveTo(this.width * 0.95, 0);
+      ctx.lineTo(this.width * 0.15, -this.height * 0.42);
+      ctx.lineTo(-this.width * 0.55, -this.height * 0.24);
+      ctx.lineTo(-this.width * 0.2, 0);
+      ctx.lineTo(-this.width * 0.55, this.height * 0.24);
+      ctx.lineTo(this.width * 0.15, this.height * 0.42);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(this.width * 0.32, 0);
+      ctx.lineTo(-this.width * 0.02, -this.height * 0.12);
+      ctx.lineTo(-this.width * 0.12, 0);
+      ctx.lineTo(-this.width * 0.02, this.height * 0.12);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.arc(this.width * 0.08, 0, this.width * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+}
+
 window.Boss1 = Boss1;
 window.Boss1Bullet = Boss1Bullet;
 window.Boss2 = Boss2;
@@ -2975,3 +3588,5 @@ window.Boss6 = Boss6;
 window.Boss6Bullet = Boss6Bullet;
 window.Boss7 = Boss7;
 window.Boss7Laser = Boss7Laser;
+window.Boss8 = Boss8;
+window.Boss8Bullet = Boss8Bullet;

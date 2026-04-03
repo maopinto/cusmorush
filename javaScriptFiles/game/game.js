@@ -149,6 +149,7 @@ function equipSkin(id) {
 
 window.addEventListener('load', function () {
   function getBackgroundForLevel(level) {
+    if (level >= 61) return './images/game/background/lightblueSpace.png';
     if (level >= 51) return './images/game/background/orangeSpace.png';
     if (level >= 41) return './images/game/background/purpleSpace.png';
     if (level >= 31) return './images/game/background/redSpace.png';
@@ -919,6 +920,7 @@ window.addEventListener('load', function () {
       this.shootingInterval = 200;
       this.lastFireTime = 0;
       this.weapon = localStorage.getItem('equippedWeapon') || 'laser';
+      this.magnetLocked = false;
 
       const skinId = getEquippedSkin();
       this.isRedClassic = skinId === 'redclassic';
@@ -975,7 +977,7 @@ window.addEventListener('load', function () {
         }
       }
 
-      if (this.game.mouse.pressed) {
+      if (!this.magnetLocked && this.game.mouse.pressed) {
         const targetX = this.game.mouse.x - this.width / 2;
         const targetY = this.game.mouse.y - this.height / 2;
         const moveFactor = this.slowed ? 0.22 * this.moveSlowMultiplier : 0.22;
@@ -1970,7 +1972,7 @@ window.addEventListener('load', function () {
 
       this.nextRageScore = 10;
       if (this.level == 1) this.winningScore = 15;
-      else if (this.level >= 51) this.winningScore = 1;
+      else if (this.level >= 51) this.winningScore = 100;
       else if (this.level >= 31) this.winningScore = 70;
       else if (this.level > 21) this.winningScore = 50;
       else if (this.level <= 10) this.winningScore = 30;
@@ -1997,6 +1999,7 @@ window.addEventListener('load', function () {
 
       this.superGaugeVisual = 0;
 
+      this.fireTrails = [];
       this.particles = [];
       this.shake = 0;
     }
@@ -2359,6 +2362,19 @@ window.addEventListener('load', function () {
         this.ui.showBoss('BOSS INCOMING!');
       }
 
+      if (
+        this.level === 70 &&
+        !this.bossSpawned &&
+        this.score >= this.winningScore
+      ) {
+        this.bossSpawned = true;
+        this.bossActive = true;
+
+        this.enemies = [];
+        this.enemies.push(new Boss8(this));
+        this.ui.showBoss('BOSS INCOMING!');
+      }
+
       if (this.player.lives <= 0 && !this.gameOver) {
         this.gameOver = true;
         this.lost = true;
@@ -2377,6 +2393,7 @@ window.addEventListener('load', function () {
         this.level !== 40 &&
         this.level !== 50 &&
         this.level !== 60 &&
+        this.level !== 70 &&
         !this.gameOver &&
         !this.upgradeCardsShowing &&
         this.score >= this.winningScore
@@ -2549,6 +2566,10 @@ window.addEventListener('load', function () {
       this.enemyMines = this.enemyMines.filter(
         (mine) => !mine.markedForDeletion
       );
+      this.fireTrails.forEach((trail) => trail.update(deltaTime));
+      this.fireTrails = this.fireTrails.filter(
+        (trail) => !trail.markedForDeletion
+      );
     }
 
     draw(context) {
@@ -2598,6 +2619,7 @@ window.addEventListener('load', function () {
       boss4s.forEach((boss, index) => {
         boss.drawTopHealthBar(context, index, boss4s.length);
       });
+      this.fireTrails.forEach((trail) => trail.draw(ctx));
 
       this.ui.draw(context);
     }
@@ -2655,7 +2677,8 @@ window.addEventListener('load', function () {
         enemy instanceof Boss3 ||
         enemy instanceof Boss5 ||
         enemy instanceof Boss6 ||
-        enemy instanceof Boss7
+        enemy instanceof Boss7 ||
+        enemy instanceof Boss8
       ) {
         this.bossActive = false;
         this.bossKilled = true;
@@ -2672,7 +2695,6 @@ window.addEventListener('load', function () {
         )
       );
     }
-
     addEnemy() {
       if (this.level === 1) {
         this.enemies.push(new Angler1(this));
@@ -2681,14 +2703,19 @@ window.addEventListener('load', function () {
 
       if (this.bossActive) return;
 
-      const levelData = ENEMY_SPAWN_TABLE[this.level] || ENEMY_SPAWN_TABLE[1];
-      const stageData =
-        levelData.stages[this.stage] ||
-        levelData.stages[
-          Math.max(...Object.keys(levelData.stages).map(Number))
-        ];
+      const fallbackLevel = ENEMY_SPAWN_TABLE?.[1];
+      const levelData = ENEMY_SPAWN_TABLE?.[this.level] || fallbackLevel;
 
-      if (!stageData || !stageData.length) return;
+      if (!levelData || !levelData.stages) return;
+
+      const stageKeys = Object.keys(levelData.stages).map(Number);
+      if (!stageKeys.length) return;
+
+      const lastStage = Math.max(...stageKeys);
+      const stageData =
+        levelData.stages[this.stage] || levelData.stages[lastStage];
+
+      if (!Array.isArray(stageData) || !stageData.length) return;
 
       const enemyClass = this.pickWeighted(stageData);
       if (!enemyClass) return;
@@ -2706,16 +2733,6 @@ window.addEventListener('load', function () {
       }
 
       return pool[pool.length - 1]?.type || null;
-    }
-
-    pickWeighted(pool) {
-      const total = pool.reduce((s, e) => s + e.weight, 0);
-      let r = Math.random() * total;
-
-      for (const e of pool) {
-        r -= e.weight;
-        if (r <= 0) return e.type;
-      }
     }
 
     getSpawnSettings() {
