@@ -2171,7 +2171,7 @@ class Boss6 extends BossBase {
 
         if (this.lives <= 0) {
           this.lives = 0;
-          this.markedForDeletion = true;
+          this.game.handleEnemyDeath(this);
         }
       }
     }
@@ -3574,6 +3574,934 @@ class Boss8Bullet {
   }
 }
 
+class Boss9 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 220;
+    this.height = 210;
+
+    this.x = this.game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 70;
+    this.entered = false;
+
+    this.maxLives = 460;
+    this.lives = this.maxLives;
+
+    this.speedX = 3.1;
+    this.speedY = 1.45;
+    this.dirX = 1;
+
+    this.phase = 1;
+    this.hitFlash = 0;
+
+    this.hoverTime = 0;
+    this.hoverAmp = 16;
+    this.lastPlayerX = null;
+
+    this.waveWalls = [];
+    this.waveTimer = 0;
+    this.baseWaveInterval = 2100;
+
+    this.image = document.getElementById('boss9Sprite');
+
+    this.frames = 7;
+    this.frameX = 0;
+    this.frameY = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 130;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = Math.floor(iw / this.frames);
+      this.spriteHeight = ih;
+    }
+  }
+
+  handlePhases() {
+    const hpPercent = this.lives / this.maxLives;
+
+    if (hpPercent < 0.68 && this.phase === 1) {
+      this.phase = 2;
+      this.speedX = 3.7;
+      this.hoverAmp = 22;
+      this.frameInterval = 92;
+    }
+
+    if (hpPercent < 0.34 && this.phase === 2) {
+      this.phase = 3;
+      this.speedX = 4.4;
+      this.hoverAmp = 28;
+      this.frameInterval = 78;
+    }
+  }
+
+  getWaveInterval() {
+    const hpRatio = this.lives / this.maxLives;
+    const slow = 2600;
+    const fast = this.phase === 3 ? 1200 : this.phase === 2 ? 1500 : 1800;
+    return fast + (slow - fast) * hpRatio;
+  }
+
+  getWaveSpeed() {
+    const hpRatio = this.lives / this.maxLives;
+    const base = this.phase === 1 ? 4.4 : this.phase === 2 ? 5.4 : 6.5;
+    return base + (1 - hpRatio) * 2.2;
+  }
+
+  getTelegraphTime() {
+    if (this.phase === 1) return 780;
+    if (this.phase === 2) return 620;
+    return 500;
+  }
+
+  createSmartPattern(playerX) {
+    const screenW = this.game.width;
+    const gapWidth = 130;
+    let gapCenter;
+
+    if (Math.random() < 0.7 && playerX) {
+      const offset =
+        (Math.random() < 0.5 ? -1 : 1) * (120 + Math.random() * 120);
+      gapCenter = playerX + offset;
+    } else {
+      gapCenter = Math.random() * screenW;
+    }
+
+    gapCenter = Math.max(80, Math.min(screenW - 80, gapCenter));
+
+    const gapLeft = gapCenter - gapWidth / 2;
+    const gapRight = gapCenter + gapWidth / 2;
+
+    return {
+      columns: [
+        { x: 0, width: gapLeft },
+        { x: gapRight, width: screenW - gapRight },
+      ],
+    };
+  }
+
+  spawnWaveWall(doubleWave = false, extraDelay = 0) {
+    const player = this.game.player;
+    this.lastPlayerX = player.x + player.width / 2;
+
+    const pattern = this.createSmartPattern(this.lastPlayerX);
+
+    const speed = this.getWaveSpeed();
+    const telegraphMs = this.getTelegraphTime();
+
+    this.waveWalls.push(
+      new WaveWall(this.game, pattern.columns, speed, telegraphMs, extraDelay)
+    );
+
+    if (doubleWave) {
+      const secondPattern = this.createSmartPattern(this.lastPlayerX);
+
+      this.waveWalls.push(
+        new WaveWall(
+          this.game,
+          secondPattern.columns,
+          speed + 0.35,
+          Math.max(360, telegraphMs - 100),
+          extraDelay + 260
+        )
+      );
+    }
+  }
+
+  update(deltaTime) {
+    if (this.game.upgradeCardsShowing) return;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    const dt = deltaTime / 16.67;
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+      }
+      return;
+    }
+
+    this.handlePhases();
+
+    this.hoverTime += deltaTime * 0.0017;
+    this.x += this.speedX * this.dirX * dt;
+    this.y = this.baseY + Math.sin(this.hoverTime * 2.15) * this.hoverAmp;
+
+    if (this.x <= 0) {
+      this.x = 0;
+      this.dirX = 1;
+    } else if (this.x + this.width >= this.game.width) {
+      this.x = this.game.width - this.width;
+      this.dirX = -1;
+    }
+
+    this.waveTimer += deltaTime;
+    if (!this.game.gameOver && this.waveTimer >= this.getWaveInterval()) {
+      this.waveTimer = 0;
+
+      if (this.phase === 3 && Math.random() < 0.45) {
+        this.spawnWaveWall(true);
+      } else {
+        this.spawnWaveWall(false);
+      }
+    }
+
+    this.waveWalls.forEach((wall) => wall.update(deltaTime));
+    this.waveWalls = this.waveWalls.filter((wall) => !wall.markedForDeletion);
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    if (this.hitFlash > 0) {
+      ctx.globalAlpha = 0.78 + Math.sin(performance.now() * 0.05) * 0.22;
+    }
+
+    ctx.shadowColor = 'rgba(255, 40, 60, 0.55)';
+    ctx.shadowBlur = 20;
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      this.frameY * this.spriteHeight,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
+    ctx.restore();
+
+    this.waveWalls.forEach((wall) => wall.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+
+class WaveWall {
+  constructor(game, columns, speed, telegraphMs = 650, delayMs = 0) {
+    this.game = game;
+    this.columns = columns;
+    this.speed = speed;
+    this.telegraphMs = telegraphMs;
+    this.delayMs = delayMs;
+
+    this.wallHeight = this.game.height + 40;
+    this.y = -this.wallHeight;
+    this.active = false;
+    this.markedForDeletion = false;
+  }
+
+  update(deltaTime) {
+    if (this.delayMs > 0) {
+      this.delayMs -= deltaTime;
+      return;
+    }
+
+    if (!this.active) {
+      this.telegraphMs -= deltaTime;
+      if (this.telegraphMs <= 0) {
+        this.active = true;
+        this.y = -this.wallHeight;
+      }
+      return;
+    }
+
+    const dt = deltaTime / 16.67;
+    this.y += this.speed * 12 * dt;
+
+    const player = this.game.player;
+
+    if (!player.invulnerable) {
+      for (const col of this.columns) {
+        const rect = {
+          x: col.x,
+          y: this.y,
+          width: col.width,
+          height: this.wallHeight,
+        };
+
+        if (window.checkCollision(player, rect)) {
+          player.lives--;
+          player.invulnerable = true;
+          player.invulnerableTimer = 0;
+          this.game.triggerShake(520, 24);
+          break;
+        }
+      }
+    }
+
+    if (this.y > this.game.height + 40) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  drawTelegraph(ctx) {
+    const t = performance.now() * 0.004;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (const col of this.columns) {
+      const x = col.x;
+      const w = col.width;
+      const h = this.game.height;
+
+      const pulse = 0.35 + 0.15 * Math.sin(t + x * 0.02);
+
+      const glow = ctx.createLinearGradient(x, 0, x + w, 0);
+      glow.addColorStop(0, `rgba(255, 20, 40, ${0.08 + pulse * 0.08})`);
+      glow.addColorStop(0.18, `rgba(255, 60, 80, ${0.18 + pulse * 0.12})`);
+      glow.addColorStop(0.5, `rgba(255, 180, 180, ${0.18 + pulse * 0.1})`);
+      glow.addColorStop(0.82, `rgba(255, 60, 80, ${0.18 + pulse * 0.12})`);
+      glow.addColorStop(1, `rgba(255, 20, 40, ${0.08 + pulse * 0.08})`);
+
+      ctx.fillStyle = glow;
+      ctx.fillRect(x, 0, w, h);
+
+      ctx.strokeStyle = `rgba(255, 120, 140, ${0.35 + pulse * 0.18})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x + 2, 0, w - 4, h);
+
+      const centerX = x + w / 2;
+
+      ctx.strokeStyle = `rgba(255,255,255,${0.18 + pulse * 0.1})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(centerX, 0);
+      for (let y = 0; y <= h; y += 18) {
+        const offset = Math.sin(y * 0.035 + t * 2.4 + x * 0.01) * (w * 0.08);
+        ctx.lineTo(centerX + offset, y);
+      }
+      ctx.stroke();
+
+      for (let y = 0; y < h; y += 42) {
+        const orbPulse = 0.65 + 0.35 * Math.sin(t * 3 + y * 0.08 + x * 0.02);
+
+        const orb = ctx.createRadialGradient(
+          centerX,
+          y,
+          0,
+          centerX,
+          y,
+          16 + orbPulse * 8
+        );
+        orb.addColorStop(0, `rgba(255,255,255,${0.28 + orbPulse * 0.18})`);
+        orb.addColorStop(0.25, `rgba(255,120,120,${0.22 + orbPulse * 0.18})`);
+        orb.addColorStop(1, 'rgba(120,0,0,0)');
+
+        ctx.fillStyle = orb;
+        ctx.beginPath();
+        ctx.arc(centerX, y, 16 + orbPulse * 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  drawActive(ctx) {
+    const t = performance.now() * 0.008;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (const col of this.columns) {
+      const x = col.x;
+      const y = this.y;
+      const w = col.width;
+      const h = this.wallHeight;
+
+      const pulse = 0.88 + 0.12 * Math.sin(t + x * 0.03);
+
+      const body = ctx.createLinearGradient(x, y, x + w, y);
+      body.addColorStop(0, 'rgba(40, 0, 0, 0.92)');
+      body.addColorStop(0.12, 'rgba(120, 0, 10, 0.96)');
+      body.addColorStop(0.3, 'rgba(220, 20, 40, 0.98)');
+      body.addColorStop(0.5, 'rgba(255, 210, 210, 0.96)');
+      body.addColorStop(0.7, 'rgba(220, 20, 40, 0.98)');
+      body.addColorStop(0.88, 'rgba(120, 0, 10, 0.96)');
+      body.addColorStop(1, 'rgba(40, 0, 0, 0.92)');
+
+      ctx.fillStyle = body;
+      ctx.fillRect(x, y, w, h);
+
+      const innerGlow = ctx.createLinearGradient(x, y, x + w, y);
+      innerGlow.addColorStop(0, 'rgba(255, 0, 0, 0)');
+      innerGlow.addColorStop(0.5, `rgba(255, 245, 245, ${0.18 * pulse})`);
+      innerGlow.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+      ctx.fillStyle = innerGlow;
+      ctx.fillRect(x, y, w, h);
+
+      ctx.strokeStyle = `rgba(255, 90, 110, ${0.55 + 0.18 * pulse})`;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x + 1.5, y, w - 3, h);
+
+      ctx.strokeStyle = `rgba(255,255,255,${0.28 + 0.1 * pulse})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.5, y);
+      for (let yy = y; yy <= y + h; yy += 14) {
+        const offset = Math.sin(yy * 0.06 + t * 3.2 + x * 0.02) * (w * 0.07);
+        ctx.lineTo(x + w * 0.5 + offset, yy);
+      }
+      ctx.stroke();
+
+      for (let yy = y + 12; yy < y + h; yy += 26) {
+        const r = 10 + Math.sin(t * 4 + yy * 0.08) * 2;
+
+        const orb = ctx.createRadialGradient(
+          x + w * 0.5,
+          yy,
+          0,
+          x + w * 0.5,
+          yy,
+          r * 2.3
+        );
+        orb.addColorStop(0, 'rgba(255,255,255,0.9)');
+        orb.addColorStop(0.2, 'rgba(255,140,140,0.75)');
+        orb.addColorStop(0.55, 'rgba(255,20,40,0.38)');
+        orb.addColorStop(1, 'rgba(80,0,0,0)');
+
+        ctx.fillStyle = orb;
+        ctx.beginPath();
+        ctx.arc(x + w * 0.5, yy, r * 2.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = 0.16;
+      for (let i = 0; i < 12; i++) {
+        const sy = y + ((i * 57 + t * 120) % (h + 80)) - 40;
+        const sx = x + w * (0.22 + 0.56 * ((i % 5) / 4));
+
+        ctx.fillStyle = 'rgba(255, 80, 80, 1)';
+        ctx.beginPath();
+        ctx.ellipse(
+          sx + Math.sin(t * 2 + i) * 6,
+          sy,
+          7,
+          18,
+          Math.sin(t + i) * 0.4,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  draw(ctx) {
+    if (this.delayMs > 0) return;
+    if (!this.active) this.drawTelegraph(ctx);
+    else this.drawActive(ctx);
+  }
+}
+
+class Boss10 extends BossBase {
+  constructor(game) {
+    super(game);
+
+    this.width = 200;
+    this.height = 215;
+
+    this.x = this.game.width / 2 - this.width / 2;
+    this.y = -this.height;
+
+    this.baseY = 80;
+    this.entered = false;
+
+    this.maxLives = 420;
+    this.lives = this.maxLives;
+
+    this.speedX = 3.1;
+    this.speedY = 1.4;
+    this.dirX = 1;
+
+    this.phase = 1;
+    this.hitFlash = 0;
+
+    this.hoverTime = 0;
+    this.hoverAmp = 18;
+
+    this.attackTimer = 0;
+    this.attackCooldown = 1300;
+
+    this.lightningStrikes = [];
+    this.electricZones = [];
+
+    this.image = document.getElementById('boss10Sprite') || null;
+
+    this.frames = 7;
+    this.frameX = 0;
+    this.frameY = 0;
+    this.frameTimer = 0;
+    this.frameInterval = 90;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+      this.spriteWidth = iw / this.frames;
+      this.spriteHeight = ih;
+    }
+  }
+
+  handlePhases() {
+    const hpPercent = this.lives / this.maxLives;
+
+    if (hpPercent < 0.7 && this.phase === 1) {
+      this.phase = 2;
+      this.speedX = 3.8;
+      this.attackCooldown = 1050;
+      this.hoverAmp = 24;
+    }
+
+    if (hpPercent < 0.35 && this.phase === 2) {
+      this.phase = 3;
+      this.speedX = 4.6;
+      this.attackCooldown = 750;
+      this.hoverAmp = 30;
+    }
+  }
+
+  getAttackInterval() {
+    const hpRatio = this.lives / this.maxLives;
+    const slow = this.attackCooldown;
+    const fast = this.phase === 3 ? 650 : this.phase === 2 ? 900 : 1200;
+    return fast + (slow - fast) * hpRatio;
+  }
+
+  spawnLightningAtPlayer() {
+    const player = this.game.player;
+    const targetX = player.x + player.width / 2;
+    const targetY = player.y + player.height / 2;
+
+    this.lightningStrikes.push(
+      new Boss10LightningStrike(this.game, targetX, targetY, this)
+    );
+
+    if (this.phase >= 2) {
+      this.lightningStrikes.push(
+        new Boss10LightningStrike(this.game, targetX - 90, targetY + 20, this)
+      );
+      this.lightningStrikes.push(
+        new Boss10LightningStrike(this.game, targetX + 90, targetY + 20, this)
+      );
+    }
+
+    if (this.phase >= 3) {
+      this.lightningStrikes.push(
+        new Boss10LightningStrike(this.game, targetX, targetY - 100, this)
+      );
+    }
+  }
+
+  spawnElectricZones(x, y, count = 3) {
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.35;
+      const dist = 70 + Math.random() * 90;
+
+      let zx = x + Math.cos(angle) * dist;
+      let zy = y + Math.sin(angle) * dist;
+
+      zx = Math.max(40, Math.min(this.game.width - 40, zx));
+      zy = Math.max(80, Math.min(this.game.height - 40, zy));
+
+      this.electricZones.push(new Boss10ElectricZone(this.game, zx, zy));
+    }
+  }
+
+  update(deltaTime) {
+    if (this.game.upgradeCardsShowing) return;
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    const dt = deltaTime / 16.67;
+
+    if (!this.entered) {
+      this.y += this.speedY * dt;
+      if (this.y >= this.baseY) {
+        this.y = this.baseY;
+        this.entered = true;
+      }
+      return;
+    }
+
+    this.handlePhases();
+
+    this.hoverTime += deltaTime * 0.0017;
+    this.x += this.speedX * this.dirX * dt;
+    this.y = this.baseY + Math.sin(this.hoverTime * 2.2) * this.hoverAmp;
+
+    if (this.x <= 0) {
+      this.x = 0;
+      this.dirX = 1;
+    } else if (this.x + this.width >= this.game.width) {
+      this.x = this.game.width - this.width;
+      this.dirX = -1;
+    }
+
+    this.attackTimer += deltaTime;
+    if (!this.game.gameOver && this.attackTimer >= this.getAttackInterval()) {
+      this.attackTimer = 0;
+      this.spawnLightningAtPlayer();
+    }
+
+    this.lightningStrikes.forEach((s) => s.update(deltaTime));
+    this.lightningStrikes = this.lightningStrikes.filter(
+      (s) => !s.markedForDeletion
+    );
+
+    this.electricZones.forEach((z) => z.update(deltaTime));
+    this.electricZones = this.electricZones.filter((z) => !z.markedForDeletion);
+
+    if (this.hitFlash > 0) this.hitFlash -= deltaTime;
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    if (this.hitFlash > 0) {
+      ctx.globalAlpha = 0.78 + Math.sin(performance.now() * 0.05) * 0.22;
+    }
+
+    if (
+      this.image &&
+      this.image.complete &&
+      this.image.naturalWidth &&
+      this.spriteWidth > 0 &&
+      this.spriteHeight > 0
+    ) {
+      ctx.drawImage(
+        this.image,
+        this.frameX * this.spriteWidth,
+        this.frameY * this.spriteHeight,
+        this.spriteWidth,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    } else {
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+
+    ctx.restore();
+
+    this.lightningStrikes.forEach((s) => s.draw(ctx));
+    this.electricZones.forEach((z) => z.draw(ctx));
+    this.drawHealthBar(ctx);
+  }
+}
+
+class Boss10LightningStrike {
+  constructor(game, x, y, bossRef) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.bossRef = bossRef;
+
+    this.radius = 34;
+    this.warningTime = 600;
+    this.flashTime = 180;
+    this.life = this.warningTime + this.flashTime;
+
+    this.hitDone = false;
+    this.markedForDeletion = false;
+  }
+
+  update(deltaTime) {
+    this.life -= deltaTime;
+
+    if (!this.hitDone && this.life <= this.flashTime) {
+      this.hitDone = true;
+
+      const hitRect = {
+        x: this.x - this.radius,
+        y: this.y - this.radius,
+        width: this.radius * 2,
+        height: this.radius * 2,
+      };
+
+      const player = this.game.player;
+
+      if (!player.invulnerable && window.checkCollision(player, hitRect)) {
+        player.lives--;
+        player.invulnerable = true;
+        player.invulnerableTimer = 0;
+        this.game.triggerShake(520, 28);
+        this.bossRef.spawnElectricZones(this.x, this.y, 5);
+      }
+    }
+
+    if (this.life <= 0) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  drawLightningPath(ctx, startX, startY, endX, endY, segments, jitter) {
+    let currentX = startX;
+    let currentY = startY;
+
+    ctx.beginPath();
+    ctx.moveTo(currentX, currentY);
+
+    for (let i = 1; i <= segments; i++) {
+      const t = i / segments;
+      const nextY = startY + (endY - startY) * t;
+
+      const wave = Math.sin(performance.now() * 0.03 + i * 0.9) * jitter * 0.35;
+      const rand = (Math.random() - 0.5) * jitter;
+      const nextX = startX + wave + rand;
+
+      ctx.lineTo(nextX, nextY);
+
+      if (i > 2 && i < segments - 1 && Math.random() < 0.18) {
+        const branchX = nextX + (Math.random() - 0.5) * jitter * 1.8;
+        const branchY = nextY + 18 + Math.random() * 35;
+
+        ctx.moveTo(nextX, nextY);
+        ctx.lineTo(branchX, branchY);
+        ctx.moveTo(nextX, nextY);
+      }
+
+      currentX = nextX;
+      currentY = nextY;
+    }
+  }
+
+  draw(ctx) {
+    const warningProgress = Math.max(
+      0,
+      Math.min(
+        1,
+        (this.warningTime - Math.max(0, this.life - this.flashTime)) /
+          this.warningTime
+      )
+    );
+
+    if (this.life > this.flashTime) {
+      const pulse = 0.75 + Math.sin(performance.now() * 0.012) * 0.25;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+
+      ctx.strokeStyle = `rgba(80,220,255,${0.35 + warningProgress * 0.45})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + pulse * 8, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(80,220,255,${0.08 + warningProgress * 0.12})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + pulse * 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+      return;
+    }
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    const topY = -40;
+    const segments = 11;
+
+    ctx.strokeStyle = 'rgba(120,220,255,0.22)';
+    ctx.lineWidth = this.radius * 1.9;
+    this.drawLightningPath(ctx, this.x, topY, this.x, this.y, segments, 34);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(80, 83, 255, 0.92)';
+    ctx.lineWidth = this.radius * 0.95;
+    this.drawLightningPath(ctx, this.x, topY, this.x, this.y, segments, 22);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.98)';
+    ctx.lineWidth = 4;
+    this.drawLightningPath(ctx, this.x, topY, this.x, this.y, segments, 10);
+    ctx.stroke();
+
+    const pulse = 0.9 + Math.sin(performance.now() * 0.04) * 0.1;
+
+    ctx.fillStyle = 'rgba(120,220,255,0.22)';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 1.7 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+
+    const flash = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.radius * 2.4
+    );
+    flash.addColorStop(0, 'rgba(255,255,255,0.95)');
+    flash.addColorStop(0.25, 'rgba(120,220,255,0.5)');
+    flash.addColorStop(1, 'rgba(0,120,255,0)');
+
+    ctx.fillStyle = flash;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 2.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+class Boss10ElectricZone {
+  constructor(game, x, y) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+
+    this.radius = 50;
+    this.maxLife = 3200;
+    this.life = this.maxLife;
+    this.fadeDuration = 900;
+    this.tickTimer = 0;
+    this.tickInterval = 220;
+
+    this.markedForDeletion = false;
+  }
+
+  update(deltaTime) {
+    this.life -= deltaTime;
+    this.tickTimer += deltaTime;
+
+    const player = this.game.player;
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+    const dist = Math.hypot(px - this.x, py - this.y);
+
+    if (
+      dist <= this.radius + Math.max(player.width, player.height) * 0.28 &&
+      !player.invulnerable &&
+      this.tickTimer >= this.tickInterval
+    ) {
+      this.tickTimer = 0;
+      player.lives--;
+      player.invulnerable = true;
+      player.invulnerableTimer = 0;
+      this.game.triggerShake(320, 14);
+    }
+
+    if (this.life <= 0) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const t = performance.now() * 0.01;
+    const pulse = 0.88 + Math.sin(t * 2 + this.x * 0.01) * 0.12;
+
+    const fadeProgress =
+      this.life < this.fadeDuration
+        ? Math.max(0, this.life / this.fadeDuration)
+        : 1;
+
+    const currentRadius = this.radius * (0.82 + fadeProgress * 0.18) * pulse;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = fadeProgress;
+
+    const outer = ctx.createRadialGradient(
+      this.x,
+      this.y,
+      0,
+      this.x,
+      this.y,
+      this.radius * 1.6
+    );
+    outer.addColorStop(0, 'rgba(255,255,255,0.18)');
+    outer.addColorStop(0.3, 'rgba(90,220,255,0.22)');
+    outer.addColorStop(0.7, 'rgba(40,120,255,0.14)');
+    outer.addColorStop(1, 'rgba(0,0,0,0)');
+
+    ctx.fillStyle = outer;
+    ctx.beginPath();
+    ctx.arc(
+      this.x,
+      this.y,
+      this.radius * 1.6 * fadeProgress * pulse,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.strokeStyle = `rgba(120,220,255,${0.9 * fadeProgress})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(255,255,255,${0.75 * fadeProgress})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, currentRadius * 0.58, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (let i = 0; i < 6; i++) {
+      const a1 = (Math.PI * 2 * i) / 6 + Math.sin(t + i) * 0.18;
+      const a2 = a1 + 0.55;
+
+      ctx.strokeStyle = `rgba(150,235,255,${0.8 * fadeProgress})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(
+        this.x + Math.cos(a1) * currentRadius * 0.35,
+        this.y + Math.sin(a1) * currentRadius * 0.35
+      );
+      ctx.lineTo(
+        this.x + Math.cos(a2) * currentRadius * 0.7,
+        this.y + Math.sin(a2) * currentRadius * 0.7
+      );
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+window.Boss9 = Boss9;
+window.WaveWall = WaveWall;
 window.Boss1 = Boss1;
 window.Boss1Bullet = Boss1Bullet;
 window.Boss2 = Boss2;
@@ -3590,3 +4518,8 @@ window.Boss7 = Boss7;
 window.Boss7Laser = Boss7Laser;
 window.Boss8 = Boss8;
 window.Boss8Bullet = Boss8Bullet;
+window.boss9 = Boss9;
+window.WaveWall = WaveWall;
+window.Boss10 = Boss10;
+window.Boss10LightningStrike = Boss10LightningStrike;
+window.Boss10ElectricZone = Boss10ElectricZone;

@@ -477,15 +477,23 @@ function openMap(e) {
   const maxLevel = getMaxUnlockedLevel();
 
   map.classList.remove(
+    'level-black',
     'leveL-lightBlue',
     'level-green',
     'level-pink',
     'level-red',
     'level-white',
-    'level-orange'
+    'level-orange',
+    'level-yellow'
   );
 
-  if (maxLevel >= 61) {
+  if (maxLevel >= 91) {
+    map.classList.add('level-gold');
+  } else if (maxLevel >= 81) {
+    map.classList.add('level-black');
+  } else if (maxLevel >= 71) {
+    map.classList.add('level-yellow');
+  } else if (maxLevel >= 61) {
     map.classList.add('level-lightBlue');
   } else if (maxLevel >= 51) {
     map.classList.add('level-orange');

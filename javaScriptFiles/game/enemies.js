@@ -7,6 +7,7 @@ class Enemy {
     this.y = -this.height;
     this.speedY = 1;
     this.lives = 3;
+    this.maxLives = this.lives;
 
     this.hitBySuper = false;
     this.markedForDeletion = false;
@@ -1576,6 +1577,660 @@ class FireTrail {
   }
 }
 
+class Angler10 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 80;
+    this.height = 80;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 15;
+    this.speedY = 1.05;
+
+    this.stopY = 420 + Math.random() * 400;
+
+    this.hoverTime = 0;
+    this.hoverOffsetX = 0;
+    this.hoverOffsetY = 0;
+
+    this.activationRange = 260;
+    this.lockTimer = 0;
+    this.damageThreshold = 1200;
+    this.lockActive = false;
+
+    this.image = document.getElementById('angler10Sprite');
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 120;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+
+    if (this.image && (this.image.naturalWidth || this.image.width)) {
+      const iw = this.image.naturalWidth || this.image.width;
+      const ih = this.image.naturalHeight || this.image.height;
+
+      this.spriteWidth = Math.floor(iw / this.frames);
+      this.spriteHeight = ih;
+    }
+  }
+
+  update(deltaTime) {
+    if (this.mindControlled && this.mindTarget) {
+      super.update(deltaTime);
+      this.lockActive = false;
+      this.lockTimer = 0;
+      return;
+    }
+    if (this.y < this.stopY) {
+      this.y += this.speedY;
+    } else {
+      this.hoverTime += deltaTime * 0.002;
+      this.hoverOffsetX = Math.sin(this.hoverTime) * 1.2;
+      this.hoverOffsetY = Math.cos(this.hoverTime * 1.4) * 0.4;
+
+      this.x += this.hoverOffsetX;
+      this.y += this.hoverOffsetY;
+
+      if (this.x < 0) this.x = 0;
+      if (this.x + this.width > this.game.width) {
+        this.x = this.game.width - this.width;
+      }
+    }
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+    const player = this.game.player;
+
+    const ex = this.x + this.width / 2;
+    const ey = this.y + this.height * 0.65;
+
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+
+    const dx = px - ex;
+    const dy = py - ey;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist <= this.activationRange && !this.game.gameOver) {
+      this.lockActive = true;
+      this.lockTimer += deltaTime;
+
+      if (this.lockTimer >= this.damageThreshold) {
+        if (!player.invulnerable) {
+          player.lives--;
+          player.invulnerable = true;
+          player.invulnerableTimer = 0;
+          this.game.triggerShake(500, 20);
+        }
+        this.lockTimer = 0;
+      }
+    } else {
+      this.lockActive = false;
+      this.lockTimer = 0;
+    }
+
+    if (this.y > this.game.height + this.height) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  drawLaser(ctx) {
+    const player = this.game.player;
+
+    const startX = this.x + this.width / 2;
+    const startY = this.y + this.height * 0.65;
+
+    const endX = player.x + player.width / 2;
+    const endY = player.y + player.height / 2;
+
+    const t = performance.now() * 0.02;
+    const pulse = 0.75 + Math.sin(t) * 0.25;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    ctx.strokeStyle = `rgba(0,180,255,${0.18 + pulse * 0.12})`;
+    ctx.lineWidth = 16;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.strokeStyle = `rgba(80,220,255,${0.55 + pulse * 0.2})`;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    const glow = ctx.createRadialGradient(endX, endY, 0, endX, endY, 28);
+    glow.addColorStop(0, 'rgba(255,255,255,0.9)');
+    glow.addColorStop(0.25, 'rgba(120,220,255,0.7)');
+    glow.addColorStop(1, 'rgba(0,160,255,0)');
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(endX, endY, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  drawLockBar(ctx) {
+    const barWidth = 56;
+    const barHeight = 6;
+    const x = this.x + this.width / 2 - barWidth / 2;
+    const y = this.y - 12;
+
+    const progress = Math.min(this.lockTimer / this.damageThreshold, 1);
+
+    ctx.save();
+
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillRect(x, y, barWidth, barHeight);
+
+    const grad = ctx.createLinearGradient(x, 0, x + barWidth, 0);
+    grad.addColorStop(0, '#b8f3ff');
+    grad.addColorStop(0.5, '#42d7ff');
+    grad.addColorStop(1, '#0077ff');
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, barWidth * progress, barHeight);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.strokeRect(x, y, barWidth, barHeight);
+
+    ctx.restore();
+  }
+
+  draw(ctx) {
+    if (this.lockActive) {
+      this.drawLaser(ctx);
+    }
+
+    ctx.save();
+
+    ctx.shadowColor = 'rgba(0,200,255,0.7)';
+    ctx.shadowBlur = 18;
+
+    ctx.drawImage(
+      this.image,
+      this.frameX * this.spriteWidth,
+      this.frameY * this.spriteHeight,
+      this.spriteWidth,
+      this.spriteHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
+    ctx.restore();
+
+    if (this.lockActive) {
+      this.drawLockBar(ctx);
+    }
+  }
+}
+
+class Angler11 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 90;
+    this.height = 100;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 15;
+    this.speedY = 1.15;
+
+    this.stopY = 100 + Math.random() * 120;
+    this.shootTimer = 0;
+    this.shootInterval = 1800;
+
+    this.enemyBullets = [];
+
+    this.image = document.getElementById('angler11Sprite');
+
+    this.frames = 7;
+    this.frameX = 0;
+    this.frameY = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 140;
+
+    this.frameCuts = [0, 69, 138, 207, 276, 345, 414, 482];
+    this.spriteHeight = 90;
+  }
+
+  update(deltaTime) {
+    if (this.mindControlled && this.mindTarget) {
+      super.update(deltaTime);
+      return;
+    }
+
+    if (this.y < this.stopY) {
+      this.y += this.speedY;
+    }
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer > this.frameInterval) {
+      this.frameX = (this.frameX + 1) % this.frames;
+      this.frameTimer = 0;
+    }
+
+    this.shootTimer += deltaTime;
+    if (this.shootTimer >= this.shootInterval && !this.game.gameOver) {
+      this.shootTimer = 0;
+      this.shootBlindShot();
+    }
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    if (this.y > this.game.height + this.height) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  shootBlindShot() {
+    const player = this.game.player;
+
+    const sx = this.x + this.width / 2;
+    const sy = this.y + this.height * 0.72;
+
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+
+    const dx = px - sx;
+    const dy = py - sy;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const speed = 4.8;
+
+    this.enemyBullets.push(
+      new BlindBullet(
+        this.game,
+        sx - 11,
+        sy - 11,
+        (dx / len) * speed,
+        (dy / len) * speed
+      )
+    );
+  }
+
+  draw(ctx) {
+    if (this.image && this.image.complete && this.image.naturalWidth) {
+      const sx = this.frameCuts[this.frameX];
+      const sw = this.frameCuts[this.frameX + 1] - sx;
+
+      ctx.save();
+
+      ctx.shadowColor = 'rgba(180,0,255,0.55)';
+      ctx.shadowBlur = 18;
+
+      ctx.drawImage(
+        this.image,
+        sx,
+        0,
+        sw,
+        this.spriteHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.fillStyle = '#7a00cc';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.restore();
+    }
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+  }
+}
+
+class BlindBullet {
+  constructor(game, x, y, vx, vy) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+
+    this.width = 22;
+    this.height = 22;
+
+    this.markedForDeletion = false;
+    this.rotation = 0;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += 0.1 * dt;
+
+    const shots = this.game.player.projectiles;
+    for (let i = 0; i < shots.length; i++) {
+      const p = shots[i];
+      if (p.markedForDeletion) continue;
+
+      if (checkCollision(p, this)) {
+        p.markedForDeletion = true;
+        this.markedForDeletion = true;
+        return;
+      }
+    }
+
+    if (
+      !this.game.player.invulnerable &&
+      checkCollision(this, this.game.player) &&
+      !this.game.gameOver
+    ) {
+      this.game.player.lives--;
+      this.game.player.invulnerable = true;
+      this.game.player.invulnerableTimer = 0;
+
+      this.game.player.blinded = true;
+      this.game.player.blindTimer = 0;
+
+      this.game.triggerShake(520, 22);
+      this.markedForDeletion = true;
+      return;
+    }
+
+    if (
+      this.x < -40 ||
+      this.x > this.game.width + 40 ||
+      this.y < -40 ||
+      this.y > this.game.height + 40
+    ) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+    const t = performance.now() * 0.01;
+    const pulse = 0.88 + Math.sin(t * 2.2) * 0.12;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.rotation);
+    ctx.globalCompositeOperation = 'lighter';
+
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, this.width * 1.5);
+    glow.addColorStop(0, 'rgba(255,255,255,0.95)');
+    glow.addColorStop(0.25, 'rgba(205,120,255,0.85)');
+    glow.addColorStop(0.65, 'rgba(120,0,200,0.45)');
+    glow.addColorStop(1, 'rgba(80,0,120,0)');
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 1.2 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(235,180,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 0.34, 0, Math.PI * 2);
+    ctx.fill();
+
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI * 2 * i) / 6;
+      const r1 = this.width * 0.35;
+      const r2 = this.width * 0.72;
+
+      ctx.strokeStyle = 'rgba(210,140,255,0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+      ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+class Angler12 extends Enemy {
+  constructor(game) {
+    super(game);
+
+    this.width = 84;
+    this.height = 96;
+
+    this.x = Math.random() * (this.game.width - this.width);
+    this.y = -this.height;
+
+    this.lives = 12;
+    this.speedY = 1.1;
+
+    this.stopY = 90 + Math.random() * 100;
+
+    this.healTimer = 0;
+    this.healInterval = 2200;
+    this.healAmount = 2;
+
+    this.enemyBullets = [];
+
+    this.frames = 8;
+    this.frameX = 0;
+    this.frameY = 0;
+
+    this.frameTimer = 0;
+    this.frameInterval = 110;
+
+    this.spriteWidth = 0;
+    this.spriteHeight = 0;
+  }
+
+  update(deltaTime) {
+    if (this.mindControlled && this.mindTarget) {
+      super.update(deltaTime);
+      return;
+    }
+
+    if (this.y < this.stopY) {
+      this.y += this.speedY;
+    }
+
+    this.healTimer += deltaTime;
+    if (this.healTimer >= this.healInterval && !this.game.gameOver) {
+      const target = this.findHealTarget();
+      if (target) {
+        this.healTimer = 0;
+        this.shootHeal(target);
+      }
+    }
+
+    this.enemyBullets.forEach((b) => b.update(deltaTime));
+    this.enemyBullets = this.enemyBullets.filter((b) => !b.markedForDeletion);
+
+    if (this.y > this.game.height + this.height) {
+      this.markedForDeletion = true;
+    }
+  }
+
+  findHealTarget() {
+    const candidates = this.game.enemies.filter((enemy) => {
+      if (!enemy || enemy === this) return false;
+      if (enemy.markedForDeletion) return false;
+      if (enemy.mindControlled) return false;
+      if (enemy.lives <= 0) return false;
+      return true;
+    });
+
+    if (!candidates.length) return null;
+
+    let best = null;
+    let bestScore = Infinity;
+
+    for (const enemy of candidates) {
+      const ex = enemy.x + enemy.width / 2;
+      const ey = enemy.y + enemy.height / 2;
+      const sx = this.x + this.width / 2;
+      const sy = this.y + this.height * 0.75;
+
+      const dist = Math.hypot(ex - sx, ey - sy);
+
+      if (dist < bestScore) {
+        bestScore = dist;
+        best = enemy;
+      }
+    }
+
+    return best;
+  }
+
+  shootHeal(target) {
+    const sx = this.x + this.width / 2;
+    const sy = this.y + this.height * 0.78;
+
+    const tx = target.x + target.width / 2;
+    const ty = target.y + target.height / 2;
+
+    const dx = tx - sx;
+    const dy = ty - sy;
+    const len = Math.hypot(dx, dy) || 1;
+
+    const speed = 4.2;
+
+    this.enemyBullets.push(
+      new HealShot(
+        this.game,
+        sx - 10,
+        sy - 10,
+        (dx / len) * speed,
+        (dy / len) * speed,
+        target,
+        this.healAmount
+      )
+    );
+  }
+
+  draw(ctx) {
+    ctx.fillStyle = 'green';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    this.enemyBullets.forEach((b) => b.draw(ctx));
+  }
+}
+
+class HealShot {
+  constructor(game, x, y, vx, vy, target, healAmount) {
+    this.game = game;
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+
+    this.width = 20;
+    this.height = 20;
+
+    this.target = target;
+    this.healAmount = healAmount;
+
+    this.markedForDeletion = false;
+    this.rotation = 0;
+  }
+
+  update(deltaTime) {
+    const dt = deltaTime / 16.67;
+
+    if (
+      !this.target ||
+      this.target.markedForDeletion ||
+      this.target.lives <= 0
+    ) {
+      this.markedForDeletion = true;
+      return;
+    }
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += 0.08 * dt;
+
+    const tx = this.target.x + this.target.width / 2 - this.width / 2;
+    const ty = this.target.y + this.target.height / 2 - this.height / 2;
+
+    if (checkCollision(this, this.target)) {
+      if (
+        this.x < -40 ||
+        this.x > this.game.width + 40 ||
+        this.y < -40 ||
+        this.y > this.game.height + 40
+      ) {
+        this.markedForDeletion = true;
+      }
+    }
+  }
+
+  draw(ctx) {
+    const cx = this.x + this.width / 2;
+    const cy = this.y + this.height / 2;
+    const t = performance.now() * 0.01;
+    const pulse = 0.9 + Math.sin(t * 2.4) * 0.1;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.rotation);
+    ctx.globalCompositeOperation = 'lighter';
+
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, this.width * 1.8);
+    glow.addColorStop(0, 'rgba(255,255,255,0.95)');
+    glow.addColorStop(0.25, 'rgba(120,255,170,0.9)');
+    glow.addColorStop(0.7, 'rgba(0,255,120,0.35)');
+    glow.addColorStop(1, 'rgba(0,255,120,0)');
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 1.2 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(180,255,210,1)';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.width * 0.32, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(120,255,170,0.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-6, 0);
+    ctx.lineTo(6, 0);
+    ctx.moveTo(0, -6);
+    ctx.lineTo(0, 6);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+}
+
 window.Enemy = Enemy;
 window.Angler1 = Angler1;
 window.Angler2 = Angler2;
@@ -1593,3 +2248,8 @@ window.Angler8 = Angler8;
 window.FreezeBullet = FreezeBullet;
 window.Angler9 = Angler9;
 window.FireTrail = FireTrail;
+window.Angler10 = Angler10;
+window.Angler11 = Angler11;
+window.BlindBullet = BlindBullet;
+window.Angler12 = Angler12;
+window.HealShot = HealShot;
