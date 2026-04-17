@@ -1,0 +1,527 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  background: #000;
+  font-family: 'Archivo Black', sans-serif;
+  font-style: normal;
+}
+
+#app,
+.app,
+.phoneFrame,
+.gameRoot {
+  height: 100dvh;
+  width: 100vw;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+}
+
+.phone-frame {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-width: 400px;
+  max-height: 844px;
+  background: #000;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background: rgb(87, 87, 87);
+}
+
+#gameBoard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 4px solid white;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  background-color: rgb(80, 79, 79);
+  display: block;
+  touch-action: none;
+}
+
+.screen {
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.btn {
+  background: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+#smokeExplosion {
+  display: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.hidden {
+  display: none;
+}
+
+.victoryBox {
+  width: 300px;
+  padding: 28px 26px;
+  text-align: center;
+  color: rgba(235, 252, 255, 0.96);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      120% 140% at 20% 10%,
+      rgba(0, 190, 255, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 140% at 80% 90%,
+      rgba(160, 80, 255, 0.14),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(8, 10, 20, 0.92), rgba(6, 8, 14, 0.92));
+
+  border: 1px solid rgba(0, 220, 255, 0.38);
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 22px rgba(0, 190, 255, 0.18);
+}
+
+.victoryBox::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 0 1px, transparent 2px) 0
+      0/32px 32px,
+    radial-gradient(circle, rgba(255, 255, 255, 0.08) 0 1px, transparent 2px)
+      16px 18px/46px 46px;
+  opacity: 0.35;
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+
+.victoryBox::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: radial-gradient(
+    80% 60% at 50% 0%,
+    rgba(0, 255, 255, 0.16),
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.victoryButtons {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.victoryButtons button {
+  padding: 14px 26px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  min-width: 132px;
+  position: relative;
+  overflow: hidden;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+#btnLobby {
+  color: rgba(235, 252, 255, 0.92);
+  background: linear-gradient(
+    145deg,
+    rgba(70, 90, 120, 0.55),
+    rgba(20, 25, 40, 0.85)
+  );
+  box-shadow:
+    0 8px 0 rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(0, 190, 255, 0.14);
+}
+
+#btnLobby:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(0, 190, 255, 0.12);
+}
+
+#btnNext {
+  color: rgba(10, 12, 18, 0.92);
+  background: linear-gradient(
+    145deg,
+    rgba(0, 255, 210, 0.95),
+    rgba(0, 170, 255, 0.92)
+  );
+  border: 1px solid rgba(0, 255, 220, 0.45);
+  box-shadow:
+    0 8px 0 rgba(0, 90, 120, 0.85),
+    0 0 24px rgba(0, 255, 220, 0.22);
+}
+
+#btnNext:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(0, 90, 120, 0.85),
+    0 0 18px rgba(0, 255, 220, 0.18);
+}
+
+#btnNext::after {
+  content: '';
+  position: absolute;
+  inset: -20% -40%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  transform: rotate(12deg) translateX(-60%);
+  opacity: 0.9;
+}
+
+#btnNext:hover::after {
+  transform: rotate(12deg) translateX(60%);
+  transition: transform 0.7s ease;
+}
+
+.victoryButtons button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+#victoryScreen.is-win .victoryBox,
+.victoryBox.is-win {
+  color: rgba(255, 248, 220, 0.98);
+  background:
+    radial-gradient(
+      120% 140% at 20% 10%,
+      rgba(255, 230, 120, 0.28),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 140% at 80% 90%,
+      rgba(255, 180, 0, 0.2),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(42, 28, 6, 0.96), rgba(18, 12, 3, 0.96));
+  border: 1px solid rgba(255, 215, 80, 0.65);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 28px rgba(255, 210, 80, 0.3);
+}
+
+#victoryScreen.is-win .victoryBox::after,
+.victoryBox.is-win::after {
+  background: radial-gradient(
+    80% 60% at 50% 0%,
+    rgba(255, 225, 120, 0.24),
+    transparent 60%
+  );
+}
+
+#victoryScreen.is-win #btnLobby {
+  color: rgba(255, 248, 230, 0.96);
+  background: linear-gradient(
+    145deg,
+    rgba(140, 100, 30, 0.85),
+    rgba(70, 45, 10, 0.95)
+  );
+  border: 1px solid rgba(255, 210, 100, 0.35);
+  box-shadow:
+    0 8px 0 rgba(55, 32, 8, 0.95),
+    0 0 18px rgba(255, 200, 70, 0.18);
+}
+
+#victoryScreen.is-win #btnLobby:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(55, 32, 8, 0.95),
+    0 0 14px rgba(255, 200, 70, 0.14);
+}
+
+#victoryScreen.is-win #btnNext {
+  color: rgba(40, 24, 0, 0.95);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 236, 140, 1),
+    rgba(255, 190, 40, 0.98)
+  );
+  border: 1px solid rgba(255, 230, 120, 0.65);
+  box-shadow:
+    0 8px 0 rgba(150, 95, 0, 0.95),
+    0 0 24px rgba(255, 220, 90, 0.28);
+}
+
+#victoryScreen.is-win #btnNext:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(150, 95, 0, 0.95),
+    0 0 18px rgba(255, 220, 90, 0.22);
+}
+
+#victoryScreen.is-lose .victoryBox,
+.victoryBox.is-lose {
+  color: rgba(255, 230, 230, 0.97);
+  background:
+    radial-gradient(
+      120% 140% at 20% 10%,
+      rgba(255, 70, 70, 0.24),
+      transparent 55%
+    ),
+    radial-gradient(
+      120% 140% at 80% 90%,
+      rgba(140, 0, 0, 0.22),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(34, 6, 10, 0.96), rgba(16, 3, 6, 0.96));
+  border: 1px solid rgba(255, 90, 90, 0.58);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+    0 0 24px rgba(255, 60, 60, 0.24);
+}
+
+#victoryScreen.is-lose .victoryBox::after,
+.victoryBox.is-lose::after {
+  background: radial-gradient(
+    80% 60% at 50% 0%,
+    rgba(255, 80, 80, 0.18),
+    transparent 60%
+  );
+}
+
+#victoryScreen.is-lose #btnLobby {
+  color: rgba(255, 235, 235, 0.95);
+  background: linear-gradient(
+    145deg,
+    rgba(110, 35, 35, 0.88),
+    rgba(45, 10, 10, 0.96)
+  );
+  border: 1px solid rgba(255, 120, 120, 0.24);
+  box-shadow:
+    0 8px 0 rgba(35, 8, 8, 0.96),
+    0 0 18px rgba(255, 80, 80, 0.16);
+}
+
+#victoryScreen.is-lose #btnLobby:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(35, 8, 8, 0.96),
+    0 0 14px rgba(255, 80, 80, 0.12);
+}
+
+#victoryScreen.is-lose #btnNext {
+  color: rgba(255, 245, 245, 0.98);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 90, 90, 0.98),
+    rgba(180, 10, 10, 0.98)
+  );
+  border: 1px solid rgba(255, 130, 130, 0.45);
+  box-shadow:
+    0 8px 0 rgba(100, 0, 0, 0.95),
+    0 0 22px rgba(255, 70, 70, 0.24);
+}
+
+#victoryScreen.is-lose #btnNext:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(100, 0, 0, 0.95),
+    0 0 16px rgba(255, 70, 70, 0.18);
+}
+
+#skinRewardPopup {
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+#skinRewardPopup.hidden {
+  display: none;
+}
+
+.skinRewardBox {
+  width: min(86vw, 340px);
+  padding: 22px 18px 20px;
+  border-radius: 22px;
+  background: radial-gradient(
+    circle at top,
+    rgba(120, 40, 255, 0.35),
+    rgba(10, 10, 20, 0.96) 62%
+  );
+  border: 2px solid rgba(160, 110, 255, 0.45);
+  box-shadow:
+    0 0 30px rgba(140, 60, 255, 0.28),
+    inset 0 0 16px rgba(255, 255, 255, 0.05);
+  text-align: center;
+  color: #fff;
+  animation: skinRewardPop 0.28s ease;
+}
+
+.skinRewardTitle {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  color: #f3e8ff;
+  text-shadow: 0 0 10px rgba(180, 120, 255, 0.45);
+}
+
+#skinRewardImg {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin: 8px auto 14px;
+  display: block;
+  filter: drop-shadow(0 0 14px rgba(180, 90, 255, 0.45));
+}
+
+.skinRewardName {
+  font-family: 'Bungee', sans-serif;
+  font-size: 16px;
+  line-height: 1.3;
+  margin-bottom: 18px;
+  color: #fff;
+}
+
+.skinRewardCollectBtn {
+  min-width: 150px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(180deg, #b46cff 0%, #7b2cff 100%);
+  box-shadow:
+    0 8px 20px rgba(123, 44, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.skinRewardCollectBtn:active {
+  transform: scale(0.98);
+}
+
+@keyframes skinRewardPop {
+  from {
+    transform: scale(0.88);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shine {
+  from {
+    left: -150%;
+  }
+  to {
+    left: 150%;
+  }
+}
+
+@media screen and (orientation: portrait) {
+  body {
+    background: #ccc;
+  }
+}
+
+/* ------------------------------
+   9. במצב אופקי (landscape)
+      מציג הודעה ומסתיר תוכן
+--------------------------------*/
+/*@media screen and (orientation: landscape) {
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: black;
+    color: white;
+  }
+
+  body::before {
+    content: 'אנא סובב את הטלפון למצב אנכי 📱';
+    text-align: center;
+    font-size: 1.2rem;
+  }
+
+  .phone-frame {
+    display: none;
+  }
+}*/
