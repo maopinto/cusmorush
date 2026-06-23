@@ -524,34 +524,74 @@ function updateCenterPlanetByLevel(level) {
 }
 
 const planets = [
-  { name: 'Blue', img: './images/centerPlanets/bluePlanet.png', unlock: 1 },
-  { name: 'Green', img: './images/centerPlanets/greenPlanet.png', unlock: 11 },
-  { name: 'Pink', img: './images/centerPlanets/pinkPlanet.png', unlock: 21 },
-  { name: 'Red', img: './images/centerPlanets/redPlanet.png', unlock: 31 },
+  {
+    name: 'Blue',
+    img: './images/centerPlanets/bluePlanet.png',
+    unlock: 1,
+    color: '0,198,255',
+  },
+  {
+    name: 'Green',
+    img: './images/centerPlanets/greenPlanet.png',
+    unlock: 11,
+    color: '0,255,120',
+  },
+  {
+    name: 'Pink',
+    img: './images/centerPlanets/pinkPlanet.png',
+    unlock: 21,
+    color: '255,0,200',
+  },
+  {
+    name: 'Red',
+    img: './images/centerPlanets/redPlanet.png',
+    unlock: 31,
+    color: '255,55,55',
+  },
   {
     name: 'Purple',
     img: './images/centerPlanets/purplePlanet.png',
     unlock: 41,
+    color: '180,0,255',
   },
   {
     name: 'Orange',
     img: './images/centerPlanets/orangePlanet.png',
     unlock: 51,
+    color: '255,120,20',
   },
   {
     name: 'Light Blue',
     img: './images/centerPlanets/lightBluePlanet.png',
     unlock: 61,
+    color: '0,255,255',
   },
   {
     name: 'Yellow',
     img: './images/centerPlanets/yellowPlanet.png',
     unlock: 71,
+    color: '255,230,0',
   },
-  { name: 'Black', img: './images/centerPlanets/blackPlanet.png', unlock: 81 },
-  { name: 'Gold', img: './images/centerPlanets/goldPlanet.png', unlock: 91 },
+  {
+    name: 'Black',
+    img: './images/centerPlanets/blackPlanet.png',
+    unlock: 81,
+    color: '120,120,120',
+  },
+  {
+    name: 'Gold',
+    img: './images/centerPlanets/goldPlanet.png',
+    unlock: 91,
+    color: '255,200,40',
+  },
 ];
 
+function applyPlanetTheme(planet) {
+  const box = document.getElementById('planetSelectBox');
+  if (!box || !planet?.color) return;
+
+  box.style.setProperty('--planet-color', planet.color);
+}
 let currentPlanetIndex = 0;
 
 function openPlanetSelect() {
@@ -564,11 +604,16 @@ function openPlanetSelect() {
   firstSlide.style.backgroundImage = `url('${planets[currentPlanetIndex].img}')`;
 
   const planet = planets[currentPlanetIndex];
+  applyPlanetTheme(planet);
   const start = planet.unlock;
   const end = Math.min(start + 9, 100);
 
   document.getElementById('planetName').textContent =
     `Levels ${start} - ${end}`;
+
+  document
+    .getElementById('planetSelectBox')
+    ?.style.setProperty('--planet-color', planet.color);
 }
 
 function closePlanetSelect() {
@@ -580,6 +625,9 @@ function renderPlanet(direction = 'right') {
   isPlanetSliding = true;
 
   const planet = planets[currentPlanetIndex];
+  applyPlanetTheme(planet);
+  const box = document.getElementById('planetSelectBox');
+  box?.style.setProperty('--planet-color', planet.color);
   const preview = document.getElementById('planetPreview');
   const name = document.getElementById('planetName');
   if (!preview || !name) {
