@@ -1,3 +1,11 @@
+let currentPageIndex = 2;
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipeTracking = false;
+let suppressClickUntil = 0;
+let isPageTransitioning = false;
+let isPlanetSliding = false;
+
 // coins x
 let coins = Number(localStorage.getItem('coins')) || 50;
 const maxCoins = 999999;
@@ -453,6 +461,191 @@ function closeWeaponDiv(e) {
   UI.overlay()?.classList.remove('show');
 }
 
+function updateCenterPlanetByLevel(level) {
+  const planet = document.getElementById('centerPlanet');
+  if (!planet) return;
+
+  let image = './images/centerPlanets/bluePlanet.png';
+  let glow1 = 'rgba(0,180,255,0.65)';
+  let glow2 = 'rgba(0,120,255,0.55)';
+  let glow3 = 'rgba(0,80,255,0.45)';
+
+  if (level >= 91) {
+    image = './images/centerPlanets/goldPlanet.png';
+    glow1 = 'rgba(255,215,0,0.9)';
+    glow2 = 'rgba(255,180,0,0.7)';
+    glow3 = 'rgba(255,140,0,0.5)';
+  } else if (level >= 81) {
+    image = './images/centerPlanets/blackPlanet.png';
+    glow1 = 'rgba(80,80,80,0.8)';
+    glow2 = 'rgba(40,40,40,0.6)';
+    glow3 = 'rgba(0,0,0,0.5)';
+  } else if (level >= 71) {
+    image = './images/centerPlanets/yellowPlanet.png';
+    glow1 = 'rgba(255,255,0,0.8)';
+    glow2 = 'rgba(255,200,0,0.6)';
+    glow3 = 'rgba(200,150,0,0.4)';
+  } else if (level >= 61) {
+    image = './images/centerPlanets/lightBluePlanet.png';
+    glow1 = 'rgba(0,255,255,0.8)';
+    glow2 = 'rgba(0,200,255,0.6)';
+    glow3 = 'rgba(0,150,255,0.4)';
+  } else if (level >= 51) {
+    image = './images/centerPlanets/orangePlanet.png';
+    glow1 = 'rgba(255,140,0,0.8)';
+    glow2 = 'rgba(255,100,0,0.6)';
+    glow3 = 'rgba(200,60,0,0.4)';
+  } else if (level >= 41) {
+    image = './images/centerPlanets/purplePlanet.png';
+    glow1 = 'rgba(180,0,255,0.8)';
+    glow2 = 'rgba(120,0,255,0.6)';
+    glow3 = 'rgba(80,0,200,0.4)';
+  } else if (level >= 31) {
+    image = './images/centerPlanets/redPlanet.png';
+    glow1 = 'rgba(255,0,0,0.8)';
+    glow2 = 'rgba(200,0,0,0.6)';
+    glow3 = 'rgba(120,0,0,0.4)';
+  } else if (level >= 21) {
+    image = './images/centerPlanets/pinkPlanet.png';
+    glow1 = 'rgba(255,0,200,0.8)';
+    glow2 = 'rgba(200,0,150,0.6)';
+    glow3 = 'rgba(120,0,100,0.4)';
+  } else if (level >= 11) {
+    image = './images/centerPlanets/greenPlanet.png';
+    glow1 = 'rgba(0,255,120,0.8)';
+    glow2 = 'rgba(0,200,100,0.6)';
+    glow3 = 'rgba(0,120,60,0.4)';
+  }
+
+  planet.style.backgroundImage = `url('${image}')`;
+  planet.style.setProperty('--glow1', glow1);
+  planet.style.setProperty('--glow2', glow2);
+  planet.style.setProperty('--glow3', glow3);
+}
+
+const planets = [
+  { name: 'Blue', img: './images/centerPlanets/bluePlanet.png', unlock: 1 },
+  { name: 'Green', img: './images/centerPlanets/greenPlanet.png', unlock: 11 },
+  { name: 'Pink', img: './images/centerPlanets/pinkPlanet.png', unlock: 21 },
+  { name: 'Red', img: './images/centerPlanets/redPlanet.png', unlock: 31 },
+  {
+    name: 'Purple',
+    img: './images/centerPlanets/purplePlanet.png',
+    unlock: 41,
+  },
+  {
+    name: 'Orange',
+    img: './images/centerPlanets/orangePlanet.png',
+    unlock: 51,
+  },
+  {
+    name: 'Light Blue',
+    img: './images/centerPlanets/lightBluePlanet.png',
+    unlock: 61,
+  },
+  {
+    name: 'Yellow',
+    img: './images/centerPlanets/yellowPlanet.png',
+    unlock: 71,
+  },
+  { name: 'Black', img: './images/centerPlanets/blackPlanet.png', unlock: 81 },
+  { name: 'Gold', img: './images/centerPlanets/goldPlanet.png', unlock: 91 },
+];
+
+let currentPlanetIndex = 0;
+
+function openPlanetSelect() {
+  document.getElementById('planetSelectModal').classList.add('open');
+
+  const preview = document.getElementById('planetPreview');
+  preview.innerHTML = '<div class="planetSlide active"></div>';
+
+  const firstSlide = preview.querySelector('.planetSlide');
+  firstSlide.style.backgroundImage = `url('${planets[currentPlanetIndex].img}')`;
+
+  const planet = planets[currentPlanetIndex];
+  const start = planet.unlock;
+  const end = Math.min(start + 9, 100);
+
+  document.getElementById('planetName').textContent =
+    `Levels ${start} - ${end}`;
+}
+
+function closePlanetSelect() {
+  document.getElementById('planetSelectModal').classList.remove('open');
+}
+
+function renderPlanet(direction = 'right') {
+  if (isPlanetSliding) return;
+  isPlanetSliding = true;
+
+  const planet = planets[currentPlanetIndex];
+  const preview = document.getElementById('planetPreview');
+  const name = document.getElementById('planetName');
+  if (!preview || !name) {
+    isPlanetSliding = false;
+    return;
+  }
+
+  const currentSlide = preview.querySelector('.planetSlide');
+
+  const newSlide = document.createElement('div');
+  newSlide.className = 'planetSlide';
+
+  if (direction === 'right') {
+    newSlide.classList.add('enter-from-right');
+  } else {
+    newSlide.classList.add('enter-from-left');
+  }
+
+  newSlide.style.backgroundImage = `url('${planet.img}')`;
+  preview.appendChild(newSlide);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      newSlide.classList.add('active');
+
+      if (currentSlide) {
+        currentSlide.classList.remove('active');
+        currentSlide.classList.add(
+          direction === 'right' ? 'exit-to-left' : 'exit-to-right'
+        );
+
+        setTimeout(() => {
+          currentSlide.remove();
+        }, 350);
+      }
+
+      const start = planet.unlock;
+      const end = planet.unlock + 9;
+
+      name.textContent = `Levels ${start} - ${end}`;
+
+      setTimeout(() => {
+        isPlanetSliding = false;
+      }, 400);
+    });
+  });
+}
+
+function nextPlanet() {
+  if (isPlanetSliding) return;
+
+  currentPlanetIndex++;
+  if (currentPlanetIndex >= planets.length) currentPlanetIndex = 0;
+
+  renderPlanet('right');
+}
+
+function prevPlanet() {
+  if (isPlanetSliding) return;
+
+  currentPlanetIndex--;
+  if (currentPlanetIndex < 0) currentPlanetIndex = planets.length - 1;
+
+  renderPlanet('left');
+}
+
 window.openWeaponDiv = openWeaponDiv;
 window.closeWeaponDiv = closeWeaponDiv;
 
@@ -520,7 +713,7 @@ function closeMap(e) {
 
   map.classList.remove('open');
   map.classList.add('closing');
-  setTimeout(() => map.classList.remove('closing'), 400);
+  setTimeout(() => map.classList.remove('closing'), 1000);
 }
 
 function playStartGameAnimation() {
@@ -1159,6 +1352,11 @@ function handleGlobalPointerDown(e) {
 }
 
 function handleGlobalClick(e) {
+  if (shouldSuppressClick()) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
   if (
     UI.profile()?.contains(e.target) ||
     UI.profileBtn()?.contains(e.target) ||
@@ -1189,15 +1387,166 @@ function handleGlobalClick(e) {
   closeAll();
 }
 
+function getPageOrder() {
+  return DOM.bottomButtons || [];
+}
+
+function getCurrentPageIndex() {
+  return currentPageIndex;
+}
+
+function setActiveBottomButton(index) {
+  const buttons = getPageOrder();
+  buttons.forEach((btn, i) => {
+    btn.classList.toggle('active', i === index);
+    if (i === index) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
+  });
+}
+
+function goToPageByIndex(index) {
+  const buttons = getPageOrder();
+  if (!buttons.length) return;
+  if (isPageTransitioning) return;
+
+  const safeIndex = Math.max(0, Math.min(index, buttons.length - 1));
+  const current = currentPageIndex;
+
+  if (safeIndex === current) return;
+
+  const currentId = buttons[current]?.dataset.target;
+  const targetId = buttons[safeIndex]?.dataset.target;
+  if (!currentId || !targetId) return;
+
+  const currentPage = document.getElementById(currentId);
+  const nextPage = document.getElementById(targetId);
+
+  if (!currentPage || !nextPage || currentPage === nextPage) return;
+
+  isPageTransitioning = true;
+
+  const movingRight = safeIndex > current;
+
+  DOM.pages.forEach((p) => {
+    p.classList.remove('enter-left', 'enter-right', 'exit-left', 'exit-right');
+  });
+
+  currentPageIndex = safeIndex;
+  setActiveBottomButton(safeIndex);
+
+  nextPage.classList.add(movingRight ? 'enter-right' : 'enter-left');
+  nextPage.classList.add('active');
+
+  void nextPage.offsetWidth;
+
+  currentPage.classList.add(movingRight ? 'exit-left' : 'exit-right');
+  nextPage.classList.remove(movingRight ? 'enter-right' : 'enter-left');
+
+  setTimeout(() => {
+    currentPage.classList.remove('active', 'exit-left', 'exit-right');
+    nextPage.classList.remove('enter-left', 'enter-right');
+    isPageTransitioning = false;
+  }, 540);
+
+  if (targetId === 'shopScreen') {
+    nextFrame(() => {
+      window.shopOnEnter?.();
+    });
+  }
+}
+function goToAdjacentPage(direction) {
+  const current = getCurrentPageIndex();
+  goToPageByIndex(current + direction);
+}
+
+function shouldIgnoreSwipeStart(target) {
+  return !!target.closest(
+    '#mapDiv, #weaponDiv, #buyWeaponPopup, #settingsDiv, #profileSettingsDiv, #socialDiv, #superShopDiv, #buySuperConfirm, #invModal, #shopModal, #petInfoOverlay, #petShoopDiv, input, textarea, select, button'
+  );
+}
+
+function bindSwipeNavigation() {
+  const screenEl = document.querySelector('.screen');
+  if (!screenEl) return;
+
+  let isPointerDown = false;
+  let pointerType = '';
+  let pointerId = null;
+
+  screenEl.addEventListener('pointerdown', (e) => {
+    if (isPageTransitioning) return;
+    if (shouldIgnoreSwipeStart(e.target)) return;
+    if (!e.isPrimary) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    isPointerDown = true;
+    swipeTracking = true;
+    pointerType = e.pointerType;
+    pointerId = e.pointerId;
+    swipeStartX = e.clientX;
+    swipeStartY = e.clientY;
+  });
+  screenEl.addEventListener('pointerup', (e) => {
+    if (!isPointerDown || !swipeTracking) return;
+    if (!e.isPrimary) return;
+    if (pointerId !== null && e.pointerId !== pointerId) return;
+
+    isPointerDown = false;
+    swipeTracking = false;
+
+    const dx = e.clientX - swipeStartX;
+    const dy = e.clientY - swipeStartY;
+
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    const minSwipe = pointerType === 'mouse' ? 70 : 45;
+
+    if (absX < minSwipe) return;
+    if (absX <= absY) return;
+    suppressClickUntil = Date.now() + 350;
+
+    if (dx < 0) {
+      goToAdjacentPage(1);
+    } else {
+      goToAdjacentPage(-1);
+    }
+  });
+
+  screenEl.addEventListener('pointercancel', () => {
+    isPointerDown = false;
+    swipeTracking = false;
+    pointerType = '';
+    pointerId = null;
+  });
+
+  screenEl.addEventListener('pointerleave', () => {
+    if (pointerType === 'mouse') {
+      isPointerDown = false;
+      swipeTracking = false;
+      pointerType = '';
+      pointerId = null;
+    }
+  });
+}
+
+function shouldSuppressClick() {
+  return Date.now() < suppressClickUntil;
+}
+
 function handleDelegatedClicks(e) {
+  if (shouldSuppressClick()) {
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
   const bottomBtn = e.target.closest('.bottomButton[data-target]');
   if (bottomBtn) {
     e.stopPropagation();
-    DOM.pages.forEach((p) => p.classList.remove('active'));
-    document.getElementById(bottomBtn.dataset.target)?.classList.add('active');
+    const index = DOM.bottomButtons.indexOf(bottomBtn);
+    if (index >= 0) goToPageByIndex(index);
     return;
   }
-
   const lockedWeaponBtn = e.target.closest('.upgradeWeapon.locked');
   if (lockedWeaponBtn) {
     e.preventDefault();
@@ -1445,6 +1794,21 @@ function init() {
   updateEquipUI();
   updatePetUI();
   updateSuperEquipUI();
+
+  const maxLevel = getMaxUnlockedLevel();
+  updateCenterPlanetByLevel(maxLevel);
+
+  currentPageIndex = getCurrentPageIndex();
+  setActiveBottomButton(currentPageIndex);
+  bindSwipeNavigation();
+
+  const centerPlanet = document.getElementById('centerPlanet');
+  const planetSelectModal = document.getElementById('planetSelectModal');
+  const closePlanetSelectBtn = document.getElementById('closePlanetSelect');
+
+  centerPlanet?.addEventListener('click', openPlanetSelect);
+  planetSelectModal?.addEventListener('click', closePlanetSelect);
+  closePlanetSelectBtn?.addEventListener('click', closePlanetSelect);
 }
 
 document.addEventListener('DOMContentLoaded', init);
@@ -1505,3 +1869,7 @@ window.updatePetUI = updatePetUI;
 window.updateSuperEquipUI = updateSuperEquipUI;
 window.goToLevel = goToLevel;
 window.closeBuyWeapon = closeBuyWeapon;
+window.openPlanetSelect = openPlanetSelect;
+window.closePlanetSelect = closePlanetSelect;
+window.nextPlanet = nextPlanet;
+window.prevPlanet = prevPlanet;

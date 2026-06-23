@@ -238,7 +238,11 @@ window.addEventListener('load', function () {
     bg: getBackgroundForLevel(currentLevel),
     explosion: './images/game/sprites/smokeExplosion.png',
     music: './sounds/game/gameplayMusic.mp3',
+    enemyExplosionSound: './sounds/game/soundEffects/enemyExplosion.mp3',
   };
+
+  let enemyExplosionSound = null;
+  let upgradeSound = null;
 
   function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -282,6 +286,38 @@ window.addEventListener('load', function () {
     bgMusic.loop = true;
     bgMusic.preload = 'auto';
     applyGameMusicSettings();
+  }
+
+  function setupSounds() {
+    enemyExplosionSound = new Audio(ASSETS.enemyExplosionSound);
+    enemyExplosionSound.preload = 'auto';
+    enemyExplosionSound.volume = 0.5;
+
+    upgradeSound = new Audio('./sounds/game/soundEffects/powerupSound.mp3');
+
+    upgradeSound.preload = 'auto';
+    upgradeSound.volume =
+      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+  }
+
+  function playUpgradeSound() {
+    if (!upgradeSound) return;
+
+    if (localStorage.getItem('audio') === 'off') return;
+
+    const sfx = upgradeSound.cloneNode();
+    sfx.volume =
+      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+
+    sfx.play().catch(() => {});
+  }
+
+  function playEnemyExplosionSound() {
+    if (!enemyExplosionSound) return;
+
+    const sfx = enemyExplosionSound.cloneNode();
+    sfx.volume = enemyExplosionSound.volume;
+    sfx.play().catch(() => {});
   }
 
   function startMusic() {
@@ -2806,6 +2842,7 @@ window.addEventListener('load', function () {
 
     handleEnemyDeath(enemy, giveSuperCharge = true) {
       if (!enemy || enemy.markedForDeletion) return;
+      playEnemyExplosionSound();
 
       if (enemy instanceof Boss4) {
         if (enemy.splitLevel < 2) {
@@ -2975,6 +3012,7 @@ window.addEventListener('load', function () {
     }
 
     applyUpgrade(type) {
+      playUpgradeSound();
       switch (type) {
         case 'doubleShooter':
           this.player.doubleShot = true;
@@ -3306,6 +3344,7 @@ window.addEventListener('load', function () {
       }
     }
     setupMusic();
+    setupSounds();
     await preload();
     applyGameMusicSettings();
 

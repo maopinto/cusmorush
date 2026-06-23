@@ -5,13 +5,31 @@ class SuperAttack1 {
     this.height = 30;
     this.x = this.game.width / 2 - this.width / 2;
     this.y = game.height;
-    this.speedY = 10;
+    this.speedY = 15;
     this.damage = 50;
     this.markedForDeletion = false;
 
     this.lifeTime = 2500;
     this.timer = 0;
     this.alpha = 1;
+
+    this.sound = new Audio(
+      './sounds/game/soundEffects/superAttacksSounds/superAttack1Sound.mp3'
+    );
+
+    this.sound.volume =
+      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+
+    if (localStorage.getItem('audio') !== 'off') {
+      this.sound.play().catch(() => {});
+    }
+
+    setTimeout(() => {
+      if (this.sound) {
+        this.sound.pause();
+        this.sound.currentTime = 0;
+      }
+    }, 3000);
   }
 
   update(deltaTime) {
@@ -23,6 +41,13 @@ class SuperAttack1 {
     this.alpha = Math.max(0, 1 - this.timer / this.lifeTime);
 
     if (this.timer >= this.lifeTime || this.y < -this.height) {
+      if (this.sound) {
+        this.sound.pause();
+        this.sound.currentTime = 0;
+        this.sound = null;
+      }
+
+      this.markedForDeletion = true;
       this.markedForDeletion = true;
     }
   }
@@ -126,6 +151,38 @@ class SuperLaser {
     this.hitInterval = 200;
     this.markedForDeletion = false;
     this.hitTimers = new Map();
+
+    this.sound = new Audio(
+      './sounds/game/soundEffects/superAttacksSounds/superLaserSound.mp3'
+    );
+    this.sound.preload = 'auto';
+    this.sound.volume =
+      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+
+    this.loopPoint = 1.7;
+
+    this.sound.addEventListener('timeupdate', () => {
+      if (!this.sound) return;
+
+      if (this.sound.currentTime >= this.loopPoint) {
+        this.sound.currentTime = 0;
+        this.sound.play().catch(() => {});
+      }
+    });
+
+    this.sound.addEventListener('timeupdate', () => {
+      if (!this.sound || !this.loopPoint) return;
+
+      if (this.sound.currentTime >= this.loopPoint) {
+        this.sound.currentTime = 0;
+        this.sound.play().catch(() => {});
+      }
+    });
+
+    if (localStorage.getItem('audio') !== 'off') {
+      this.sound.currentTime = 0;
+      this.sound.play().catch(() => {});
+    }
   }
 
   update(deltaTime) {
@@ -134,14 +191,19 @@ class SuperLaser {
     this.x = centerX - this.width / 2;
 
     this.timer += deltaTime;
+
     if (this.timer >= this.lifeTime) {
+      this.stopSound();
       this.markedForDeletion = true;
       return;
     }
 
     for (const [enemy, t] of this.hitTimers.entries()) {
-      if (!enemy || enemy.markedForDeletion) this.hitTimers.delete(enemy);
-      else this.hitTimers.set(enemy, t + deltaTime);
+      if (!enemy || enemy.markedForDeletion) {
+        this.hitTimers.delete(enemy);
+      } else {
+        this.hitTimers.set(enemy, t + deltaTime);
+      }
     }
 
     this.game.enemies.forEach((enemy) => {
@@ -149,17 +211,13 @@ class SuperLaser {
 
       if (window.checkCollision(this, enemy)) {
         const t = this.hitTimers.get(enemy) ?? this.hitInterval;
+
         if (t >= this.hitInterval) {
           enemy.lives -= this.damagePerTick;
           this.hitTimers.set(enemy, 0);
 
           if (enemy.lives <= 0 && !enemy.markedForDeletion) {
-            enemy.markedForDeletion = true;
-            this.game.score++;
-
-            const px = enemy.x + enemy.width / 2;
-            const py = enemy.y + enemy.height / 2;
-            this.game.explosions.push(new window.Explosion(this.game, px, py));
+            this.game.handleEnemyDeath(enemy, false);
           }
         }
       }
@@ -167,12 +225,22 @@ class SuperLaser {
 
     this.game.enemies.forEach((enemy) => {
       if (!enemy.enemyBullets) return;
+
       enemy.enemyBullets.forEach((bullet) => {
         if (!bullet.markedForDeletion && window.checkCollision(this, bullet)) {
           bullet.markedForDeletion = true;
         }
       });
     });
+  }
+
+  stopSound() {
+    if (!this.sound) return;
+
+    this.sound.pause();
+    this.sound.currentTime = 0;
+    this.sound.src = '';
+    this.sound = null;
   }
 
   draw(ctx) {
@@ -213,5 +281,5 @@ window.SuperAttack1 = SuperAttack1;
 window.SuperLaser = SuperLaser;
 window.SUPER_TYPES = {
   waveShield: { class: SuperAttack1, duration: 500, charge: 5 },
-  superLaser: { class: SuperLaser, duration: 4000, charge: 5 },
+  superLaser: { class: SuperLaser, duration: 6000, charge: 5 },
 };

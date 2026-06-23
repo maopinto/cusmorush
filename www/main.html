@@ -113,8 +113,26 @@
         </div>
 
 
-        <div id="centerCherecter"></div>
+        <div id="centerPlanet"></div>
         <button id="startGameBtn" onclick="openMap(event)" data-sound="map" data-i18n="home.battle">BATTLE</button>
+
+        <div id="planetSelectModal">
+          <div id="planetSelectBox" onclick="event.stopPropagation()">
+
+            <button id="closePlanetSelect">✕</button>
+
+            <button class="planetArrow left" onclick="prevPlanet()">‹</button>
+
+            <div id="planetPreview">
+              <div class="planetSlide active"></div>
+            </div>
+
+            <button class="planetArrow right" onclick="nextPlanet()">›</button>
+
+            <div id="planetName">Planet</div>
+
+          </div>
+        </div>
       </div>
 
       <!-- ================= MAP ================= -->
