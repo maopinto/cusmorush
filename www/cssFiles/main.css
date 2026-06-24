@@ -1570,6 +1570,12 @@ button {
   border-right: none;
 }
 
+.iconNavButton {
+  font-size: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 @keyframes navSweep {
   0% {
     transform: translateX(-60%) rotate(10deg);
@@ -2222,7 +2228,16 @@ button {
 }
 
 #homeScreen {
-  background: url('../images/backgroundImages/homePage.png');
+  background:
+    radial-gradient(
+      circle at 50% 18%,
+      rgba(0, 230, 255, 0.22),
+      transparent 42%
+    ),
+    linear-gradient(180deg, rgba(7, 12, 36, 0.12), rgba(36, 0, 70, 0.34)),
+    url('../images/backgroundImages/homePage.png');
+  background-size: cover;
+  background-position: center;
 }
 
 #centerPlanet {

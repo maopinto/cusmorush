@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./cssFiles/game.css" />
   <link rel="icon" href="./images/logo.png" />
 
+  <script defer src="./javaScriptFiles/main/i18n.js"></script>
   <script defer src="./javaScriptFiles/game/upgradeCards.js"></script>
   <script defer src="./javaScriptFiles/game/enemies.js"></script>
   <script defer src="./javaScriptFiles/game/enemySpawnTable.js"></script>
@@ -23,28 +24,28 @@
     rel="stylesheet">
 </head>
 
-<body>
+<body data-title-i18n="game.title">
   <div class="phone-frame">
     <div class="screen">
       <div class="notch"></div>
       <canvas id="gameBoard"></canvas>
       <div id="victoryScreen" class="overlay hidden">
         <div class="victoryBox">
-          <h2>Victory!</h2>
+          <h2 data-i18n="game.victory">Victory!</h2>
           <p id="rewardText"></p>
 
           <div class="victoryButtons">
-            <button id="btnLobby">Lobby</button>
-            <button id="btnNext">Next Level</button>
+            <button id="btnLobby" data-i18n="game.lobby">Lobby</button>
+            <button id="btnNext" data-i18n="game.nextLevel">Next Level</button>
           </div>
         </div>
       </div>
       <div id="skinRewardPopup" class="overlay hidden">
         <div class="skinRewardBox">
-          <div class="skinRewardTitle">NEW SKIN UNLOCKED</div>
+          <div class="skinRewardTitle" data-i18n="game.newSkinUnlocked">NEW SKIN UNLOCKED</div>
           <img id="skinRewardImg" src="" alt="New Skin">
           <div id="skinRewardName" class="skinRewardName"></div>
-          <button id="skinRewardCollectBtn" class="skinRewardCollectBtn">COLLECT</button>
+          <button id="skinRewardCollectBtn" class="skinRewardCollectBtn" data-i18n="game.collect">COLLECT</button>
         </div>
       </div>
     </div>

@@ -5,6 +5,9 @@ let swipeTracking = false;
 let suppressClickUntil = 0;
 let isPageTransitioning = false;
 let isPlanetSliding = false;
+let pageTransitionTimer = null;
+let lastPageNavTarget = null;
+let lastPageNavAt = 0;
 
 // coins x
 let coins = Number(localStorage.getItem('coins')) || 50;
@@ -38,11 +41,7 @@ document.addEventListener(
 );
 
 function rerenderLanguageDependentUI(lang = getLang?.() || 'en') {
-  document.documentElement.lang = lang;
-
-  const isRTL = lang === 'he';
-  document.body.dir = isRTL ? 'rtl' : 'ltr';
-  document.body.style.direction = isRTL ? 'rtl' : 'ltr';
+  applyDirection?.(lang);
 
   nextFrame(() => {
     window.updatePetUI?.();
@@ -66,17 +65,20 @@ function rerenderLanguageDependentUI(lang = getLang?.() || 'en') {
 
 const WEAPONS = {
   laser: {
-    name: 'Laser',
+    nameKey: 'weapon.laser.name',
+    descKey: 'weapon.laser.desc',
     price: 'Free',
     img: './images/logosImage/weaponImg/leserIcone.png',
   },
   missile: {
-    name: 'Missile',
+    nameKey: 'weapon.missile.name',
+    descKey: 'weapon.missile.desc',
     price: 500,
     img: './images/logosImage/weaponImg/missileIcone.png',
   },
   triangleShooter: {
-    name: 'Triangle Shooter',
+    nameKey: 'weapon.triangleShooter.name',
+    descKey: 'weapon.triangleShooter.desc',
     price: 1250,
     img: './images/logosImage/weaponImg/triangleShooter.png',
   },
@@ -91,14 +93,11 @@ const PETS = {
     stats: {
       LIVES: 3,
       DAMAGE: 8,
-      SHOOT_RATE: 'Every 8s',
+      SHOOT_RATE: 'pets.rate.every8s',
     },
-    role: 'ATTACK',
-    ability: 'Heavy Pulse',
-    description:
-      'Chimpo is an autonomous companion unit that assists the player in battle.\n\n' +
-      'It automatically targets the closest enemy and fires consistently over time. ' +
-      'Perfect for early-game support and survivability.',
+    roleKey: 'pets.role.attack',
+    abilityKey: 'pets.ability.heavyPulse',
+    descriptionKey: 'pets.dog.long',
   },
 
   siren: {
@@ -108,16 +107,13 @@ const PETS = {
     img: './images/shopAInventoryicons/petsSIcone/sirenIcone.png',
     stats: {
       LIVES: 2,
-      ABILITY: 'Mind Control',
-      EFFECT: 'Let them do the work.',
-      RATE: 'Every 9s',
+      ABILITY: 'pets.ability.mindControl',
+      EFFECT: 'pets.effect.siren',
+      RATE: 'pets.rate.every9s',
     },
-    role: 'ATTACK',
-    ability: 'Mass Crash',
-    description:
-      'Siren does not deal damage directly.\n\n' +
-      'It manipulates enemy minds, forcing them to turn against each other.\n' +
-      'Extremely effective in crowded waves.',
+    roleKey: 'pets.role.attack',
+    abilityKey: 'pets.ability.massCrash',
+    descriptionKey: 'pets.siren.long',
   },
 };
 
@@ -248,8 +244,6 @@ function cacheDom() {
   DOM.buyWeaponName = $('#buyWeaponName');
   DOM.buyWeaponImg = $('#buyWeaponImg');
   DOM.buyWeaponPrice = $('#buyWeaponPrice');
-  DOM.comingSoonOverlay = $('#comingSoonOverlay');
-  DOM.comingSoonText = $('#comingSoonText');
   DOM.petShopDiv = $('#petShoopDiv');
   DOM.petInfoOverlay = $('#petInfoOverlay');
   DOM.petInfoTitle = $('#petInfoTitle');
@@ -353,6 +347,22 @@ function loadCoins() {
 function updateCoinsUI() {
   if (DOM.coinsText) DOM.coinsText.textContent = coins;
   if (DOM.shopCoinsText) DOM.shopCoinsText.textContent = coins;
+}
+
+function trValue(value, lang = getLang?.() || 'en') {
+  return typeof value === 'string' && value.includes('.')
+    ? t(lang, value)
+    : value;
+}
+
+function weaponName(id, lang = getLang?.() || 'en') {
+  const weapon = WEAPONS[id];
+  if (!weapon) return id;
+  return weapon.nameKey ? t(lang, weapon.nameKey) : weapon.name || id;
+}
+
+function petName(id) {
+  return PETS[id]?.name || id;
 }
 
 function grantCoins(amount) {
@@ -608,8 +618,10 @@ function openPlanetSelect() {
   const start = planet.unlock;
   const end = Math.min(start + 9, 100);
 
-  document.getElementById('planetName').textContent =
-    `Levels ${start} - ${end}`;
+  document.getElementById('planetName').textContent = t(getLang(), 'planet.levelRange', {
+    start,
+    end,
+  });
 
   document
     .getElementById('planetSelectBox')
@@ -667,7 +679,7 @@ function renderPlanet(direction = 'right') {
       const start = planet.unlock;
       const end = planet.unlock + 9;
 
-      name.textContent = `Levels ${start} - ${end}`;
+      name.textContent = t(getLang(), 'planet.levelRange', { start, end });
 
       setTimeout(() => {
         isPlanetSliding = false;
@@ -797,7 +809,7 @@ function openBuyWeapon(id) {
   const lang = getLang();
   const buyBtn = DOM.buyConfirmBtn;
 
-  if (DOM.buyWeaponName) DOM.buyWeaponName.textContent = weapon.name;
+  if (DOM.buyWeaponName) DOM.buyWeaponName.textContent = weaponName(id, lang);
   if (DOM.buyWeaponImg) DOM.buyWeaponImg.src = weapon.img;
 
   const owned = id === DEFAULT_WEAPON || isWeaponOwned(id);
@@ -877,26 +889,6 @@ function equipWeaponFromInventory(id) {
   openInv('weapons');
 }
 
-function showComingSoon() {
-  const overlay = DOM.comingSoonOverlay;
-  const text = DOM.comingSoonText;
-  if (!overlay || !text) return;
-
-  overlay.classList.remove('show');
-  text.classList.remove('show');
-
-  nextFrame(() => {
-    overlay.classList.add('show');
-    text.classList.add('show');
-  });
-
-  clearTimeout(showComingSoon.timer);
-  showComingSoon.timer = setTimeout(() => {
-    overlay.classList.remove('show');
-    text.classList.remove('show');
-  }, 1100);
-}
-
 function openPetShop() {
   DOM.petShopDiv?.classList.remove('hidden');
 }
@@ -933,7 +925,7 @@ function buyPet(id) {
   playEquipSound();
   updatePetUI();
 
-  showToast(`You bought and equipped ${pet.name}!`, 'success');
+  showToast(t(lang, 'toast.boughtEquipped', { name: petName(id) }), 'success');
 
   const card = $(`.petCard[data-pet="${id}"]`);
   if (card) {
@@ -1002,7 +994,7 @@ function addPetStat(label, value) {
 
   const spanValue = document.createElement('span');
   spanValue.className = 'statValue';
-  spanValue.textContent = value;
+  spanValue.textContent = trValue(value, lang);
 
   li.appendChild(spanLabel);
   li.appendChild(spanValue);
@@ -1037,7 +1029,7 @@ function openPetInfo(petKey) {
 
       const spanValue = document.createElement('span');
       spanValue.className = 'statValue';
-      spanValue.textContent = value;
+      spanValue.textContent = trValue(value, lang);
 
       li.appendChild(spanLabel);
       li.appendChild(spanValue);
@@ -1146,7 +1138,7 @@ function buySuper(id) {
   if (!superData) return;
 
   if (coins < superData.price) {
-    showToast('Not enough coins!', 'error');
+  showToast(t(getLang(), 'toast.noCoins'), 'error');
     return;
   }
 
@@ -1162,7 +1154,7 @@ function buySuper(id) {
 
   setEquippedSuper(id);
   playEquipSound();
-  showToast('Super purchased and equipped!', 'success');
+  showToast(t(getLang(), 'toast.superPurchased'), 'success');
   updateSuperEquipUI();
 }
 
@@ -1185,7 +1177,7 @@ function confirmBuySuper() {
   if (!data) return;
 
   if (coins < data.price) {
-    showToast('Not enough coins!', 'error');
+    showToast(t(getLang(), 'toast.noCoins'), 'error');
     return;
   }
 
@@ -1201,7 +1193,7 @@ function confirmBuySuper() {
 
   setEquippedSuper(pendingSuperBuy);
   playEquipSound();
-  showToast('Super unlocked and equipped!', 'success');
+  showToast(t(getLang(), 'toast.superUnlocked'), 'success');
 
   pendingSuperBuy = null;
   closeBuySuperConfirm();
@@ -1239,7 +1231,7 @@ function unlockNextLevel(currentLevel) {
 
 function showLockedLevel(level) {
   playUIClick();
-  alert(`🔒 Level ${level} is locked!\nComplete previous levels first.`);
+  alert(t(getLang(), 'game.lockedLevel', { level }));
 }
 
 function updateLevelsMap() {
@@ -1452,6 +1444,62 @@ function setActiveBottomButton(index) {
   });
 }
 
+function setActivePageImmediate(index) {
+  const buttons = getPageOrder();
+  const targetId = buttons[index]?.dataset.target;
+  if (!targetId) return;
+
+  DOM.pages.forEach((page) => {
+    page.classList.remove(
+      'active',
+      'enter-left',
+      'enter-right',
+      'exit-left',
+      'exit-right'
+    );
+    page.style.transition = 'none';
+  });
+
+  const targetPage = document.getElementById(targetId);
+  targetPage?.classList.add('active');
+
+  requestAnimationFrame(() => {
+    DOM.pages.forEach((page) => {
+      page.style.transition = '';
+    });
+  });
+}
+
+function resetInactivePagesWithoutAnimation(activePage) {
+  DOM.pages.forEach((page) => {
+    if (page === activePage) return;
+    page.style.transition = 'none';
+    page.classList.remove(
+      'active',
+      'enter-left',
+      'enter-right',
+      'exit-left',
+      'exit-right'
+    );
+  });
+
+  void document.body.offsetWidth;
+
+  requestAnimationFrame(() => {
+    DOM.pages.forEach((page) => {
+      page.style.transition = '';
+    });
+  });
+}
+
+function finishPageTransition(nextPage) {
+  resetInactivePagesWithoutAnimation(nextPage);
+  nextPage.classList.remove('enter-left', 'enter-right', 'exit-left', 'exit-right');
+  nextPage.classList.add('active');
+  isPageTransitioning = false;
+  pageTransitionTimer = null;
+}
+
 function goToPageByIndex(index) {
   const buttons = getPageOrder();
   if (!buttons.length) return;
@@ -1459,8 +1507,10 @@ function goToPageByIndex(index) {
 
   const safeIndex = Math.max(0, Math.min(index, buttons.length - 1));
   const current = currentPageIndex;
+  const now = Date.now();
 
   if (safeIndex === current) return;
+  if (safeIndex === lastPageNavTarget && now - lastPageNavAt < 850) return;
 
   const currentId = buttons[current]?.dataset.target;
   const targetId = buttons[safeIndex]?.dataset.target;
@@ -1472,11 +1522,25 @@ function goToPageByIndex(index) {
   if (!currentPage || !nextPage || currentPage === nextPage) return;
 
   isPageTransitioning = true;
+  lastPageNavTarget = safeIndex;
+  lastPageNavAt = now;
+  if (pageTransitionTimer) {
+    clearTimeout(pageTransitionTimer);
+    pageTransitionTimer = null;
+  }
 
   const movingRight = safeIndex > current;
 
   DOM.pages.forEach((p) => {
-    p.classList.remove('enter-left', 'enter-right', 'exit-left', 'exit-right');
+    p.classList.remove(
+      'enter-left',
+      'enter-right',
+      'exit-left',
+      'exit-right'
+    );
+    if (p !== currentPage && p !== nextPage) {
+      p.classList.remove('active');
+    }
   });
 
   currentPageIndex = safeIndex;
@@ -1490,11 +1554,9 @@ function goToPageByIndex(index) {
   currentPage.classList.add(movingRight ? 'exit-left' : 'exit-right');
   nextPage.classList.remove(movingRight ? 'enter-right' : 'enter-left');
 
-  setTimeout(() => {
-    currentPage.classList.remove('active', 'exit-left', 'exit-right');
-    nextPage.classList.remove('enter-left', 'enter-right');
-    isPageTransitioning = false;
-  }, 540);
+  pageTransitionTimer = setTimeout(() => {
+    finishPageTransition(nextPage);
+  }, 620);
 
   if (targetId === 'shopScreen') {
     nextFrame(() => {
@@ -1520,6 +1582,7 @@ function bindSwipeNavigation() {
   let isPointerDown = false;
   let pointerType = '';
   let pointerId = null;
+  let swipeConsumed = false;
 
   screenEl.addEventListener('pointerdown', (e) => {
     if (isPageTransitioning) return;
@@ -1533,7 +1596,35 @@ function bindSwipeNavigation() {
     pointerId = e.pointerId;
     swipeStartX = e.clientX;
     swipeStartY = e.clientY;
+    swipeConsumed = false;
+
+    if (screenEl.setPointerCapture) {
+      try {
+        screenEl.setPointerCapture(e.pointerId);
+      } catch (_) {}
+    }
   });
+
+  screenEl.addEventListener('pointermove', (e) => {
+    if (!isPointerDown || !swipeTracking) return;
+    if (!e.isPrimary) return;
+    if (pointerId !== null && e.pointerId !== pointerId) return;
+
+    const dx = e.clientX - swipeStartX;
+    const dy = e.clientY - swipeStartY;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+    const minSwipe = pointerType === 'mouse' ? 70 : 45;
+
+    if (absX >= minSwipe && absX > absY * 1.15) {
+      swipeConsumed = true;
+      suppressClickUntil = Date.now() + 900;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+    }
+  });
+
   screenEl.addEventListener('pointerup', (e) => {
     if (!isPointerDown || !swipeTracking) return;
     if (!e.isPrimary) return;
@@ -1550,15 +1641,27 @@ function bindSwipeNavigation() {
 
     const minSwipe = pointerType === 'mouse' ? 70 : 45;
 
-    if (absX < minSwipe) return;
-    if (absX <= absY) return;
-    suppressClickUntil = Date.now() + 350;
+    if (absX < minSwipe || absX <= absY) {
+      pointerType = '';
+      pointerId = null;
+      swipeConsumed = false;
+      return;
+    }
+    swipeConsumed = true;
+    suppressClickUntil = Date.now() + 900;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation?.();
 
     if (dx < 0) {
       goToAdjacentPage(1);
     } else {
       goToAdjacentPage(-1);
     }
+
+    pointerType = '';
+    pointerId = null;
+    swipeConsumed = false;
   });
 
   screenEl.addEventListener('pointercancel', () => {
@@ -1566,6 +1669,7 @@ function bindSwipeNavigation() {
     swipeTracking = false;
     pointerType = '';
     pointerId = null;
+    swipeConsumed = false;
   });
 
   screenEl.addEventListener('pointerleave', () => {
@@ -1574,12 +1678,20 @@ function bindSwipeNavigation() {
       swipeTracking = false;
       pointerType = '';
       pointerId = null;
+      swipeConsumed = false;
     }
   });
 }
 
 function shouldSuppressClick() {
   return Date.now() < suppressClickUntil;
+}
+
+function suppressSwipeClick(e) {
+  if (!shouldSuppressClick()) return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation?.();
 }
 
 function handleDelegatedClicks(e) {
@@ -1590,18 +1702,12 @@ function handleDelegatedClicks(e) {
   }
   const bottomBtn = e.target.closest('.bottomButton[data-target]');
   if (bottomBtn) {
+    e.preventDefault();
     e.stopPropagation();
     const index = DOM.bottomButtons.indexOf(bottomBtn);
     if (index >= 0) goToPageByIndex(index);
     return;
   }
-  const lockedWeaponBtn = e.target.closest('.upgradeWeapon.locked');
-  if (lockedWeaponBtn) {
-    e.preventDefault();
-    showComingSoon();
-    return;
-  }
-
   const petCard = e.target.closest('.petCard');
   const petBtn = e.target.closest('.petBuyBtn');
   if (petCard) {
@@ -1648,6 +1754,7 @@ function bindEvents() {
   document.addEventListener('pointerdown', handleGlobalPointerDown, {
     capture: true,
   });
+  document.addEventListener('click', suppressSwipeClick, true);
   document.addEventListener('click', handleGlobalClick);
   document.addEventListener('click', handleDelegatedClicks);
 
@@ -1791,7 +1898,12 @@ function bindEvents() {
     playEquipSound();
     closeBuyWeapon();
 
-    showToast(`You bought and equipped ${weapon.name}!`, 'success');
+    showToast(
+      t(getLang(), 'toast.boughtEquipped', {
+        name: weaponName(selectedWeaponId, getLang()),
+      }),
+      'success'
+    );
 
     renderInventoryOverview?.();
     updateEquipUI();
@@ -1847,6 +1959,7 @@ function init() {
   updateCenterPlanetByLevel(maxLevel);
 
   currentPageIndex = getCurrentPageIndex();
+  setActivePageImmediate(currentPageIndex);
   setActiveBottomButton(currentPageIndex);
   bindSwipeNavigation();
 

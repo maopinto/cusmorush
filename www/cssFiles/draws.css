@@ -1,0 +1,177 @@
+/* Bottom navigation drawings */
+.navIcon {
+  position: relative;
+  z-index: 2;
+  width: 58px;
+  height: 58px;
+  display: block;
+  color: #eafcff;
+  filter:
+    drop-shadow(0 0 10px rgba(70, 220, 255, 0.72))
+    drop-shadow(0 5px 8px rgba(0, 0, 0, 0.75));
+
+  transition:
+    transform 0.18s ease,
+    filter 0.22s ease;
+}
+
+.navIcon::before,
+.navIcon::after {
+  content: '';
+  position: absolute;
+  display: block;
+}
+
+.bottomButton.active .navIcon,
+.bottomButton[aria-current='page'] .navIcon {
+  transform: translateY(-4px) scale(1.08);
+  filter:
+    drop-shadow(0 0 15px rgba(110, 235, 255, 0.95))
+    drop-shadow(0 0 24px rgba(105, 80, 255, 0.45))
+    drop-shadow(0 6px 8px rgba(0, 0, 0, 0.8));
+}
+
+.bottomButton:active .navIcon {
+  transform: scale(0.94);
+}
+
+.navLaserIcon::before {
+  left: 7px;
+  top: 22px;
+  width: 38px;
+  height: 16px;
+  border-radius: 15px 6px 6px 15px;
+  background:
+    linear-gradient(90deg, transparent 0 10%, rgba(255, 255, 255, 0.45) 11% 16%, transparent 17% 100%),
+    radial-gradient(circle at 88% 50%, #ffecf0 0 9%, #ff3155 10% 20%, transparent 21%),
+    linear-gradient(180deg, #f3fdff 0%, #67e6ff 24%, #255ee7 64%, #06143b 100%);
+  border: 2px solid rgba(202, 249, 255, 0.92);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -5px 8px rgba(3, 10, 34, 0.5),
+    0 0 13px rgba(75, 220, 255, 0.85),
+    30px -8px 0 -6px #ffebef,
+    41px -11px 0 -8px #ff2448,
+    47px -13px 12px -6px rgba(255, 32, 64, 0.95);
+  transform: rotate(-16deg);
+}
+
+.navLaserIcon::after {
+  left: 13px;
+  top: 33px;
+  width: 25px;
+  height: 18px;
+  border-radius: 4px 4px 12px 12px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent 25%),
+    linear-gradient(180deg, #214fbd 0%, #071846 68%, #020817 100%);
+  border: 2px solid rgba(160, 236, 255, 0.88);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    9px -21px 0 -8px #effdff,
+    15px -23px 0 -10px rgba(103, 233, 255, 0.95),
+    26px -21px 0 -9px rgba(255, 40, 70, 0.9),
+    37px -25px 16px -7px rgba(255, 32, 64, 0.95),
+    0 0 12px rgba(82, 219, 255, 0.55);
+  transform: rotate(-16deg) skewX(-9deg);
+}
+
+.navMagazineIcon::before {
+  left: 17px;
+  top: 7px;
+  width: 27px;
+  height: 45px;
+  border-radius: 7px 7px 14px 14px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.32), transparent 20%, rgba(0, 0, 0, 0.22) 86%),
+    linear-gradient(180deg, #b8f8ff 0%, #47dbff 20%, #2150d2 58%, #08143d 100%);
+  border: 2px solid rgba(202, 249, 255, 0.9);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.35),
+    -5px 9px 0 -2px rgba(5, 18, 56, 0.82);
+  transform: skewX(-9deg);
+}
+
+.navMagazineIcon::after {
+  left: 22px;
+  top: 15px;
+  width: 17px;
+  height: 28px;
+  background:
+    linear-gradient(180deg, transparent 0 15%, rgba(5, 18, 56, 0.78) 16% 25%, transparent 26% 43%, rgba(5, 18, 56, 0.78) 44% 53%, transparent 54% 71%, rgba(5, 18, 56, 0.78) 72% 81%, transparent 82% 100%);
+  border-left: 2px solid rgba(228, 252, 255, 0.28);
+  border-right: 2px solid rgba(0, 8, 28, 0.35);
+  transform: skewX(-9deg);
+}
+
+.navBagIcon {
+  background:
+    radial-gradient(circle at 50% 58%, rgba(74, 225, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.18), transparent 24%);
+  border-radius: 16px;
+}
+
+.navBagIcon::before {
+  left: 12px;
+  top: 15px;
+  width: 34px;
+  height: 38px;
+  border-radius: 12px 12px 14px 14px;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.48) 0 7%, transparent 8%),
+    linear-gradient(90deg, rgba(4, 14, 44, 0.7) 0 10%, transparent 11% 89%, rgba(4, 14, 44, 0.7) 90% 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0 9%, transparent 10% 100%),
+    linear-gradient(180deg, #8cf4ff 0%, #34bfff 24%, #2454cf 62%, #07133b 100%);
+  border: 2px solid rgba(213, 251, 255, 0.94);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -10px 13px rgba(0, 0, 0, 0.42),
+    inset 7px 0 10px rgba(255, 255, 255, 0.08),
+    inset -7px 0 10px rgba(0, 5, 26, 0.3),
+    -6px 13px 0 -5px rgba(83, 220, 255, 0.72),
+    6px 13px 0 -5px rgba(83, 220, 255, 0.72),
+    0 0 15px rgba(66, 219, 255, 0.58);
+}
+
+.navBagIcon::after {
+  left: 18px;
+  top: 7px;
+  width: 18px;
+  height: 16px;
+  border: 4px solid rgba(224, 253, 255, 0.95);
+  border-bottom-color: transparent;
+  border-radius: 12px 12px 7px 7px;
+  background:
+    linear-gradient(180deg, transparent 0 23px, rgba(224, 253, 255, 0.95) 24px 30px, transparent 31px),
+    linear-gradient(180deg, transparent 0 31px, rgba(6, 18, 50, 0.74) 32px 38px, transparent 39px);
+  box-shadow:
+    0 27px 0 -8px rgba(226, 253, 255, 0.92),
+    0 34px 0 -8px rgba(5, 17, 48, 0.72),
+    -12px 27px 0 -10px rgba(226, 253, 255, 0.78),
+    12px 27px 0 -10px rgba(226, 253, 255, 0.78),
+    0 6px 12px -6px rgba(36, 220, 255, 0.9);
+}
+
+.navShopIcon::before {
+  left: 11px;
+  top: 28px;
+  width: 36px;
+  height: 21px;
+  border-radius: 4px 4px 10px 10px;
+  background:
+    linear-gradient(90deg, transparent 30%, rgba(255, 255, 255, 0.2) 31%, transparent 34%),
+    linear-gradient(180deg, #51eaff, #2149d7 60%, #07123a);
+  border: 2px solid rgba(190, 244, 255, 0.86);
+}
+
+.navShopIcon::after {
+  left: 8px;
+  top: 13px;
+  width: 42px;
+  height: 19px;
+  border-radius: 8px 8px 4px 4px;
+  background:
+    linear-gradient(90deg, #dffcff 0 18%, #5fe6ff 18% 36%, #dffcff 36% 54%, #5fe6ff 54% 72%, #dffcff 72% 100%);
+  border: 2px solid rgba(190, 244, 255, 0.92);
+}

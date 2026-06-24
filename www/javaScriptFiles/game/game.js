@@ -1,4 +1,4 @@
-const ENEMY_SPAWN_TABLE = window.ENEMY_SPAWN_TABLE;
+﻿const ENEMY_SPAWN_TABLE = window.ENEMY_SPAWN_TABLE;
 
 document.addEventListener(
   'touchmove',
@@ -21,6 +21,14 @@ document.addEventListener(
 
 const params = new URLSearchParams(window.location.search);
 const currentLevel = parseInt(params.get('level')) || 1;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPageLanguage?.();
+});
+
+function gameT(key, params = null) {
+  return t?.(getLang?.() || 'en', key, params) ?? key;
+}
 
 const LEVELS = {
   1: {
@@ -104,7 +112,7 @@ function getRewardSkinData(id) {
   if (n === 'starbreaker') {
     return {
       id: 'star_breaker',
-      name: 'Star Breaker',
+      name: dataT?.('skins', 'star_breaker', 'name') || 'Star Breaker',
       image: './images/shopAInventoryicons/playerIcones/starBreakerIcone.png',
     };
   }
@@ -1445,7 +1453,7 @@ window.addEventListener('load', function () {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
 
-      // ==== OUTER GLOW (הילה חיצונית רכה) ====
+      // ==== OUTER GLOW (׳”׳™׳׳” ׳—׳™׳¦׳•׳ ׳™׳× ׳¨׳›׳”) ====
       ctx.globalAlpha = 0.15 * pulse;
       ctx.lineWidth = this.w * 8;
       ctx.strokeStyle = 'rgba(0,180,255,1)';
@@ -1764,7 +1772,7 @@ window.addEventListener('load', function () {
 
       ctx.font = `700 22px ${this.fontFamily}`;
       ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.fillText('Lives:', x, y);
+      ctx.fillText(gameT('game.lives'), x, y);
 
       const startX = x + 70;
       const gap = 22;
@@ -1772,7 +1780,7 @@ window.addEventListener('load', function () {
 
       for (let i = 0; i < maxLives; i++) {
         const isFull = i < lives;
-        const icon = isFull ? '❤️' : '🖤';
+        const icon = isFull ? '❤️' : '♡';
 
         ctx.save();
         const ix = startX + i * gap;
@@ -3109,45 +3117,37 @@ window.addEventListener('load', function () {
     }
 
     getStageIntroTitle() {
-      if (this.level === 100) return 'LEVEL 100:';
-      if (this.level === 90) return 'LEVEL 90: STORM CORE';
-      if (this.level === 80) return 'LEVEL 80: WAVE WALL';
-      if (this.level === 70) return 'LEVEL 70: MAGNETIC CHAOS';
-      if (this.level === 60) return 'LEVEL 60: LASER LOCK';
-      return `LEVEL ${this.level}`;
+      if (this.level === 100) return gameT('game.stage.100.title');
+      if (this.level === 90) return gameT('game.stage.90.title');
+      if (this.level === 80) return gameT('game.stage.80.title');
+      if (this.level === 70) return gameT('game.stage.70.title');
+      if (this.level === 60) return gameT('game.stage.60.title');
+      return gameT('game.level', { level: this.level });
     }
 
     getStageIntroText() {
       if (this.level === 100) {
         return [
-          'This is the final stage… and the rules are about to change.',
-          'No Anglers this time.',
-          'You will face every boss… and then the final one will appear.',
-          'After each boss falls, you’ll earn an upgrade.',
-          'Survive the full gauntlet to clear the level.',
-          '★ Complete this stage to unlock an exclusive skin you can’t get anywhere else.',
+          gameT('game.stage.100.1'),
+          gameT('game.stage.100.2'),
+          gameT('game.stage.100.3'),
+          gameT('game.stage.100.4'),
+          gameT('game.stage.100.5'),
+          gameT('game.stage.100.6'),
         ];
       }
 
       if (this.level === 90) {
-        return [
-          'Boss10 controls lightning strikes and electric zones.',
-          'Keep moving and avoid marked danger areas.',
-        ];
+        return [gameT('game.stage.90.1'), gameT('game.stage.90.2')];
       }
 
       if (this.level === 80) {
-        return [
-          'Boss9 creates wave walls with narrow safe gaps.',
-          'Read the telegraph and move early.',
-        ];
+        return [gameT('game.stage.80.1'), gameT('game.stage.80.2')];
       }
 
-      return [
-        'Get ready.',
-        'Survive the stage and defeat everything in your path.',
-      ];
+      return [gameT('game.stage.default.1'), gameT('game.stage.default.2')];
     }
+
     getIntroSkipButtonRect() {
       const boxW = Math.min(this.width * 0.92, 700);
       const boxH = Math.min(this.height * 0.75, 520);
@@ -3240,7 +3240,7 @@ window.addEventListener('load', function () {
       ctx.fillStyle = '#ffffff';
       ctx.font = '900 20px "Archivo Black", system-ui, sans-serif';
       ctx.fillText(
-        'ENTER THE CHAOS!',
+        gameT('game.enterChaos'),
         btn.x + btn.width / 2,
         btn.y + btn.height / 2 + 1
       );
@@ -3418,10 +3418,11 @@ function showVictoryScreen(data) {
     screen.classList.add('is-win');
     box.classList.add('is-win');
 
-    title.textContent = 'Victory!';
-    text.textContent = `You earned ${data.reward} coins`;
+    title.textContent = gameT('game.victory');
+    text.textContent = gameT('game.reward', { coins: data.reward });
 
-    nextBtn.textContent = data.level === 100 ? 'Back to Lobby' : 'Next Level';
+    nextBtn.textContent =
+      data.level === 100 ? gameT('game.backToLobby') : gameT('game.nextLevel');
 
     nextBtn.onclick = () => {
       if (data.level === 100) {
@@ -3438,9 +3439,9 @@ function showVictoryScreen(data) {
     screen.classList.add('is-lose');
     box.classList.add('is-lose');
 
-    title.textContent = 'Game Over!';
-    text.textContent = 'Better luck next time!';
-    nextBtn.textContent = 'Try Again';
+    title.textContent = gameT('game.gameOver');
+    text.textContent = gameT('game.betterLuck');
+    nextBtn.textContent = gameT('game.tryAgain');
 
     nextBtn.onclick = () => {
       window.location.href = `game.html?level=${data.level}`;
@@ -3466,3 +3467,4 @@ function compactArray(arr) {
   }
   arr.length = write;
 }
+

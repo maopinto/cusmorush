@@ -13,6 +13,33 @@ function invT(key, params = null) {
   return t(getLang(), key, params);
 }
 
+function invTranslatedValue(value) {
+  return typeof value === 'string' && value.includes('.') ? invT(value) : value;
+}
+
+function invRarityT(rarity) {
+  const key = String(rarity || 'COMMON').toUpperCase();
+  return invT(`rarity.${key}`);
+}
+
+function invWeaponName(id) {
+  const w = WEAPONS?.[id] || {};
+  return w.nameKey ? invT(w.nameKey) : w.name || id;
+}
+
+function invWeaponDesc(id) {
+  const w = WEAPONS?.[id] || {};
+  return w.descKey ? invT(w.descKey) : w.desc || w.description || '';
+}
+
+function invSuperName(id, s = SUPERS?.[id] || {}) {
+  return s.titleKey ? invT(s.titleKey) : s.title || id;
+}
+
+function invSuperDesc(id, s = SUPERS?.[id] || {}) {
+  return s.descKey ? invT(s.descKey) : s.description || '';
+}
+
 const STORAGE_KEY_EQUIPPED_SKIN = 'equippedSkin';
 
 function getEquippedSkin() {
@@ -187,7 +214,7 @@ function openInv(type) {
       if (lockedList.length) {
         const divider = document.createElement('div');
         divider.className = 'invLockedDivider';
-        divider.textContent = 'NOT OWNED';
+        divider.textContent = invT('inv.notOwned');
         grid.appendChild(divider);
 
         lockedList.forEach((s) => renderSkinCard(s, false));
@@ -207,7 +234,7 @@ function openInv(type) {
 
     const renderWeaponCard = (wid, owned) => {
       const w = WEAPONS[wid] || {};
-      const name = w.name || wid;
+      const name = invWeaponName(wid);
       const img = w.img || './images/skins/placeholder.png';
       const equipped = getEquippedWeapon() === wid;
 
@@ -253,7 +280,7 @@ function openInv(type) {
       if (lockedList.length) {
         const divider = document.createElement('div');
         divider.className = 'invLockedDivider';
-        divider.textContent = invT('inv.notOwned') || 'NOT OWNED';
+        divider.textContent = invT('inv.notOwned');
         grid.appendChild(divider);
 
         lockedList.forEach((wid) => renderWeaponCard(wid, false));
@@ -292,7 +319,7 @@ function openInv(type) {
       ${
         owned
           ? `<button class="EquipBtn" ${equipped ? 'disabled' : ''}>
-               ${equipped ? 'EQUIPPED' : 'EQUIP'}
+               ${equipped ? invT('ui.equipped') : invT('ui.equip')}
              </button>`
           : ``
       }
@@ -354,7 +381,7 @@ function openInv(type) {
       const s = SUPERS[sKey] || {};
 
       const imgSrc = s.img || './images/logosImage/superIcone.png';
-      const name = s.title || sKey;
+      const name = invSuperName(sKey, s);
 
       const equipped =
         normalizeSkinId(localStorage.getItem('equippedSuper')) ===
@@ -460,20 +487,20 @@ function openWeaponPreview(id) {
   wrap.classList.remove('hidden');
 
   img.src = w.img || './images/skins/placeholder.png';
-  nameEl.textContent = w.name || id;
+  nameEl.textContent = invWeaponName(id);
 
-  const desc = w.desc ?? w.description ?? w.info ?? w.text ?? w.lore ?? '';
+  const desc = invWeaponDesc(id) || w.info || w.text || w.lore || '';
   if (desc) {
     descEl.textContent = String(desc);
   } else {
     const nid = String(id).toLowerCase();
     descEl.textContent = nid.includes('missile')
-      ? 'Heavy projectile with strong impact.'
+      ? invT('weapon.missile.desc')
       : nid.includes('laser')
-        ? 'Fast shots with a high fire rate.'
+        ? invT('weapon.laser.desc')
         : nid.includes('triangle')
-          ? 'Wide spread shots for crowd control.'
-          : 'Weapon description coming soon.';
+          ? invT('weapon.triangleShooter.desc')
+          : invT('weapon.descComingSoon');
   }
 
   const statsObj = w.stats ?? w.attributes ?? w.upgrades ?? null;
@@ -485,7 +512,7 @@ function openWeaponPreview(id) {
     Object.keys(statsObj).length
   ) {
     statsText = Object.entries(statsObj)
-      .map(([k, v]) => `${k}: ${v}`)
+      .map(([k, v]) => `${k}: ${invTranslatedValue(v)}`)
       .join('  •  ');
   } else {
     const dmg = w.damage ?? w.dmg;
@@ -502,7 +529,7 @@ function openWeaponPreview(id) {
     statsText = parts.join('  •  ') || (w.statsText ? String(w.statsText) : '');
   }
 
-  statsEl.textContent = statsText || 'Stats coming soon.';
+  statsEl.textContent = statsText || invT('weapon.statsComingSoon');
 
   if (priceRow && priceEl) {
     if (!owned && w.price != null) {
@@ -597,7 +624,7 @@ function openSkinPreview(s) {
   nameEl.textContent = s.name || id;
 
   const rarity = String(s.rarity || 'COMMON').toUpperCase();
-  rarityEl.textContent = rarity;
+  rarityEl.textContent = invRarityT(rarity);
 
   rarityEl.classList.remove('is-COMMON', 'is-RARE', 'is-EPIC', 'is-LEGENDARY');
   rarityEl.classList.add(`is-${rarity}`);
@@ -814,8 +841,12 @@ function renderInventoryOverview() {
   }
 
   // ===== pets =====
-  const allPets = Object.keys(PETS || {}).length;
-  const ownedPets = getOwnedPetsArr().length;
+  const allPetIds = Object.keys(PETS || {});
+  const allPets = allPetIds.length;
+  const ownedPetsSet = getOwnedPetsSet();
+  const ownedPets = allPetIds.filter((pid) =>
+    ownedPetsSet.has(normalizeSkinId(pid))
+  ).length;
 
   const petsCount = document.getElementById('invPetsCount');
   if (petsCount) {
@@ -892,11 +923,15 @@ function openPetPreview(p) {
   img.src = p.img || './images/skins/placeholder.png';
   nameEl.textContent = p.name || id;
 
-  if (roleEl) roleEl.textContent = (p.role || '—').toString().toUpperCase();
+  if (roleEl) {
+    roleEl.textContent = invTranslatedValue(p.roleKey || p.role || '-')
+      .toString()
+      .toUpperCase();
+  }
   if (abilityEl) {
-    const a = p.ability;
+    const a = p.abilityKey || p.ability;
     abilityEl.textContent =
-      typeof a === 'string' ? a : a?.name || a?.title || '—';
+      typeof a === 'string' ? invTranslatedValue(a) : a?.name || a?.title || '-';
   }
 
   goBuyBtn.onclick = (e) => {
@@ -988,12 +1023,12 @@ function openSuperPreview(s) {
   wrap.classList.remove('hidden');
 
   img.src = s.img || './images/logosImage/superIcone.png';
-  nameEl.textContent = s.title || id;
-  descEl.textContent = s.description || '';
+  nameEl.textContent = invSuperName(id, s);
+  descEl.textContent = invSuperDesc(id, s);
 
   const statsText = s.stats
     ? Object.entries(s.stats)
-        .map(([k, v]) => `${k}: ${v}`)
+        .map(([k, v]) => `${invT(`super.stat.${k}`)}: ${invTranslatedValue(v)}`)
         .join('  •  ')
     : '';
   statsEl.textContent = statsText || '';
@@ -1026,7 +1061,7 @@ function openSuperPreview(s) {
     goShopBtn.id = 'superPreviewGoShop';
     goShopBtn.className = 'superGoShopBtn';
     goShopBtn.type = 'button';
-    goShopBtn.textContent = invT('ui.goToShop') || 'GO TO SUPER SHOP';
+    goShopBtn.textContent = invT('ui.goToSuperShop');
 
     const anchor =
       document.getElementById('superPreviewPriceRow') ||

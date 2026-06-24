@@ -6,6 +6,7 @@
   <title>Main Lobby</title>
   <link rel="icon" href="./images/logo.png" />
   <link rel="stylesheet" href="./cssFiles/main.css" />
+  <link rel="stylesheet" href="./cssFiles/draws.css" />
   <link rel="stylesheet" href="./cssFiles/mainShop.css">
   <link rel="stylesheet" href="./cssFiles/mainLoadout.css">
   <link rel="stylesheet" href="./cssFiles/mainInventory.css">
@@ -19,13 +20,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
 </head>
 
-<body>
+<body data-title-i18n="main.title">
   <div class=" phone-frame">
     <div class="screen">
       <div class="notch"></div>
 
       <!-- ================= HOME ================= -->
-      <div id="homeScreen" class="page active">
+      <div id="homeScreen" class="page">
         <div id="coinsContainer">
           <span id="coinsText"></span>
           <div id="coinsDiv"></div>
@@ -35,13 +36,13 @@
 
         <div id="profileSettingsDiv" class="uiModal uiModalAnchorTopLeft">
           <div class="profileInfo">
-            <span class="profileLine"><strong>Profile Name:</strong> maor</span>
-            <span class="profileLine"><strong>Days Played:</strong> 1</span>
+            <span class="profileLine"><strong data-i18n="profile.name">Profile Name:</strong> maor</span>
+            <span class="profileLine"><strong data-i18n="profile.daysPlayed">Days Played:</strong> 1</span>
           </div>
 
-          <button class="profileSettingsInsideDivBtn"><span>Change Name</span></button>
-          <button class="profileSettingsInsideDivBtn"><span>Profile Icon</span></button>
-          <button class="profileSettingsInsideDivBtn"><span>Account</span></button>
+          <button class="profileSettingsInsideDivBtn"><span data-i18n="profile.changeName">Change Name</span></button>
+          <button class="profileSettingsInsideDivBtn"><span data-i18n="profile.icon">Profile Icon</span></button>
+          <button class="profileSettingsInsideDivBtn"><span data-i18n="profile.account">Account</span></button>
         </div>
 
         <button id="settingsBtn"></button>
@@ -517,17 +518,6 @@
               </button>
             </div>
 
-            <button class="upgradeWeapon locked" data-locked>
-              <img src="./images/logosImage/weaponImg/lockIcone.png" class="itemIconInside" />
-            </button>
-
-            <button class="upgradeWeapon locked" data-locked>
-              <img src="./images/logosImage/weaponImg/lockIcone.png" class="itemIconInside" />
-            </button>
-
-            <div class="comingSoonOverlay" id="comingSoonOverlay">
-              <div class="comingSoonText" id="comingSoonText" data-i18n="ui.comingSoon">Coming Soon..</div>
-            </div>
           </div>
 
           <div id="buyWeaponPopup" onclick="event.stopPropagation()">
@@ -591,7 +581,7 @@
             <div class="superCard" data-super="superLaser">
               <button class="selectSuperBtn" data-super="superLaser"></button>
               <button class="superEquipBtn" data-sound="equip">
-                <span class="label">EQUIP</span>
+                <span class="label" data-i18n="ui.equip">EQUIP</span>
                 <span class="check">✓</span>
               </button>
             </div>
@@ -663,12 +653,12 @@
                 <div class="freeGiftDesc" id="freeGiftDesc">Claim your free reward</div>
 
                 <div class="freeGiftBottom">
-                  <div class="pricePill"><span id="freeGiftValue">+150</span> 🪙</div>
-                  <button id="freeGiftBtn" class="buyPillBtn">CLAIM</button>
+                  <div class="pricePill"><span id="freeGiftValue">+100</span> 🪙</div>
+                  <button id="freeGiftBtn" class="buyPillBtn" data-i18n="ui.claim">CLAIM</button>
                 </div>
               </div>
 
-              <div class="freeGiftIconDecor" id="freeGiftIcon">🎁</div>
+              <div class="freeGiftIconDecor" id="freeGiftIcon">🪙</div>
             </div>
           </section>
 
@@ -742,7 +732,7 @@
               <span id="shopModalPrice">0</span> 🪙
             </div>
 
-            <button id="shopModalBuy" class="shopModalBuy">BUY</button>
+            <button id="shopModalBuy" class="shopModalBuy" data-i18n="ui.buy">BUY</button>
           </div>
         </div>
       </div>
@@ -833,25 +823,25 @@
 
               <div class="skinPreviewMeta">
                 <div class="skinMetaRow">
-                  <span class="k">RARITY</span>
+            <span class="k" data-i18n="ui.rarity">RARITY</span>
                   <span id="skinPreviewRarity" class="v rarityPill"></span>
                 </div>
 
                 <div id="skinPreviewPriceRow" class="skinMetaRow hidden">
-                  <span class="k">PRICE</span>
+                  <span class="k" data-i18n="ui.price">PRICE</span>
                   <span id="skinPreviewPrice" class="v"></span>
                 </div>
 
                 <div id="skinPreviewShopRow" class="skinMetaRow hidden">
-                  <span class="k">SHOP</span>
+                  <span class="k" data-i18n="ui.shop">SHOP</span>
                   <div class="v shopLine">
                     <span id="skinPreviewShopText"></span>
-                    <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                    <button id="skinPreviewGoShop" class="skinGoShopBtn" type="button" data-i18n="ui.goToShop">GO TO SHOP</button>
                   </div>
                 </div>
               </div>
 
-              <button id="skinPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+              <button id="skinPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
             </div>
 
             <div id="petPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
@@ -864,32 +854,32 @@
 
               <div class="skinPreviewMeta">
                 <div class="skinMetaRow">
-                  <span class="k">ROLE:</span>
+                  <span class="k" data-i18n="ui.role">ROLE:</span>
                   <span id="petPreviewRole" class="v"></span>
                 </div>
 
                 <div class="skinMetaRow">
-                  <span class="k">ABILITY:</span>
+                  <span class="k" data-i18n="ui.ability">ABILITY:</span>
                   <span id="petPreviewAbility" class="v"></span>
                 </div>
 
                 <div id="petPreviewPriceRow" class="skinMetaRow hidden">
-                  <span class="k">PRICE</span>
+                  <span class="k" data-i18n="ui.price">PRICE</span>
                   <span id="petPreviewPrice" class="v"></span>
                 </div>
 
-                <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button">GO TO PET SHOP</button>
+                <button id="petPreviewGoBuy" class="petGoBuyBtn" type="button" data-i18n="inv.goToPetShop">GO TO PET SHOP</button>
 
                 <div id="petPreviewShopRow" class="skinMetaRow hidden">
-                  <span class="k">SHOP</span>
+                  <span class="k" data-i18n="ui.shop">SHOP</span>
                   <div class="v shopLine">
                     <span id="petPreviewShopText"></span>
-                    <button id="petPreviewGoShop" class="skinGoShopBtn" type="button">GO TO SHOP</button>
+                    <button id="petPreviewGoShop" class="skinGoShopBtn" type="button" data-i18n="ui.goToShop">GO TO SHOP</button>
                   </div>
                 </div>
               </div>
 
-              <button id="petPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+              <button id="petPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
             </div>
 
             <div id="weaponPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
@@ -902,24 +892,24 @@
 
               <div class="skinPreviewMeta">
                 <div class="skinMetaRow">
-                  <span class="k">DESC</span>
+                  <span class="k" data-i18n="ui.desc">DESC</span>
                   <span id="weaponPreviewDesc" class="v"></span>
                 </div>
 
                 <div class="skinMetaRow">
-                  <span class="k">STATS</span>
+                  <span class="k" data-i18n="ui.stats">STATS</span>
                   <span id="weaponPreviewStats" class="v"></span>
                 </div>
 
                 <div id="weaponPreviewPriceRow" class="skinMetaRow hidden">
-                  <span class="k">PRICE</span>
+                  <span class="k" data-i18n="ui.price">PRICE</span>
                   <span id="weaponPreviewPrice" class="v"></span>
                 </div>
 
-                <button id="weaponPreviewGoLoadout" class="petGoBuyBtn hidden" type="button">GO TO LOADOUT</button>
+                <button id="weaponPreviewGoLoadout" class="petGoBuyBtn hidden" type="button" data-i18n="ui.goToLoadout">GO TO LOADOUT</button>
               </div>
 
-              <button id="weaponPreviewEquip" class="skinPreviewEquip">EQUIP</button>
+              <button id="weaponPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
             </div>
 
             <div id="superPreview" class="skinPreview hidden" onclick="event.stopPropagation()">
@@ -937,7 +927,7 @@
                 </div>
 
                 <div id="superPreviewStats" class="skinMetaRow">
-                  <span class="k">STATS</span>
+                  <span class="k" data-i18n="ui.stats">STATS</span>
                   <span id="superPreviewStatsText" class="v"></span>
                 </div>
 
@@ -948,7 +938,7 @@
               </div>
 
               <button id="superPreviewGoShop" class="superGoShopBtn" type="button">
-                GO TO SUPER SHOP
+                <span data-i18n="ui.goToSuperShop">GO TO SUPER SHOP</span>
               </button>
               <button id="superPreviewEquip" class="skinPreviewEquip" data-i18n="ui.equip">EQUIP</button>
             </div>
@@ -958,10 +948,18 @@
 
       <!-- ================= BOTTOM NAV ================= -->
       <div id="bottomBtns">
-        <button class="bottomButton" data-target="shopScreen" data-i18n="nav.shop">Shop</button>
-        <button class="bottomButton" data-target="loadoutScreen" data-i18n="nav.loadout">Loadout</button>
-        <button id="battle" class="bottomButton" data-target="homeScreen" data-i18n="nav.battle">Battle!</button>
-        <button class="bottomButton" data-target="inventoryScreen" data-i18n="nav.inventory">Inventory</button>
+        <button class="bottomButton iconNavButton" data-target="shopScreen" data-i18n-label="nav.shop">
+          <span class="navIcon navShopIcon" aria-hidden="true"></span>
+        </button>
+        <button class="bottomButton iconNavButton" data-target="loadoutScreen" data-i18n-label="nav.loadout">
+          <span class="navIcon navMagazineIcon" aria-hidden="true"></span>
+        </button>
+        <button id="battle" class="bottomButton iconNavButton" data-target="homeScreen" data-i18n-label="nav.battle">
+          <span class="navIcon navLaserIcon" aria-hidden="true"></span>
+        </button>
+        <button class="bottomButton iconNavButton" data-target="inventoryScreen" data-i18n-label="nav.inventory">
+          <span class="navIcon navBagIcon" aria-hidden="true"></span>
+        </button>
       </div>
       <div id="toast" class="toast"></div>
 

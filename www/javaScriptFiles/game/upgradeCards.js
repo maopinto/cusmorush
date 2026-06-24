@@ -137,43 +137,44 @@ class Upgrades {
     const titleSize = Math.round(this.fontSize * 1.05);
     const subSize = Math.round(this.fontSize * 0.78);
 
+    const tr = (key) => t?.(getLang?.() || 'en', key) ?? key;
     let line1, line2;
     switch (this.type) {
       case 'doubleShooter':
-        line1 = 'Double Shot';
-        line2 = '+1 Projectile';
+        line1 = tr('upgrade.doubleShooter.title');
+        line2 = tr('upgrade.doubleShooter.sub');
         break;
       case 'plusHp':
-        line1 = 'Extra HP';
-        line2 = '+1 Life';
+        line1 = tr('upgrade.plusHp.title');
+        line2 = tr('upgrade.plusHp.sub');
         break;
       case 'fasterShooter':
-        line1 = 'Faster Fire';
-        line2 = '-Rate Boost';
+        line1 = tr('upgrade.fasterShooter.title');
+        line2 = tr('upgrade.fasterShooter.sub');
         break;
       case 'petFaster':
-        line1 = 'Pet';
-        line2 = 'Faster';
+        line1 = tr('upgrade.petFaster.title');
+        line2 = tr('upgrade.petFaster.sub');
         break;
       case 'damageUp':
-        line1 = 'Damage Up';
-        line2 = '+1 Damage';
+        line1 = tr('upgrade.damageUp.title');
+        line2 = tr('upgrade.damageUp.sub');
         break;
       case 'speedBoost':
-        line1 = 'Speed Boost';
-        line2 = '+Move Speed';
+        line1 = tr('upgrade.speedBoost.title');
+        line2 = tr('upgrade.speedBoost.sub');
         break;
       case 'piercingShot':
-        line1 = 'Piercing Shot';
-        line2 = 'Shots Go Through';
+        line1 = tr('upgrade.piercingShot.title');
+        line2 = tr('upgrade.piercingShot.sub');
         break;
       case 'superCharge':
-        line1 = 'Super Charge';
-        line2 = '+Gauge Energy';
+        line1 = tr('upgrade.superCharge.title');
+        line2 = tr('upgrade.superCharge.sub');
         break;
       default:
-        line1 = 'Shield';
-        line2 = '20s Protection';
+        line1 = tr('upgrade.shield.title');
+        line2 = tr('upgrade.shield.sub');
         break;
     }
 
