@@ -9,6 +9,12 @@ function normalizeSkinId(id) {
 
 let invOpenType = null;
 
+function isInventoryScreenActive() {
+  return document
+    .getElementById('inventoryScreen')
+    ?.classList.contains('active');
+}
+
 function invT(key, params = null) {
   return t(getLang(), key, params);
 }
@@ -770,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.currentTarget === e.target) closeSkinPreview();
   });
 
-  renderInventoryOverview();
+  if (isInventoryScreenActive()) renderInventoryOverview();
 
   document
     .querySelector('[data-target="inventoryScreen"]')

@@ -4,6 +4,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
+  min-height: 100dvh;
   overflow: hidden;
   touch-action: none;
   -webkit-user-select: none;
@@ -11,6 +12,7 @@ body {
   -webkit-touch-callout: none;
   background: #000;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 :root {
@@ -99,9 +101,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100dvh;
   margin: 0;
-  background: rgb(78, 78, 78);
+  background: #000;
   font-family: system-ui, sans-serif;
 }
 
@@ -177,7 +179,7 @@ button {
 .phone-frame {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   max-width: 400px;
   max-height: 844px;
   background: #000;
@@ -2192,38 +2194,53 @@ button {
   height: 100%;
   opacity: 0;
   pointer-events: none;
-  transform: translateX(100%);
+  transform: translate3d(100%, 0, 0);
   transition:
     transform 0.55s cubic-bezier(0.22, 0.9, 0.3, 1),
     opacity 0.55s ease;
   will-change: transform, opacity;
+  contain: layout paint style;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .page.active {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
+  content-visibility: visible;
+}
+
+.page:not(.active) {
+  content-visibility: hidden;
+}
+
+.page:not(.active),
+.page:not(.active) *,
+.page:not(.active)::before,
+.page:not(.active)::after {
+  animation-play-state: paused !important;
 }
 
 .page.enter-right {
   opacity: 1;
-  transform: translateX(100%);
+  transform: translate3d(100%, 0, 0);
 }
 
 .page.enter-left {
   opacity: 1;
-  transform: translateX(-100%);
+  transform: translate3d(-100%, 0, 0);
 }
 
 .page.exit-left {
   opacity: 1;
-  transform: translateX(-100%);
+  transform: translate3d(-100%, 0, 0);
   pointer-events: none;
 }
 
 .page.exit-right {
   opacity: 1;
-  transform: translateX(100%);
+  transform: translate3d(100%, 0, 0);
   pointer-events: none;
 }
 
@@ -2392,7 +2409,31 @@ button {
 
 @media screen and (orientation: portrait) {
   body {
-    background: #ccc;
+    background: #000;
+  }
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  html,
+  body {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100dvh;
+    background: #000;
+  }
+
+  body {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .phone-frame {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    box-shadow: none;
   }
 }
 
@@ -2610,6 +2651,34 @@ body {
     linear-gradient(180deg, #3b2f00, rgb(80, 61, 0), #000000);
 }
 
+#mapDiv.level-infinity {
+  border: 2px solid rgba(120, 235, 255, 0.95);
+  box-shadow:
+    0 0 34px rgba(80, 220, 255, 0.72),
+    0 0 90px rgba(70, 90, 255, 0.42),
+    0 0 140px rgba(140, 70, 255, 0.25);
+}
+
+#mapDiv.level-infinity #levelsContainer {
+  background:
+    radial-gradient(
+      circle at 34% 16%,
+      rgba(120, 240, 255, 0.34),
+      transparent 54%
+    ),
+    radial-gradient(
+      circle at 72% 28%,
+      rgba(40, 135, 255, 0.38),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 82%,
+      rgba(110, 75, 255, 0.34),
+      transparent 62%
+    ),
+    linear-gradient(180deg, #03132f, #06255f 46%, #020614 100%);
+}
+
 .levelNode.final-level-node .levelsBtn,
 .levelNode .levelsBtn.final-level-btn {
   width: 210px;
@@ -2680,6 +2749,112 @@ body {
     0 0 28px rgba(255, 180, 0, 0.55);
 
   animation: finalCrownPulse 1.6s ease-in-out infinite;
+}
+
+.levelNode.infinity-level-node {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.levelNode.infinity-level-node.is-hidden {
+  display: none;
+}
+
+.levelNode.infinity-level-node.is-hidden + .final-level-node::before {
+  display: none;
+}
+
+.levelNode.infinity-level-node::before {
+  top: calc(100% + 6px);
+  height: 74px;
+  width: 42px;
+  border-radius: 0 0 20px 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(185, 225, 255, 0.95),
+    rgba(90, 170, 255, 0.72),
+    rgba(40, 80, 180, 0)
+  );
+  box-shadow:
+    0 0 18px rgba(120, 220, 255, 0.8),
+    0 0 42px rgba(90, 150, 255, 0.45);
+}
+
+.levelNode.infinity-level-node .levelsBtn,
+.levelNode .levelsBtn.infinity-level-btn {
+  width: 190px;
+  height: 118px;
+  border-radius: 999px;
+  font-size: 58px;
+  color: #ffffff;
+  border: 3px solid rgba(190, 250, 255, 0.95);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.9), transparent 16%),
+    radial-gradient(circle at 70% 38%, rgba(110, 255, 245, 0.5), transparent 32%),
+    radial-gradient(circle at 50% 70%, rgba(120, 60, 255, 0.7), transparent 42%),
+    linear-gradient(135deg, #020817, #06245e 50%, #050014 100%);
+  box-shadow:
+    0 0 18px rgba(120, 240, 255, 0.95),
+    0 0 44px rgba(90, 90, 255, 0.7),
+    0 0 78px rgba(160, 80, 255, 0.35),
+    inset 0 0 26px rgba(255, 255, 255, 0.18),
+    inset 0 -18px 28px rgba(0, 0, 0, 0.45);
+  animation:
+    finalPlanetFloat 3.2s ease-in-out infinite,
+    finalLevelPulse 2.4s ease-in-out infinite;
+}
+
+.levelNode.infinity-level-node .levelsBtn::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 999px;
+  border: 2px solid rgba(130, 245, 255, 0.55);
+  box-shadow:
+    0 0 18px rgba(120, 240, 255, 0.9),
+    0 0 34px rgba(120, 100, 255, 0.6);
+  pointer-events: none;
+}
+
+.levelNode.infinity-level-node .levelsBtn::after {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(120, 240, 255, 0.42),
+    rgba(90, 80, 255, 0.18) 48%,
+    transparent 74%
+  );
+  filter: blur(14px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.infinityLevelLabel {
+  min-width: 182px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font: 900 13px 'Archivo Black', system-ui, sans-serif;
+  color: rgba(235, 254, 255, 0.96);
+  letter-spacing: 1.5px;
+  text-align: center;
+  background: rgba(0, 20, 48, 0.72);
+  border: 1px solid rgba(150, 240, 255, 0.34);
+  box-shadow:
+    0 0 16px rgba(80, 220, 255, 0.45),
+    inset 0 0 12px rgba(255, 255, 255, 0.08);
+  text-shadow:
+    0 0 8px rgba(120, 240, 255, 0.95),
+    0 0 18px rgba(120, 120, 255, 0.7);
+}
+
+.levelNode.infinity-level-node.locked .infinityLevelLabel {
+  opacity: 0.45;
 }
 
 @keyframes finalLevelPulse {

@@ -143,6 +143,10 @@
         </button>
 
         <div id="levelsContainer">
+          <div class="levelNode infinity-level-node is-hidden">
+            <button class="levelsBtn infinity-level-btn" onclick="goToInfinityWorld()">&infin;</button>
+            <span class="infinityLevelLabel">INFINITY WORLD</span>
+          </div>
           <div class="levelNode boss-node final-level-node">
             <button class="levelsBtn final-level-btn" onclick="goToLevel(100)">100</button>
           </div>
@@ -543,7 +547,7 @@
               </div>
               <div class="petName">Chimpo</div>
               <div class="petPrice">1000 🪙</div>
-              <button class="petBuyBtn" data-i18n="ui.buy" onclick="buyPet('dog')">BUY</button>
+              <button class="petBuyBtn" data-i18n="ui.buy">BUY</button>
             </div>
 
             <div class="petCard" data-pet="siren">
@@ -552,7 +556,7 @@
               </div>
               <div class="petName">Siren</div>
               <div class="petPrice">2500 🪙</div>
-              <button class="petBuyBtn" data-i18n="ui.buy" onclick="buyPet('siren')">BUY</button>
+              <button class="petBuyBtn" data-i18n="ui.buy">BUY</button>
             </div>
           </div>
 

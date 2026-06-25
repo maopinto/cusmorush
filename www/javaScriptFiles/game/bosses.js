@@ -43,7 +43,7 @@ class BossBase {
     const barW = 260;
     const barH = 16;
     const bx = this.game.width / 2 - barW / 2;
-    const by = 22;
+    const by = 64;
 
     const p = Math.max(0, this.lives / this.maxLives);
 
@@ -556,7 +556,7 @@ class Boss2 extends BossBase {
     const barW = 180;
     const barH = 10;
     const bx = this.game.width / 2 - barW / 2;
-    const by = 44;
+    const by = 86;
 
     const p = Math.max(0, this.coreLives / this.maxCoreLives);
 
@@ -1434,7 +1434,7 @@ class Boss4 extends BossBase {
     const totalWidth = total * barW + (total - 1) * gap;
     const startX = this.game.width / 2 - totalWidth / 2;
     const x = startX + index * (barW + gap);
-    const y = 22;
+    const y = 64;
 
     const p = Math.max(0, this.lives / this.maxLives);
 

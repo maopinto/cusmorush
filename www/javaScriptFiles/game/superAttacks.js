@@ -1,3 +1,16 @@
+function isGameAudioEnabled() {
+  return localStorage.getItem('audio') !== 'off';
+}
+
+function getGameAudioVolume() {
+  const v = Number(localStorage.getItem('audioVolume') ?? 80);
+  return Math.max(0, Math.min(100, v));
+}
+
+function getGameSfxVolume(scale = 0.65) {
+  return (getGameAudioVolume() / 100) * scale;
+}
+
 class SuperAttack1 {
   constructor(game) {
     this.game = game;
@@ -17,10 +30,9 @@ class SuperAttack1 {
       './sounds/game/soundEffects/superAttacksSounds/superAttack1Sound.mp3'
     );
 
-    this.sound.volume =
-      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+    this.sound.volume = getGameSfxVolume();
 
-    if (localStorage.getItem('audio') !== 'off') {
+    if (isGameAudioEnabled() && getGameAudioVolume() > 0) {
       this.sound.play().catch(() => {});
     }
 
@@ -156,13 +168,13 @@ class SuperLaser {
       './sounds/game/soundEffects/superAttacksSounds/superLaserSound.mp3'
     );
     this.sound.preload = 'auto';
-    this.sound.volume =
-      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+    this.sound.volume = getGameSfxVolume();
 
     this.loopPoint = 1.7;
 
     this.sound.addEventListener('timeupdate', () => {
       if (!this.sound) return;
+      if (!isGameAudioEnabled() || getGameAudioVolume() === 0) return;
 
       if (this.sound.currentTime >= this.loopPoint) {
         this.sound.currentTime = 0;
@@ -172,6 +184,7 @@ class SuperLaser {
 
     this.sound.addEventListener('timeupdate', () => {
       if (!this.sound || !this.loopPoint) return;
+      if (!isGameAudioEnabled() || getGameAudioVolume() === 0) return;
 
       if (this.sound.currentTime >= this.loopPoint) {
         this.sound.currentTime = 0;
@@ -179,7 +192,7 @@ class SuperLaser {
       }
     });
 
-    if (localStorage.getItem('audio') !== 'off') {
+    if (isGameAudioEnabled() && getGameAudioVolume() > 0) {
       this.sound.currentTime = 0;
       this.sound.play().catch(() => {});
     }

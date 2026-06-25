@@ -6,8 +6,15 @@ let suppressClickUntil = 0;
 let isPageTransitioning = false;
 let isPlanetSliding = false;
 let pageTransitionTimer = null;
-let lastPageNavTarget = null;
-let lastPageNavAt = 0;
+
+const SWIPE_MIN_DISTANCE = {
+  touch: 24,
+  pen: 24,
+  mouse: 36,
+};
+const SWIPE_AXIS_BIAS = 0.72;
+const WHEEL_PAGE_THRESHOLD = 42;
+let wheelPageDelta = 0;
 
 // coins x
 let coins = Number(localStorage.getItem('coins')) || 50;
@@ -716,6 +723,7 @@ function setMapThemeByLevel(maxLevel) {
   map.classList.remove(
     'level-gold',
     'level-black',
+    'level-infinity',
     'level-yellow',
     'level-lightBlue',
     'level-orange',
@@ -725,7 +733,8 @@ function setMapThemeByLevel(maxLevel) {
     'level-green'
   );
 
-  if (maxLevel >= 91) map.classList.add('level-gold');
+  if (maxLevel >= 101) map.classList.add('level-infinity');
+  else if (maxLevel >= 91) map.classList.add('level-gold');
   else if (maxLevel >= 81) map.classList.add('level-black');
   else if (maxLevel >= 71) map.classList.add('level-yellow');
   else if (maxLevel >= 61) map.classList.add('level-lightBlue');
@@ -797,7 +806,18 @@ function goToLevel(level) {
   }
 
   const target = `game.html?level=${level}`;
-  location.href = `index.html?to=${encodeURIComponent(target)}`;
+  location.href = `loadingScreen.html?to=${encodeURIComponent(target)}`;
+}
+
+function goToInfinityWorld() {
+  if (getMaxUnlockedLevel() < 101) {
+    playUIClick();
+    alert('Infinity World is locked!\nComplete level 100 first.');
+    return;
+  }
+
+  const target = 'game.html?mode=infinity';
+  location.href = `loadingScreen.html?to=${encodeURIComponent(target)}`;
 }
 
 function openBuyWeapon(id) {
@@ -904,7 +924,12 @@ function buyPet(id) {
   const lang = getLang();
 
   if (isPetOwned(id)) {
-    showToast(t(lang, 'toast.alreadyOwned'), 'error');
+    if (getEquippedPet() !== id) {
+      setEquippedPet(id);
+      playEquipSound();
+    }
+    updatePetUI();
+    renderInventoryOverview?.();
     return;
   }
 
@@ -924,6 +949,7 @@ function buyPet(id) {
   setEquippedPet(id);
   playEquipSound();
   updatePetUI();
+  renderInventoryOverview?.();
 
   showToast(t(lang, 'toast.boughtEquipped', { name: petName(id) }), 'success');
 
@@ -1237,9 +1263,18 @@ function showLockedLevel(level) {
 function updateLevelsMap() {
   const maxLevel = getMaxUnlockedLevel();
 
+  $$('.infinity-level-node').forEach((node) => {
+    const isLocked = maxLevel < 101;
+    node.classList.toggle('is-hidden', isLocked);
+    node.classList.toggle('locked', isLocked);
+    node.classList.toggle('current-node', !isLocked);
+    $('.infinity-level-btn', node)?.classList.toggle('locked-btn', isLocked);
+  });
+
   $$('.levelNode').forEach((node) => {
     const btn = $('.levelsBtn', node);
     if (!btn) return;
+    if (node.classList.contains('infinity-level-node')) return;
 
     const level = Number(btn.textContent.trim());
     const isBossLevel = level % 10 === 0;
@@ -1500,17 +1535,32 @@ function finishPageTransition(nextPage) {
   pageTransitionTimer = null;
 }
 
+function finishCurrentPageTransitionNow() {
+  const buttons = getPageOrder();
+  const activeId = buttons[currentPageIndex]?.dataset.target;
+  const activePage = activeId ? document.getElementById(activeId) : null;
+  if (!activePage) return;
+
+  if (pageTransitionTimer) {
+    clearTimeout(pageTransitionTimer);
+    pageTransitionTimer = null;
+  }
+
+  finishPageTransition(activePage);
+}
+
 function goToPageByIndex(index) {
   const buttons = getPageOrder();
   if (!buttons.length) return;
-  if (isPageTransitioning) return;
+
+  if (isPageTransitioning) {
+    finishCurrentPageTransitionNow();
+  }
 
   const safeIndex = Math.max(0, Math.min(index, buttons.length - 1));
   const current = currentPageIndex;
-  const now = Date.now();
 
   if (safeIndex === current) return;
-  if (safeIndex === lastPageNavTarget && now - lastPageNavAt < 850) return;
 
   const currentId = buttons[current]?.dataset.target;
   const targetId = buttons[safeIndex]?.dataset.target;
@@ -1522,8 +1572,6 @@ function goToPageByIndex(index) {
   if (!currentPage || !nextPage || currentPage === nextPage) return;
 
   isPageTransitioning = true;
-  lastPageNavTarget = safeIndex;
-  lastPageNavAt = now;
   if (pageTransitionTimer) {
     clearTimeout(pageTransitionTimer);
     pageTransitionTimer = null;
@@ -1563,6 +1611,12 @@ function goToPageByIndex(index) {
       window.shopOnEnter?.();
     });
   }
+
+  if (targetId === 'inventoryScreen') {
+    nextFrame(() => {
+      window.renderInventoryOverview?.();
+    });
+  }
 }
 function goToAdjacentPage(direction) {
   const current = getCurrentPageIndex();
@@ -1573,6 +1627,30 @@ function shouldIgnoreSwipeStart(target) {
   return !!target.closest(
     '#mapDiv, #weaponDiv, #buyWeaponPopup, #settingsDiv, #profileSettingsDiv, #socialDiv, #superShopDiv, #buySuperConfirm, #invModal, #shopModal, #petInfoOverlay, #petShoopDiv, input, textarea, select, button'
   );
+}
+
+function getSwipeMinDistance(pointerType) {
+  return SWIPE_MIN_DISTANCE[pointerType] || SWIPE_MIN_DISTANCE.touch;
+}
+
+function isSwipeReady(absX, absY, pointerType) {
+  return (
+    absX >= getSwipeMinDistance(pointerType) &&
+    absX >= Math.max(10, absY * SWIPE_AXIS_BIAS)
+  );
+}
+
+function shouldIgnoreWheelNavigation(target) {
+  if (shouldIgnoreSwipeStart(target)) return true;
+
+  const scrollable = target.closest(
+    '#shopScroll, #levelsContainer, .invWrap, .invModalGrid, .cardsRow, [data-no-page-wheel]'
+  );
+
+  if (!scrollable) return false;
+
+  return scrollable.scrollHeight > scrollable.clientHeight ||
+    scrollable.scrollWidth > scrollable.clientWidth;
 }
 
 function bindSwipeNavigation() {
@@ -1614,9 +1692,8 @@ function bindSwipeNavigation() {
     const dy = e.clientY - swipeStartY;
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
-    const minSwipe = pointerType === 'mouse' ? 70 : 45;
 
-    if (absX >= minSwipe && absX > absY * 1.15) {
+    if (isSwipeReady(absX, absY, pointerType)) {
       swipeConsumed = true;
       suppressClickUntil = Date.now() + 900;
       e.preventDefault();
@@ -1639,9 +1716,7 @@ function bindSwipeNavigation() {
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
-    const minSwipe = pointerType === 'mouse' ? 70 : 45;
-
-    if (absX < minSwipe || absX <= absY) {
+    if (!isSwipeReady(absX, absY, pointerType)) {
       pointerType = '';
       pointerId = null;
       swipeConsumed = false;
@@ -1681,6 +1756,28 @@ function bindSwipeNavigation() {
       swipeConsumed = false;
     }
   });
+
+  screenEl.addEventListener(
+    'wheel',
+    (e) => {
+      if (isPageTransitioning) return;
+      if (shouldIgnoreWheelNavigation(e.target)) return;
+
+      const dominantDelta =
+        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(dominantDelta) < 2) return;
+
+      wheelPageDelta += dominantDelta;
+      if (Math.abs(wheelPageDelta) < WHEEL_PAGE_THRESHOLD) {
+        return;
+      }
+
+      e.preventDefault();
+      goToAdjacentPage(wheelPageDelta > 0 ? 1 : -1);
+      wheelPageDelta = 0;
+    },
+    { passive: false }
+  );
 }
 
 function shouldSuppressClick() {
@@ -2029,6 +2126,7 @@ window.updateEquipUI = updateEquipUI;
 window.updatePetUI = updatePetUI;
 window.updateSuperEquipUI = updateSuperEquipUI;
 window.goToLevel = goToLevel;
+window.goToInfinityWorld = goToInfinityWorld;
 window.closeBuyWeapon = closeBuyWeapon;
 window.openPlanetSelect = openPlanetSelect;
 window.closePlanetSelect = closePlanetSelect;

@@ -392,7 +392,13 @@ function setFeaturedIndex(i) {
   localStorage.setItem(K_FEATURED_INDEX, String(i));
 }
 
+function isShopScreenActive() {
+  return document.getElementById('shopScreen')?.classList.contains('active');
+}
+
 function updateFeaturedTimer() {
+  if (!isShopScreenActive()) return;
+
   const el = document.getElementById('featuredTimer');
   if (!el) return;
 
@@ -413,7 +419,7 @@ function rotateFeatured() {
   setFeaturedIndex((getFeaturedIndex() + 1) % list.length);
   setFeaturedCycleStart(Date.now());
 
-  shopRenderFeatured();
+  if (isShopScreenActive()) shopRenderFeatured();
   updateFeaturedTimer();
 }
 
@@ -584,6 +590,8 @@ function claimDailyGift() {
 }
 
 function updateDailyGiftUI() {
+  if (!isShopScreenActive()) return;
+
   const btn = document.getElementById('freeGiftBtn');
   const valEl = document.getElementById('freeGiftValue');
   const timerEl = document.getElementById('freeGiftTimer');
@@ -673,6 +681,8 @@ function getSelectedSkinOffers() {
 }
 
 function updateSkinOffersTimer() {
+  if (!isShopScreenActive()) return;
+
   const el = document.getElementById('skinOffersTimer');
   if (!el) return;
 
@@ -755,7 +765,7 @@ function shopRenderSkinOffers() {
 
 function selectNewSkinOffers() {
   pickSkinOffersFresh();
-  shopRenderSkinOffers();
+  if (isShopScreenActive()) shopRenderSkinOffers();
   updateSkinOffersTimer();
 }
 
@@ -1040,6 +1050,7 @@ function initShopBlueScroller() {
 
   let hideTm = null;
   let dragging = false;
+  let syncRaf = 0;
 
   const showBar = () => {
     bar.classList.add('show');
@@ -1047,7 +1058,8 @@ function initShopBlueScroller() {
     hideTm = setTimeout(() => bar.classList.remove('show'), 900);
   };
 
-  const syncThumb = () => {
+  const syncThumbNow = () => {
+    syncRaf = 0;
     const view = scroller.clientHeight;
     const total = scroller.scrollHeight;
 
@@ -1067,6 +1079,11 @@ function initShopBlueScroller() {
 
     thumb.style.height = `${h}px`;
     thumb.style.transform = `translateY(${top}px)`;
+  };
+
+  const syncThumb = () => {
+    if (syncRaf) return;
+    syncRaf = requestAnimationFrame(syncThumbNow);
   };
 
   const setScrollFromThumbY = (clientY) => {
@@ -1123,6 +1140,7 @@ function initShopDotsNav() {
   if (!targets.length) return;
 
   dotsWrap.innerHTML = '';
+  let activeRaf = 0;
   const dots = targets.map((el, i) => {
     const b = document.createElement('button');
     b.className = 'shopDot';
@@ -1141,13 +1159,19 @@ function initShopDotsNav() {
     return b;
   });
 
-  const setActive = () => {
+  const setActiveNow = () => {
+    activeRaf = 0;
     const y = scroller.scrollTop + scroller.clientHeight * 0.25;
     let best = 0;
     for (let i = 0; i < targets.length; i++) {
       if (targets[i].offsetTop <= y) best = i;
     }
     dots.forEach((d, idx) => d.classList.toggle('active', idx === best));
+  };
+
+  const setActive = () => {
+    if (activeRaf) return;
+    activeRaf = requestAnimationFrame(setActiveNow);
   };
 
   scroller.addEventListener('scroll', setActive, { passive: true });
@@ -1216,6 +1240,8 @@ function getSelectedDaily() {
 const DAILY_ROTATE_MS = 86400000;
 
 function updateDailyTimer() {
+  if (!isShopScreenActive()) return;
+
   const el = document.getElementById('dailyTimer');
   if (!el) return;
 
@@ -1235,7 +1261,7 @@ function selectNewDaily() {
   localStorage.setItem(K_DAILY_IDS, JSON.stringify(fresh.map((x) => x.id)));
   setDailyCycleStart(Date.now());
 
-  shopRenderDaily();
+  if (isShopScreenActive()) shopRenderDaily();
   updateDailyTimer();
 }
 
@@ -1291,6 +1317,11 @@ function shopHighlightPendingSkin() {
 function shopOnEnter() {
   const scroller = document.getElementById('shopScroll');
   if (!scroller) return;
+
+  updateDailyGiftUI();
+  updateFeaturedTimer();
+  updateDailyTimer();
+  updateSkinOffersTimer();
 
   const jump = sessionStorage.getItem('shopJumpTo');
 

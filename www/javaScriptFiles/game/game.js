@@ -20,7 +20,8 @@ document.addEventListener(
 );
 
 const params = new URLSearchParams(window.location.search);
-const currentLevel = parseInt(params.get('level')) || 1;
+const isInfinityMode = params.get('mode') === 'infinity';
+const currentLevel = isInfinityMode ? 101 : parseInt(params.get('level')) || 1;
 
 document.addEventListener('DOMContentLoaded', () => {
   initPageLanguage?.();
@@ -230,6 +231,7 @@ function equipSkin(id) {
 
 window.addEventListener('load', function () {
   function getBackgroundForLevel(level) {
+    if (level > 100) return './images/game/background/blueSpace.png';
     if (level >= 91) return './images/game/background/goldSpace.png';
     else if (level >= 81) return './images/game/background/blackSpace.png';
     else if (level >= 71) return './images/game/background/yellowSpace.png';
@@ -270,6 +272,19 @@ window.addEventListener('load', function () {
     return Math.max(0, Math.min(100, v));
   }
 
+  function getAudioEnabled() {
+    return localStorage.getItem('audio') !== 'off';
+  }
+
+  function getAudioVolume() {
+    const v = Number(localStorage.getItem('audioVolume') ?? 80);
+    return Math.max(0, Math.min(100, v));
+  }
+
+  function getSfxVolume(scale = 0.65) {
+    return (getAudioVolume() / 100) * scale;
+  }
+
   function applyGameMusicSettings() {
     if (!bgMusic) return;
 
@@ -299,32 +314,31 @@ window.addEventListener('load', function () {
   function setupSounds() {
     enemyExplosionSound = new Audio(ASSETS.enemyExplosionSound);
     enemyExplosionSound.preload = 'auto';
-    enemyExplosionSound.volume = 0.5;
+    enemyExplosionSound.volume = getSfxVolume(0.5);
 
     upgradeSound = new Audio('./sounds/game/soundEffects/powerupSound.mp3');
 
     upgradeSound.preload = 'auto';
-    upgradeSound.volume =
-      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+    upgradeSound.volume = getSfxVolume();
   }
 
   function playUpgradeSound() {
     if (!upgradeSound) return;
 
-    if (localStorage.getItem('audio') === 'off') return;
+    if (!getAudioEnabled() || getAudioVolume() === 0) return;
 
     const sfx = upgradeSound.cloneNode();
-    sfx.volume =
-      (Number(localStorage.getItem('audioVolume') ?? 80) / 100) * 0.65;
+    sfx.volume = getSfxVolume();
 
     sfx.play().catch(() => {});
   }
 
   function playEnemyExplosionSound() {
     if (!enemyExplosionSound) return;
+    if (!getAudioEnabled() || getAudioVolume() === 0) return;
 
     const sfx = enemyExplosionSound.cloneNode();
-    sfx.volume = enemyExplosionSound.volume;
+    sfx.volume = getSfxVolume(0.5);
     sfx.play().catch(() => {});
   }
 
@@ -1706,7 +1720,7 @@ window.addEventListener('load', function () {
   class UI {
     constructor(game) {
       this.game = game;
-      this.fontSize = 26;
+      this.fontSize = 32;
       this.fontFamily = '"Archivo Black", system-ui, sans-serif';
       this.color = 'white';
 
@@ -1716,6 +1730,10 @@ window.addEventListener('load', function () {
 
       this.prevLives = game.player.lives;
       this.hurtPulse = 0;
+      this.prevScore = game.score;
+      this.scorePulse = 0;
+      this.scoreGain = 0;
+      this.scoreGainPulse = 0;
 
       this.superColors = [
         { p: 0.0, c: { r: 0, g: 200, b: 255 } },
@@ -1734,20 +1752,64 @@ window.addEventListener('load', function () {
 
       ctx.save();
 
-      ctx.fillStyle = this.color;
-      ctx.font = `${this.fontSize}px ${this.fontFamily}`;
-      ctx.fillText(
-        `Score: ${this.game.score} / ${this.game.winningScore}`,
-        20,
-        30
-      );
-
+      this.drawScore(ctx);
       this.drawLives(ctx);
       this.drawSuperGauge(ctx);
 
       ctx.restore();
 
       this.drawBossText(ctx);
+    }
+
+    drawScore(ctx) {
+      const score = this.game.score;
+      if (score > this.prevScore) {
+        this.scoreGain = score - this.prevScore;
+        this.scorePulse = 1;
+        this.scoreGainPulse = 1;
+      }
+      this.prevScore = score;
+
+      this.scorePulse *= 0.84;
+      this.scoreGainPulse *= 0.88;
+
+      const scoreText = this.game.isInfinityWorld
+        ? `${score}`
+        : `${score} / ${this.game.winningScore}`;
+      const x = this.game.width - 20;
+      const y = 36;
+      const pulse = this.scorePulse;
+      const scale = 1 + pulse * 0.22;
+      const lift = -pulse * 5;
+
+      ctx.save();
+      ctx.translate(x, y + lift);
+      ctx.scale(scale, scale);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.font = `900 ${this.fontSize}px ${this.fontFamily}`;
+      ctx.shadowColor = 'rgba(70, 220, 255, 0.95)';
+      ctx.shadowBlur = 12 + pulse * 18;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = `rgba(0, 45, 120, ${0.55 + pulse * 0.25})`;
+      ctx.strokeText(scoreText, 0, 0);
+      ctx.fillStyle = `rgb(${210 + pulse * 45}, ${245}, 255)`;
+      ctx.fillText(scoreText, 0, 0);
+      ctx.restore();
+
+      if (this.scoreGainPulse > 0.03 && this.scoreGain > 0) {
+        const p = this.scoreGainPulse;
+        ctx.save();
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.font = `900 ${14 + p * 8}px ${this.fontFamily}`;
+        ctx.globalAlpha = p;
+        ctx.shadowColor = 'rgba(80, 230, 255, 0.95)';
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = 'rgba(160, 245, 255, 0.95)';
+        ctx.fillText(`+${this.scoreGain}`, x - 8, y + 24 - (1 - p) * 24);
+        ctx.restore();
+      }
     }
 
     drawLives(ctx) {
@@ -1757,8 +1819,8 @@ window.addEventListener('load', function () {
       this.prevLives = lives;
       this.hurtPulse *= 0.9;
 
-      const x = 20;
-      const y = 65;
+      const startX = 14;
+      const y = 50;
 
       const shake =
         this.hurtPulse > 0.02
@@ -1770,17 +1832,14 @@ window.addEventListener('load', function () {
       ctx.save();
       ctx.translate(shake, 0);
 
-      ctx.font = `700 22px ${this.fontFamily}`;
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.fillText(gameT('game.lives'), x, y);
-
-      const startX = x + 70;
-      const gap = 22;
+      const heartSize = this.fontSize + 8;
+      ctx.font = `700 ${heartSize}px ${this.fontFamily}`;
+      const gap = 40;
       const maxLives = 3;
 
       for (let i = 0; i < maxLives; i++) {
         const isFull = i < lives;
-        const icon = isFull ? '❤️' : '♡';
+        const icon = isFull ? '♥' : '♡';
 
         ctx.save();
         const ix = startX + i * gap;
@@ -1792,6 +1851,18 @@ window.addEventListener('load', function () {
         }
 
         ctx.globalAlpha = isFull ? 1 : 0.35;
+        ctx.shadowColor = isFull
+          ? 'rgba(70, 220, 255, 0.95)'
+          : 'rgba(80, 160, 220, 0.45)';
+        ctx.shadowBlur = isFull ? 14 + this.hurtPulse * 18 : 6;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = isFull
+          ? 'rgba(0, 45, 120, 0.8)'
+          : 'rgba(40, 80, 130, 0.55)';
+        ctx.fillStyle = isFull
+          ? 'rgb(170, 245, 255)'
+          : 'rgba(145, 205, 230, 0.75)';
+        ctx.strokeText(icon, ix, y);
         ctx.fillText(icon, ix, y);
         ctx.restore();
       }
@@ -1933,6 +2004,7 @@ window.addEventListener('load', function () {
       this.bossKilled = false;
 
       this.level = currentLevel;
+      this.isInfinityWorld = isInfinityMode;
 
       this.stage = 1;
       this.score = 0;
@@ -1959,7 +2031,8 @@ window.addEventListener('load', function () {
       if (this.level >= 51) this.nextRageScore = 20;
       else this.nextRageScore = 10;
 
-      if (this.level === 100) this.winningScore = 999;
+      if (this.isInfinityWorld) this.winningScore = Infinity;
+      else if (this.level === 100) this.winningScore = 999;
       else if (this.level >= 51) this.winningScore = 100;
       else if (this.level >= 31) this.winningScore = 70;
       else if (this.level >= 11) this.winningScore = 50;
@@ -1992,7 +2065,7 @@ window.addEventListener('load', function () {
       this.particles = [];
       this.shake = 0;
 
-      this.isBossRushLevel = this.level === 100;
+      this.isBossRushLevel = this.level === 100 && !this.isInfinityWorld;
 
       this.bossRushQueue = this.isBossRushLevel
         ? [
@@ -2056,6 +2129,11 @@ window.addEventListener('load', function () {
     }
 
     updateStageByScore() {
+      if (this.isInfinityWorld) {
+        this.stage = Math.min(12, Math.floor(this.score / 15) + 1);
+        return;
+      }
+
       const maxStage = ENEMY_SPAWN_TABLE?.[this.level]?.stages
         ? Math.max(
             ...Object.keys(ENEMY_SPAWN_TABLE[this.level].stages).map(Number)
@@ -2177,6 +2255,10 @@ window.addEventListener('load', function () {
 
       for (let i = 0; i < this.player.projectiles.length; i++) {
         const p = this.player.projectiles[i];
+
+        if (p.piercing) {
+          this.destroyEnemyBulletsWithProjectile(p);
+        }
 
         for (let j = 0; j < this.enemies.length; j++) {
           const enemy = this.enemies[j];
@@ -2636,7 +2718,13 @@ window.addEventListener('load', function () {
           unlockNextLevel(this.level);
           showVictoryScreen({ win: true, reward, level: this.level });
         } else {
-          showVictoryScreen({ win: false, reward: 0, level: this.level });
+          showVictoryScreen({
+            win: false,
+            reward: 0,
+            level: this.level,
+            infinity: this.isInfinityWorld,
+            score: this.score,
+          });
         }
 
         this.rewardGiven = true;
@@ -2848,6 +2936,59 @@ window.addEventListener('load', function () {
       }
     }
 
+    getEnemyBulletRect(bullet) {
+      if (!bullet) return null;
+      const diameter =
+        (Number.isFinite(bullet.radius) ? bullet.radius * 2 : null) ??
+        (Number.isFinite(bullet.r) ? bullet.r * 2 : null) ??
+        10;
+      const width = bullet.width ?? bullet.w ?? bullet.size ?? diameter;
+      const height = bullet.height ?? bullet.h ?? bullet.size ?? diameter;
+      const x =
+        bullet.width !== undefined || bullet.w !== undefined
+          ? bullet.x
+          : bullet.x - width / 2;
+      const y =
+        bullet.height !== undefined || bullet.h !== undefined
+          ? bullet.y
+          : bullet.y - height / 2;
+
+      return { x, y, width, height };
+    }
+
+    destroyEnemyBulletArrayWithProjectile(projectile, bullets) {
+      if (!Array.isArray(bullets)) return;
+
+      for (let i = 0; i < bullets.length; i++) {
+        const bullet = bullets[i];
+        if (!bullet || bullet.markedForDeletion) continue;
+
+        const rect = this.getEnemyBulletRect(bullet);
+        if (!rect || !checkCollision(projectile, rect)) continue;
+
+        bullet.markedForDeletion = true;
+        this.spawnSparks(
+          rect.x + rect.width / 2,
+          rect.y + rect.height / 2,
+          8,
+          190
+        );
+      }
+
+      compactArray(bullets);
+    }
+
+    destroyEnemyBulletsWithProjectile(projectile) {
+      this.destroyEnemyBulletArrayWithProjectile(projectile, this.enemyBullets);
+
+      for (let i = 0; i < this.enemies.length; i++) {
+        this.destroyEnemyBulletArrayWithProjectile(
+          projectile,
+          this.enemies[i]?.enemyBullets
+        );
+      }
+    }
+
     handleEnemyDeath(enemy, giveSuperCharge = true) {
       if (!enemy || enemy.markedForDeletion) return;
       playEnemyExplosionSound();
@@ -2961,6 +3102,11 @@ window.addEventListener('load', function () {
     }
 
     addEnemy() {
+      if (this.isInfinityWorld) {
+        this.addInfinityEnemy();
+        return;
+      }
+
       if (this.level === 100) return;
       if (this.level === 1) {
         this.enemies.push(new Angler1(this));
@@ -2989,6 +3135,25 @@ window.addEventListener('load', function () {
       this.enemies.push(new enemyClass(this));
     }
 
+    addInfinityEnemy() {
+      const pool = [
+        Angler4,
+        Angler5,
+        Angler6,
+        Angler7,
+        Angler8,
+        Angler9,
+        Angler10,
+        Angler11,
+        Angler12,
+      ];
+      const pressure = Math.min(this.stage - 1, 11);
+      const start = Math.min(Math.floor(pressure / 3), pool.length - 1);
+      const choices = pool.slice(start);
+      const enemyClass = choices[Math.floor(Math.random() * choices.length)];
+      if (enemyClass) this.enemies.push(new enemyClass(this));
+    }
+
     pickWeighted(pool) {
       const total = pool.reduce((sum, entry) => sum + entry.weight, 0);
       let roll = Math.random() * total;
@@ -3002,6 +3167,14 @@ window.addEventListener('load', function () {
     }
 
     getSpawnSettings() {
+      if (this.isInfinityWorld) {
+        const pressure = Math.min(this.stage - 1, 11);
+        return {
+          enemyInterval: Math.max(260, 620 - pressure * 32),
+          maxOnScreen: Math.min(12 + pressure, 24),
+        };
+      }
+
       const level = this.level;
       const stage = this.stage;
 
@@ -3409,7 +3582,7 @@ function showVictoryScreen(data) {
 
       if (isNew) {
         showSkinRewardPopup('starbreaker', () => {
-          window.location.href = 'index.html';
+          window.location.href = 'loadingScreen.html?to=main.html';
         });
         return;
       }
@@ -3421,34 +3594,39 @@ function showVictoryScreen(data) {
     title.textContent = gameT('game.victory');
     text.textContent = gameT('game.reward', { coins: data.reward });
 
-    nextBtn.textContent =
-      data.level === 100 ? gameT('game.backToLobby') : gameT('game.nextLevel');
+    if (data.level === 100) {
+      nextBtn.classList.add('hidden');
+    } else {
+      nextBtn.classList.remove('hidden');
+      nextBtn.textContent = gameT('game.nextLevel');
+    }
 
     nextBtn.onclick = () => {
-      if (data.level === 100) {
-        window.location.href = 'index.html';
-      } else {
-        window.location.href = `game.html?level=${data.level + 1}`;
-      }
+      window.location.href = `game.html?level=${data.level + 1}`;
     };
 
     lobbyBtn.onclick = () => {
-      window.location.href = 'index.html';
+      window.location.href = 'loadingScreen.html?to=main.html';
     };
   } else {
     screen.classList.add('is-lose');
     box.classList.add('is-lose');
 
     title.textContent = gameT('game.gameOver');
-    text.textContent = gameT('game.betterLuck');
+    text.textContent = data.infinity
+      ? `Infinity Score: ${data.score}`
+      : gameT('game.betterLuck');
     nextBtn.textContent = gameT('game.tryAgain');
+    nextBtn.classList.remove('hidden');
 
     nextBtn.onclick = () => {
-      window.location.href = `game.html?level=${data.level}`;
+      window.location.href = data.infinity
+        ? 'game.html?mode=infinity'
+        : `game.html?level=${data.level}`;
     };
 
     lobbyBtn.onclick = () => {
-      window.location.href = 'index.html';
+      window.location.href = 'loadingScreen.html?to=main.html';
     };
   }
 }
@@ -3467,4 +3645,3 @@ function compactArray(arr) {
   }
   arr.length = write;
 }
-
