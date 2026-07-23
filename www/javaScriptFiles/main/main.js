@@ -6,13 +6,15 @@ let suppressClickUntil = 0;
 let isPageTransitioning = false;
 let isPlanetSliding = false;
 let pageTransitionTimer = null;
+let pageTransitionCleanup = null;
 
 const SWIPE_MIN_DISTANCE = {
-  touch: 24,
-  pen: 24,
+  touch: 34,
+  pen: 34,
   mouse: 36,
 };
-const SWIPE_AXIS_BIAS = 0.72;
+const SWIPE_AXIS_BIAS = 1.25;
+const SWIPE_SUPPRESS_CLICK_MS = 420;
 const WHEEL_PAGE_THRESHOLD = 42;
 let wheelPageDelta = 0;
 
@@ -74,19 +76,19 @@ const WEAPONS = {
   laser: {
     nameKey: 'weapon.laser.name',
     descKey: 'weapon.laser.desc',
-    price: 'Free',
+    price: window.COSMORUSH_PRICES.weapons.laser,
     img: './images/logosImage/weaponImg/leserIcone.png',
   },
   missile: {
     nameKey: 'weapon.missile.name',
     descKey: 'weapon.missile.desc',
-    price: 500,
+    price: window.COSMORUSH_PRICES.weapons.missile,
     img: './images/logosImage/weaponImg/missileIcone.png',
   },
   triangleShooter: {
     nameKey: 'weapon.triangleShooter.name',
     descKey: 'weapon.triangleShooter.desc',
-    price: 1250,
+    price: window.COSMORUSH_PRICES.weapons.triangleShooter,
     img: './images/logosImage/weaponImg/triangleShooter.png',
   },
 };
@@ -94,7 +96,7 @@ const WEAPONS = {
 const PETS = {
   dog: {
     name: 'Chimpo',
-    price: 300,
+    price: window.COSMORUSH_PRICES.pets.dog,
     icon: '🐶',
     img: './images/shopAInventoryicons/petsSIcone/ChimpoIcone.png',
     stats: {
@@ -109,14 +111,14 @@ const PETS = {
 
   siren: {
     name: 'Siren',
-    price: 2500,
+    price: window.COSMORUSH_PRICES.pets.siren,
     icon: '🧠',
     img: './images/shopAInventoryicons/petsSIcone/sirenIcone.png',
     stats: {
       LIVES: 2,
       ABILITY: 'pets.ability.mindControl',
       EFFECT: 'pets.effect.siren',
-      RATE: 'pets.rate.every9s',
+      RATE: 'pets.rate.every8s',
     },
     roleKey: 'pets.role.attack',
     abilityKey: 'pets.ability.massCrash',
@@ -129,7 +131,7 @@ const SUPERS = {
     titleKey: 'super.waveShield.title',
     descKey: 'super.waveShield.desc',
     img: './images/logosImage/superLogosImage/waveShield.png',
-    price: 1500,
+    price: window.COSMORUSH_PRICES.supers.waveShield,
     stats: {
       Duration: '6s',
       Cooldown: '20s',
@@ -141,7 +143,7 @@ const SUPERS = {
     titleKey: 'super.superLaser.title',
     descKey: 'super.superLaser.desc',
     img: './images/logosImage/superLogosImage/superLaser.png',
-    price: 0,
+    price: window.COSMORUSH_PRICES.supers.superLaser,
     stats: {
       Duration: '5s',
       Damage: '0.5 Per second',
@@ -166,8 +168,10 @@ function isSuperOwned(id) {
 
 const STORAGE_KEY_MAX_LEVEL = 'maxUnlockedLevel';
 const STORAGE_KEY_SUPER = 'equippedSuper';
+const SESSION_KEY_OFFLINE_ENTRY_WARNING_SHOWN = 'offlineEntryWarningShown';
 const DEFAULT_WEAPON = 'laser';
 const DEFAULT_PET = null;
+let centerPlanetVisualKey = '';
 
 let equippedWeapon = localStorage.getItem('equippedWeapon') || DEFAULT_WEAPON;
 let equippedPet = localStorage.getItem('equippedPet') || DEFAULT_PET;
@@ -263,6 +267,14 @@ function cacheDom() {
   DOM.superInfoDesc = $('#superInfoDesc');
   DOM.superStats = $('#superStats');
   DOM.shopCoinsText = $('#shopCoinsText');
+  DOM.offlinePlayModal = $('#offlinePlayModal');
+  DOM.offlinePlayTitle = $('#offlinePlayTitle');
+  DOM.offlinePlayText = $('#offlinePlayText');
+  DOM.offlinePlayList = $('#offlinePlayList');
+  DOM.offlinePlaySafeNote = $('#offlinePlaySafeNote');
+  DOM.offlinePlayQuestion = $('#offlinePlayQuestion');
+  DOM.offlinePlayReload = $('#offlinePlayReload');
+  DOM.offlinePlayContinue = $('#offlinePlayContinue');
 }
 
 const UI = {
@@ -375,6 +387,7 @@ function petName(id) {
 function grantCoins(amount) {
   coins = Math.min(maxCoins, getCoins() + amount);
   saveCoins();
+  window.CosmoRushCloud?.markDirty?.();
   updateCoinsUI();
   flashCoins();
 }
@@ -483,56 +496,60 @@ function updateCenterPlanetByLevel(level) {
   if (!planet) return;
 
   let image = './images/centerPlanets/bluePlanet.png';
-  let glow1 = 'rgba(0,180,255,0.65)';
-  let glow2 = 'rgba(0,120,255,0.55)';
-  let glow3 = 'rgba(0,80,255,0.45)';
+  let glow1 = 'rgba(0,180,255,0.28)';
+  let glow2 = 'rgba(70,120,255,0.2)';
+  let glow3 = 'rgba(255,255,255,0.12)';
 
   if (level >= 91) {
     image = './images/centerPlanets/goldPlanet.png';
-    glow1 = 'rgba(255,215,0,0.9)';
-    glow2 = 'rgba(255,180,0,0.7)';
-    glow3 = 'rgba(255,140,0,0.5)';
+    glow1 = 'rgba(255,214,44,0.3)';
+    glow2 = 'rgba(255,132,30,0.2)';
+    glow3 = 'rgba(90,180,255,0.13)';
   } else if (level >= 81) {
     image = './images/centerPlanets/blackPlanet.png';
-    glow1 = 'rgba(80,80,80,0.8)';
-    glow2 = 'rgba(40,40,40,0.6)';
-    glow3 = 'rgba(0,0,0,0.5)';
+    glow1 = 'rgba(160,170,190,0.22)';
+    glow2 = 'rgba(80,90,120,0.18)';
+    glow3 = 'rgba(120,80,255,0.12)';
   } else if (level >= 71) {
     image = './images/centerPlanets/yellowPlanet.png';
-    glow1 = 'rgba(255,255,0,0.8)';
-    glow2 = 'rgba(255,200,0,0.6)';
-    glow3 = 'rgba(200,150,0,0.4)';
+    glow1 = 'rgba(255,244,60,0.28)';
+    glow2 = 'rgba(255,176,38,0.19)';
+    glow3 = 'rgba(90,220,255,0.12)';
   } else if (level >= 61) {
     image = './images/centerPlanets/lightBluePlanet.png';
-    glow1 = 'rgba(0,255,255,0.8)';
-    glow2 = 'rgba(0,200,255,0.6)';
-    glow3 = 'rgba(0,150,255,0.4)';
+    glow1 = 'rgba(0,240,255,0.28)';
+    glow2 = 'rgba(70,150,255,0.2)';
+    glow3 = 'rgba(255,255,255,0.12)';
   } else if (level >= 51) {
     image = './images/centerPlanets/orangePlanet.png';
-    glow1 = 'rgba(255,140,0,0.8)';
-    glow2 = 'rgba(255,100,0,0.6)';
-    glow3 = 'rgba(200,60,0,0.4)';
+    glow1 = 'rgba(255,140,20,0.28)';
+    glow2 = 'rgba(255,68,52,0.2)';
+    glow3 = 'rgba(80,210,255,0.12)';
   } else if (level >= 41) {
     image = './images/centerPlanets/purplePlanet.png';
-    glow1 = 'rgba(180,0,255,0.8)';
-    glow2 = 'rgba(120,0,255,0.6)';
-    glow3 = 'rgba(80,0,200,0.4)';
+    glow1 = 'rgba(180,70,255,0.28)';
+    glow2 = 'rgba(80,100,255,0.2)';
+    glow3 = 'rgba(255,110,220,0.12)';
   } else if (level >= 31) {
     image = './images/centerPlanets/redPlanet.png';
-    glow1 = 'rgba(255,0,0,0.8)';
-    glow2 = 'rgba(200,0,0,0.6)';
-    glow3 = 'rgba(120,0,0,0.4)';
+    glow1 = 'rgba(255,44,44,0.28)';
+    glow2 = 'rgba(255,116,40,0.19)';
+    glow3 = 'rgba(150,60,255,0.12)';
   } else if (level >= 21) {
     image = './images/centerPlanets/pinkPlanet.png';
-    glow1 = 'rgba(255,0,200,0.8)';
-    glow2 = 'rgba(200,0,150,0.6)';
-    glow3 = 'rgba(120,0,100,0.4)';
+    glow1 = 'rgba(255,64,210,0.28)';
+    glow2 = 'rgba(155,90,255,0.2)';
+    glow3 = 'rgba(90,220,255,0.12)';
   } else if (level >= 11) {
     image = './images/centerPlanets/greenPlanet.png';
-    glow1 = 'rgba(0,255,120,0.8)';
-    glow2 = 'rgba(0,200,100,0.6)';
-    glow3 = 'rgba(0,120,60,0.4)';
+    glow1 = 'rgba(0,240,130,0.28)';
+    glow2 = 'rgba(80,210,255,0.18)';
+    glow3 = 'rgba(255,235,120,0.12)';
   }
+
+  const visualKey = `${image}|${glow1}|${glow2}|${glow3}`;
+  if (visualKey === centerPlanetVisualKey) return;
+  centerPlanetVisualKey = visualKey;
 
   planet.style.backgroundImage = `url('${image}')`;
   planet.style.setProperty('--glow1', glow1);
@@ -615,7 +632,8 @@ function openPlanetSelect() {
   document.getElementById('planetSelectModal').classList.add('open');
 
   const preview = document.getElementById('planetPreview');
-  preview.innerHTML = '<div class="planetSlide active"></div>';
+  preview.innerHTML =
+    '<div class="planetSlide active"></div><div class="planetSlide standby"></div>';
 
   const firstSlide = preview.querySelector('.planetSlide');
   firstSlide.style.backgroundImage = `url('${planets[currentPlanetIndex].img}')`;
@@ -654,44 +672,45 @@ function renderPlanet(direction = 'right') {
     return;
   }
 
-  const currentSlide = preview.querySelector('.planetSlide');
+  const start = planet.unlock;
+  const end = Math.min(planet.unlock + 9, 100);
 
-  const newSlide = document.createElement('div');
-  newSlide.className = 'planetSlide';
+  name.textContent = t(getLang(), 'planet.levelRange', { start, end });
 
-  if (direction === 'right') {
-    newSlide.classList.add('enter-from-right');
-  } else {
-    newSlide.classList.add('enter-from-left');
+  if (preview.querySelectorAll('.planetSlide').length < 2) {
+    preview.innerHTML =
+      '<div class="planetSlide active"></div><div class="planetSlide standby"></div>';
   }
 
-  newSlide.style.backgroundImage = `url('${planet.img}')`;
-  preview.appendChild(newSlide);
+  const activeSlide =
+    preview.querySelector('.planetSlide.active') || preview.querySelector('.planetSlide');
+  const nextSlide =
+    preview.querySelector('.planetSlide.standby') ||
+    preview.querySelector('.planetSlide:not(.active)');
+  if (!activeSlide || !nextSlide) {
+    isPlanetSliding = false;
+    return;
+  }
+
+  const incomingClass = direction === 'right' ? 'incoming-right' : 'incoming-left';
+  const outgoingClass = direction === 'right' ? 'outgoing-left' : 'outgoing-right';
+
+  activeSlide.className = 'planetSlide active';
+  nextSlide.className = `planetSlide standby ${incomingClass}`;
+  nextSlide.style.backgroundImage = `url('${planet.img}')`;
+
+  void nextSlide.offsetWidth;
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      newSlide.classList.add('active');
+    activeSlide.classList.add(outgoingClass);
+    nextSlide.classList.add('active');
+    nextSlide.classList.remove('standby', incomingClass);
 
-      if (currentSlide) {
-        currentSlide.classList.remove('active');
-        currentSlide.classList.add(
-          direction === 'right' ? 'exit-to-left' : 'exit-to-right'
-        );
-
-        setTimeout(() => {
-          currentSlide.remove();
-        }, 350);
-      }
-
-      const start = planet.unlock;
-      const end = planet.unlock + 9;
-
-      name.textContent = t(getLang(), 'planet.levelRange', { start, end });
-
-      setTimeout(() => {
-        isPlanetSliding = false;
-      }, 400);
-    });
+    setTimeout(() => {
+      activeSlide.className = 'planetSlide standby';
+      nextSlide.className = 'planetSlide active';
+      isPlanetSliding = false;
+    }, 260);
   });
 }
 
@@ -758,7 +777,7 @@ function openMap(e) {
   const maxLevel = getMaxUnlockedLevel();
   setMapThemeByLevel(maxLevel);
 
-  setTimeout(() => {
+  requestAnimationFrame(() => {
     updateLevelsMap();
 
     const currentNode = $('.levelNode.current-node', levels);
@@ -768,11 +787,8 @@ function openMap(e) {
     const maxScroll = levels.scrollHeight - levels.clientHeight;
     const safeTop = Math.max(0, Math.min(target, maxScroll));
 
-    levels.scrollTo({
-      top: safeTop,
-      behavior: 'smooth',
-    });
-  }, 450);
+    levels.scrollTop = safeTop;
+  });
 }
 
 function closeMap(e) {
@@ -797,6 +813,139 @@ function playStartGameAnimation() {
   }, 600);
 }
 
+function getOfflinePlayCopy() {
+  const lang = getLang?.() || 'en';
+
+  if (lang === 'he') {
+    return {
+      title: 'מצב ללא אינטרנט',
+      text: 'אין כרגע חיבור לאינטרנט. אפשר להמשיך לשחק, אבל חלק מהאפשרויות האונליין יהיו מוגבלות.',
+      items: [
+        'שמירה בענן וסנכרון עם Google Play Games עלולים לחכות עד שהחיבור יחזור.',
+        'הישגים, לוחות תוצאות ועדכוני פרופיל לא תמיד יתרעננו מיד.',
+        'פרסומות תגמול והצעות אונליין בחנות עלולות לא להיות זמינות.',
+      ],
+      question: 'אתה בטוח שאתה רוצה לשחק במצב הזה?',
+      reload: 'RELOAD',
+      continue: 'CONTINUE',
+    };
+  }
+
+  if (lang === 'es') {
+    return {
+      title: 'Modo sin internet',
+      text: 'No hay conexion a internet. Puedes jugar, pero algunas funciones online estaran limitadas.',
+      items: [
+        'El guardado en la nube y Google Play Games pueden esperar hasta que vuelvas a conectarte.',
+        'Logros, marcadores y cambios de perfil pueden no actualizarse de inmediato.',
+        'Los anuncios con recompensa y ofertas online de la tienda pueden no estar disponibles.',
+      ],
+      question: 'Seguro que quieres jugar en este modo?',
+      reload: 'RELOAD',
+      continue: 'CONTINUE',
+    };
+  }
+
+  return {
+    title: 'Offline mode',
+    text: 'You are not connected to the internet. You can still play, but online features may be limited.',
+    items: [
+      'Cloud save and Google Play Games sync may wait until you reconnect.',
+      'Achievements, leaderboards, and profile updates may not refresh right away.',
+      'Rewarded ads and online shop offers may be unavailable.',
+    ],
+    question: 'Are you sure you want to keep playing offline?',
+    reload: 'RELOAD',
+    continue: 'CONTINUE',
+  };
+}
+
+function getConnectionIssueCopy() {
+  const lang = getLang?.() || 'en';
+
+  if (lang === 'he') {
+    return {
+      title: 'בעיית חיבור',
+      text: 'אנחנו מתקשים להתחבר לאינטרנט. אפשר להמשיך לשחק, אבל חלק מהאפשרויות המקוונות עלולות לא לעבוד כמו שצריך.',
+      items: [
+        'שירותי Google Play Games, שמירות בענן וסנכרון חשבון עלולים להתעכב עד שהחיבור יחזור.',
+        'חלק מהגופנים ותוכן משחק מקוון עלולים לא להיטען כמו שצריך.',
+        'רכישות בתוך האפליקציה ועסקאות אחרות עלולות להיכשל או להישאר לא מושלמות בזמן שהחיבור לא יציב.',
+      ],
+      safeNote:
+        'ההתקדמות נשמרת כאן ותסתנכרן לענן של Google כשהחיבור יחזור. המשך לשחק במכשיר הזה כדי לא לאבד אותה.',
+      question: 'להמשיך לשחק עם חיבור מוגבל?',
+      reload: 'RETRY',
+      continue: 'CONTINUE',
+    };
+  }
+
+  if (lang === 'es') {
+    return {
+      title: 'Problema de conexion',
+      text: 'Tenemos problemas para conectarnos a internet. Puedes seguir jugando, pero algunas funciones online podrian no funcionar correctamente.',
+      items: [
+        'Los servicios de Google Play Games, guardados en la nube y sincronizacion de cuenta podrian retrasarse hasta que se restaure la conexion.',
+        'Algunas fuentes y contenido online del juego podrian no cargarse correctamente.',
+        'Las compras dentro de la app y otras transacciones podrian fallar o quedar incompletas mientras la conexion sea inestable.',
+      ],
+      safeNote:
+        'Tu progreso se guarda aqui y se sincronizara con Google Cloud cuando vuelvas online. Sigue en este dispositivo para no perderlo.',
+      question: 'Continuar jugando con conectividad limitada?',
+      reload: 'RETRY',
+      continue: 'CONTINUE',
+    };
+  }
+
+  return {
+    title: 'CONNECTION ISSUE',
+    text: 'We’re having trouble connecting to the internet. You can continue playing, but some online features may not work correctly.',
+    items: [
+      'Google Play Games services, cloud saves, and account syncing may be delayed until your connection is restored.',
+      'Some fonts and online game content may not load correctly.',
+      'In-app purchases and other transactions may fail or remain incomplete while the connection is unstable.',
+    ],
+    safeNote:
+      "Your progress is saved here and will sync to Google Cloud when you're back online. Keep playing this device to avoid losing it.",
+    question: 'Continue playing with limited connectivity?',
+    reload: 'RETRY',
+    continue: 'CONTINUE',
+  };
+}
+
+function renderOfflinePlayModal() {
+  const copy = getConnectionIssueCopy();
+
+  if (DOM.offlinePlayTitle) DOM.offlinePlayTitle.textContent = copy.title;
+  if (DOM.offlinePlayText) DOM.offlinePlayText.textContent = copy.text;
+  if (DOM.offlinePlaySafeNote) DOM.offlinePlaySafeNote.textContent = copy.safeNote;
+  if (DOM.offlinePlayQuestion) DOM.offlinePlayQuestion.textContent = copy.question;
+  if (DOM.offlinePlayReload) DOM.offlinePlayReload.textContent = copy.reload;
+  if (DOM.offlinePlayContinue) DOM.offlinePlayContinue.textContent = copy.continue;
+  if (DOM.offlinePlayList) {
+    DOM.offlinePlayList.innerHTML = copy.items.map((item) => `<li>${item}</li>`).join('');
+  }
+}
+
+function closeOfflinePlayModal() {
+  DOM.offlinePlayModal?.classList.add('hidden');
+}
+
+function continueToGameTarget(target) {
+  location.href = `loadingScreen.html?to=${encodeURIComponent(target)}`;
+}
+
+function showOfflinePlayModalOnMainEntry() {
+  if (navigator.onLine !== false) return;
+  if (sessionStorage.getItem(SESSION_KEY_OFFLINE_ENTRY_WARNING_SHOWN) === '1') {
+    return;
+  }
+
+  sessionStorage.setItem(SESSION_KEY_OFFLINE_ENTRY_WARNING_SHOWN, '1');
+  renderOfflinePlayModal();
+  DOM.offlinePlayModal?.classList.remove('hidden');
+}
+
 function goToLevel(level) {
   const maxUnlocked = getMaxUnlockedLevel();
 
@@ -806,7 +955,7 @@ function goToLevel(level) {
   }
 
   const target = `game.html?level=${level}`;
-  location.href = `loadingScreen.html?to=${encodeURIComponent(target)}`;
+  continueToGameTarget(target);
 }
 
 function goToInfinityWorld() {
@@ -817,7 +966,7 @@ function goToInfinityWorld() {
   }
 
   const target = 'game.html?mode=infinity';
-  location.href = `loadingScreen.html?to=${encodeURIComponent(target)}`;
+  continueToGameTarget(target);
 }
 
 function openBuyWeapon(id) {
@@ -1252,6 +1401,7 @@ function unlockNextLevel(currentLevel) {
   const maxLevel = getMaxUnlockedLevel();
   if (currentLevel >= maxLevel) {
     localStorage.setItem(STORAGE_KEY_MAX_LEVEL, currentLevel + 1);
+    window.CosmoRushCloud?.markDirty?.();
   }
 }
 
@@ -1284,6 +1434,7 @@ function updateLevelsMap() {
     node.classList.remove(
       'locked',
       'current-node',
+      'animated-node',
       'boss-node',
       'boss-current'
     );
@@ -1303,6 +1454,10 @@ function updateLevelsMap() {
     if (isCurrent) {
       node.classList.add('current-node');
       btn.classList.add('current');
+    }
+
+    if (!isLocked && level >= maxLevel - 2 && level <= maxLevel) {
+      node.classList.add('animated-node');
     }
 
     if (isBossLevel) {
@@ -1333,6 +1488,12 @@ function toggleSocial(e) {
 }
 
 function enterFullscreen() {
+  const isMobile =
+    window.matchMedia?.('(pointer: coarse)').matches ||
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (!isMobile) return;
+
   const el = document.documentElement;
   if (el.requestFullscreen) el.requestFullscreen();
 }
@@ -1443,7 +1604,8 @@ function handleGlobalClick(e) {
     e.target.closest('#settingsBtn') ||
     e.target.closest('#superShopDiv') ||
     e.target.closest('.superInfoDiv') ||
-    e.target.closest('#buySuperConfirm')
+    e.target.closest('#buySuperConfirm') ||
+    e.target.closest('#offlinePlayModal')
   ) {
     return;
   }
@@ -1528,11 +1690,21 @@ function resetInactivePagesWithoutAnimation(activePage) {
 }
 
 function finishPageTransition(nextPage) {
+  if (pageTransitionTimer) {
+    clearTimeout(pageTransitionTimer);
+    pageTransitionTimer = null;
+  }
+
+  if (pageTransitionCleanup) {
+    pageTransitionCleanup();
+    pageTransitionCleanup = null;
+  }
+
   resetInactivePagesWithoutAnimation(nextPage);
   nextPage.classList.remove('enter-left', 'enter-right', 'exit-left', 'exit-right');
   nextPage.classList.add('active');
+  document.body.classList.remove('page-transitioning');
   isPageTransitioning = false;
-  pageTransitionTimer = null;
 }
 
 function finishCurrentPageTransitionNow() {
@@ -1544,6 +1716,10 @@ function finishCurrentPageTransitionNow() {
   if (pageTransitionTimer) {
     clearTimeout(pageTransitionTimer);
     pageTransitionTimer = null;
+  }
+  if (pageTransitionCleanup) {
+    pageTransitionCleanup();
+    pageTransitionCleanup = null;
   }
 
   finishPageTransition(activePage);
@@ -1572,9 +1748,14 @@ function goToPageByIndex(index) {
   if (!currentPage || !nextPage || currentPage === nextPage) return;
 
   isPageTransitioning = true;
+  document.body.classList.add('page-transitioning');
   if (pageTransitionTimer) {
     clearTimeout(pageTransitionTimer);
     pageTransitionTimer = null;
+  }
+  if (pageTransitionCleanup) {
+    pageTransitionCleanup();
+    pageTransitionCleanup = null;
   }
 
   const movingRight = safeIndex > current;
@@ -1602,9 +1783,20 @@ function goToPageByIndex(index) {
   currentPage.classList.add(movingRight ? 'exit-left' : 'exit-right');
   nextPage.classList.remove(movingRight ? 'enter-right' : 'enter-left');
 
+  const finishTransition = () => finishPageTransition(nextPage);
+  const onTransitionEnd = (event) => {
+    if (event.target !== nextPage || event.propertyName !== 'transform') return;
+    finishTransition();
+  };
+
+  nextPage.addEventListener('transitionend', onTransitionEnd);
+  pageTransitionCleanup = () => {
+    nextPage.removeEventListener('transitionend', onTransitionEnd);
+  };
+
   pageTransitionTimer = setTimeout(() => {
-    finishPageTransition(nextPage);
-  }, 620);
+    finishTransition();
+  }, 720);
 
   if (targetId === 'shopScreen') {
     nextFrame(() => {
@@ -1623,9 +1815,36 @@ function goToAdjacentPage(direction) {
   goToPageByIndex(current + direction);
 }
 
+function getPageSwipeDirection(dx) {
+  const isRTL = document.documentElement.dir === 'rtl' || document.body.dir === 'rtl';
+  const direction = dx < 0 ? 1 : -1;
+  return isRTL ? -direction : direction;
+}
+
+function getPageWheelDirection(e, dominantDelta) {
+  const isRTL = document.documentElement.dir === 'rtl' || document.body.dir === 'rtl';
+  const isHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+  const direction = dominantDelta > 0 ? 1 : -1;
+  return isRTL && isHorizontal ? -direction : direction;
+}
+
 function shouldIgnoreSwipeStart(target) {
+  if (target.closest('.bottomButton[data-target]')) return true;
+
+  const scrollable = target.closest(
+    '#shopScroll, #levelsContainer, .invWrap, .invModalGrid, .cardsRow, [data-no-page-wheel], [data-no-page-swipe]'
+  );
+
+  if (
+    scrollable &&
+    (scrollable.scrollHeight > scrollable.clientHeight ||
+      scrollable.scrollWidth > scrollable.clientWidth)
+  ) {
+    return true;
+  }
+
   return !!target.closest(
-    '#mapDiv, #weaponDiv, #buyWeaponPopup, #settingsDiv, #profileSettingsDiv, #socialDiv, #superShopDiv, #buySuperConfirm, #invModal, #shopModal, #petInfoOverlay, #petShoopDiv, input, textarea, select, button'
+    '#mapDiv, #weaponDiv, #buyWeaponPopup, #settingsDiv, #profileSettingsDiv, #socialDiv, #superShopDiv, #buySuperConfirm, #invModal, #shopModal, #petInfoOverlay, #petShoopDiv, input, textarea, select'
   );
 }
 
@@ -1661,6 +1880,7 @@ function bindSwipeNavigation() {
   let pointerType = '';
   let pointerId = null;
   let swipeConsumed = false;
+  let swipeAxis = null;
 
   screenEl.addEventListener('pointerdown', (e) => {
     if (isPageTransitioning) return;
@@ -1675,8 +1895,9 @@ function bindSwipeNavigation() {
     swipeStartX = e.clientX;
     swipeStartY = e.clientY;
     swipeConsumed = false;
+    swipeAxis = null;
 
-    if (screenEl.setPointerCapture) {
+    if (e.pointerType !== 'mouse' && screenEl.setPointerCapture) {
       try {
         screenEl.setPointerCapture(e.pointerId);
       } catch (_) {}
@@ -1693,9 +1914,19 @@ function bindSwipeNavigation() {
     const absX = Math.abs(dx);
     const absY = Math.abs(dy);
 
+    if (!swipeAxis && Math.max(absX, absY) >= 12) {
+      if (absX >= absY * SWIPE_AXIS_BIAS) {
+        swipeAxis = 'x';
+      } else if (absY >= absX * SWIPE_AXIS_BIAS) {
+        swipeAxis = 'y';
+      }
+    }
+
+    if (swipeAxis === 'y') return;
+
     if (isSwipeReady(absX, absY, pointerType)) {
       swipeConsumed = true;
-      suppressClickUntil = Date.now() + 900;
+      suppressClickUntil = Date.now() + SWIPE_SUPPRESS_CLICK_MS;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation?.();
@@ -1717,43 +1948,67 @@ function bindSwipeNavigation() {
     const absY = Math.abs(dy);
 
     if (!isSwipeReady(absX, absY, pointerType)) {
+      if (screenEl.releasePointerCapture && pointerId !== null) {
+        try {
+          screenEl.releasePointerCapture(pointerId);
+        } catch (_) {}
+      }
+
       pointerType = '';
       pointerId = null;
       swipeConsumed = false;
+      swipeAxis = null;
       return;
     }
     swipeConsumed = true;
-    suppressClickUntil = Date.now() + 900;
+    suppressClickUntil = Date.now() + SWIPE_SUPPRESS_CLICK_MS;
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation?.();
 
-    if (dx < 0) {
-      goToAdjacentPage(1);
-    } else {
-      goToAdjacentPage(-1);
+    goToAdjacentPage(getPageSwipeDirection(dx));
+
+    if (screenEl.releasePointerCapture && pointerId !== null) {
+      try {
+        screenEl.releasePointerCapture(pointerId);
+      } catch (_) {}
     }
 
     pointerType = '';
     pointerId = null;
     swipeConsumed = false;
+    swipeAxis = null;
   });
 
   screenEl.addEventListener('pointercancel', () => {
+    if (screenEl.releasePointerCapture && pointerId !== null) {
+      try {
+        screenEl.releasePointerCapture(pointerId);
+      } catch (_) {}
+    }
+
     isPointerDown = false;
     swipeTracking = false;
     pointerType = '';
     pointerId = null;
     swipeConsumed = false;
+    swipeAxis = null;
   });
 
   screenEl.addEventListener('pointerleave', () => {
     if (pointerType === 'mouse') {
+      if (screenEl.releasePointerCapture && pointerId !== null) {
+        try {
+          screenEl.releasePointerCapture(pointerId);
+        } catch (_) {}
+      }
+
       isPointerDown = false;
       swipeTracking = false;
       pointerType = '';
       pointerId = null;
       swipeConsumed = false;
+      swipeAxis = null;
     }
   });
 
@@ -1773,7 +2028,7 @@ function bindSwipeNavigation() {
       }
 
       e.preventDefault();
-      goToAdjacentPage(wheelPageDelta > 0 ? 1 : -1);
+      goToAdjacentPage(getPageWheelDirection(e, wheelPageDelta));
       wheelPageDelta = 0;
     },
     { passive: false }
@@ -2034,6 +2289,17 @@ function bindEvents() {
   DOM.buySuperConfirm?.addEventListener('click', (e) => {
     if (e.target === DOM.buySuperConfirm) closeBuySuperConfirm();
   });
+
+  DOM.offlinePlayReload?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.location.href = `loadingScreen.html?to=${encodeURIComponent('main.html')}&always=1`;
+  });
+
+  DOM.offlinePlayContinue?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeOfflinePlayModal();
+  });
+
 }
 
 function init() {
@@ -2059,6 +2325,7 @@ function init() {
   setActivePageImmediate(currentPageIndex);
   setActiveBottomButton(currentPageIndex);
   bindSwipeNavigation();
+  showOfflinePlayModalOnMainEntry();
 
   const centerPlanet = document.getElementById('centerPlanet');
   const planetSelectModal = document.getElementById('planetSelectModal');

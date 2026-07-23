@@ -10,14 +10,21 @@
   <link rel="stylesheet" href="./cssFiles/mainShop.css">
   <link rel="stylesheet" href="./cssFiles/mainLoadout.css">
   <link rel="stylesheet" href="./cssFiles/mainInventory.css">
+  <link rel="stylesheet" href="./cssFiles/lobbyTutorial.css">
+  <link rel="stylesheet" href="./cssFiles/performance.css">
   <script defer src="./javaScriptFiles/main/i18n.js"></script>
+  <script defer src="./javaScriptFiles/ads.js"></script>
+  <script defer src="./javaScriptFiles/playGamesConfig.js"></script>
+  <script defer src="./javaScriptFiles/playGames.js"></script>
+  <script defer src="./javaScriptFiles/main/prices.js"></script>
   <script defer src="./javaScriptFiles/main/main.js"></script>
   <script defer src="./javaScriptFiles/main/mainInventory.js"></script>
   <script defer src="./javaScriptFiles/main/mainShop.js"></script>
+  <script defer src="./javaScriptFiles/main/lobbyTutorial.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bungee&family=Orbitron:wght@600;700;800;900&family=Rubik:wght@500;700;800;900&display=swap" rel="stylesheet">
 </head>
 
 <body data-title-i18n="main.title">
@@ -36,13 +43,21 @@
 
         <div id="profileSettingsDiv" class="uiModal uiModalAnchorTopLeft">
           <div class="profileInfo">
-            <span class="profileLine"><strong data-i18n="profile.name">Profile Name:</strong> maor</span>
+            <span class="profileLine"><strong data-i18n="profile.name">Profile Name:</strong> <span id="playGamesPlayerName">Guest</span></span>
             <span class="profileLine"><strong data-i18n="profile.daysPlayed">Days Played:</strong> 1</span>
           </div>
 
-          <button class="profileSettingsInsideDivBtn"><span data-i18n="profile.changeName">Change Name</span></button>
-          <button class="profileSettingsInsideDivBtn"><span data-i18n="profile.icon">Profile Icon</span></button>
-          <button class="profileSettingsInsideDivBtn"><span data-i18n="profile.account">Account</span></button>
+          <button id="playGamesAchievementsBtn" class="profileSettingsInsideDivBtn"><span data-i18n="profile.achievements">ACHIEVEMENTS</span></button>
+          <button id="playGamesAccountBtn" class="profileSettingsInsideDivBtn playGamesLoginBtn">
+            <span class="playGamesLogo" aria-hidden="true">
+              <img class="playGamesOfficialLogo" src="./images/googlePlayGamesLogo.png" alt="" onerror="this.closest('.playGamesLogo').classList.add('useFallbackLogo'); this.remove();">
+              <svg class="playGamesFallbackLogo" viewBox="0 0 32 32" focusable="false">
+                <path d="M10.3 8.1 5.7 11a4.4 4.4 0 0 0-2 3.7v8.6a2.7 2.7 0 0 0 4.3 2.2l8-5.9 8 5.9a2.7 2.7 0 0 0 4.3-2.2v-8.6a4.4 4.4 0 0 0-2-3.7l-4.6-2.9L16 12.3 10.3 8.1Z"/>
+                <path class="playGamesLogoCutout" d="M10.2 13.2v2.1H8.1v2h2.1v2.1h2v-2.1h2.1v-2h-2.1v-2.1h-2Zm10.7 1.4a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm3.1 3.1a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Z"/>
+              </svg>
+            </span>
+            <span class="playGamesLoginLabel" data-i18n="profile.connectPlayGames">LOGIN</span>
+          </button>
         </div>
 
         <button id="settingsBtn"></button>
@@ -73,6 +88,8 @@
           </label>
 
           <button id="languageBtn" class="settingsActionBtn" data-i18n="settings.language">Language</button>
+          <button id="privacyOptionsBtn" class="settingsActionBtn" data-i18n="settings.privacy"
+            onclick="CosmoRushAds.showPrivacyOptions()" hidden>Privacy options</button>
         </div>
 
         <div id="languageMenu">
@@ -90,22 +107,22 @@
           <div class="socialGrid">
 
             <div class="socialItem discord" onclick="window.open('https://discord.gg/3R3Jd78X')">
-              <img src="./images/logosImage/socialLogos/discordLogo.png" alt="Discord">
+              <img src="./images/logosImage/socialLogos/discordLogo.png" alt="Discord" loading="lazy" decoding="async">
               <span>Discord</span>
             </div>
 
             <div class="socialItem youtube" onclick="window.open('https://www.youtube.com/@Pdutegames')">
-              <img src="./images/logosImage/socialLogos/youtubeLogo.png" alt="YouTube">
+              <img src="./images/logosImage/socialLogos/youtubeLogo.png" alt="YouTube" loading="lazy" decoding="async">
               <span>YouTube</span>
             </div>
 
             <div class="socialItem twitter">
-              <img src="./images/logosImage/socialLogos/instagramLogo.png" alt="Instagram">
+              <img src="./images/logosImage/socialLogos/instagramLogo.png" alt="Instagram" loading="lazy" decoding="async">
               <span>Instagram</span>
             </div>
 
             <div class="socialItem tiktok" onclick="window.open('https://www.tiktok.com/@user22502301035013')">
-              <img src="./images/logosImage/socialLogos/tiktokLogo.png" alt="TikTok">
+              <img src="./images/logosImage/socialLogos/tiktokLogo.png" alt="TikTok" loading="lazy" decoding="async">
               <span>TikTok</span>
             </div>
 
@@ -143,6 +160,8 @@
         </button>
 
         <div id="levelsContainer">
+          <div id="levelMapStars" aria-hidden="true"></div>
+
           <div class="levelNode infinity-level-node is-hidden">
             <button class="levelsBtn infinity-level-btn" onclick="goToInfinityWorld()">&infin;</button>
             <span class="infinityLevelLabel">INFINITY WORLD</span>
@@ -657,7 +676,10 @@
                 <div class="freeGiftDesc" id="freeGiftDesc">Claim your free reward</div>
 
                 <div class="freeGiftBottom">
-                  <div class="pricePill"><span id="freeGiftValue">+100</span> 🪙</div>
+                  <div class="pricePill freeGiftPricePill">
+                    <span id="freeGiftValue">+100</span>
+                    <span class="pricePillCoin" aria-hidden="true">🪙</span>
+                  </div>
                   <button id="freeGiftBtn" class="buyPillBtn" data-i18n="ui.claim">CLAIM</button>
                 </div>
               </div>
@@ -687,15 +709,15 @@
               <div class="featuredGlow"></div>
               <div class="featuredLeft">
                 <div class="featuredTag" data-i18n="shop.featuredTag">SPECIAL DROP</div>
-                <div id="featuredName" class="featuredName">Galaxy Pass</div>
-                <div id="featuredDesc" class="featuredDesc">Unlock a premium reward track + bonus coins</div>
+                <div id="featuredName" class="featuredName">Ad Bonus</div>
+                <div id="featuredDesc" class="featuredDesc">Watch a short ad and receive a small reward</div>
                 <div class="featuredBottom">
-                  <div class="pricePill"><span id="featuredPrice">2500</span> 🪙</div>
-                  <button id="featuredBuyBtn" class="buyPillBtn">GET</button>
+                  <div class="pricePill"><span id="featuredPrice">+100</span> 🪙</div>
+                  <button id="featuredBuyBtn" class="buyPillBtn">WATCH AD</button>
                 </div>
               </div>
               <div class="featuredRight">
-                <div id="featuredIcon" class="featuredIcon">✨</div>
+                <div id="featuredIcon" class="featuredIcon">📺</div>
               </div>
             </div>
           </section>
@@ -966,6 +988,39 @@
         </button>
       </div>
       <div id="toast" class="toast"></div>
+
+      <div id="offlinePlayModal" class="offlinePlayModal hidden">
+        <div class="offlinePlayBox" onclick="event.stopPropagation()">
+          <div class="offlinePlaySignal" aria-hidden="true">
+            <svg class="offlineWifiIcon" viewBox="0 0 64 64" focusable="false">
+              <path d="M12 24c11.2-10.2 28.8-10.2 40 0" />
+              <path d="M20 33c6.8-6.2 17.2-6.2 24 0" />
+              <path d="M27 42c2.9-2.6 7.1-2.6 10 0" />
+              <circle cx="32" cy="49" r="4" />
+            </svg>
+            <span class="offlineWifiX">×</span>
+          </div>
+          <h2 id="offlinePlayTitle">CONNECTION ISSUE</h2>
+          <p id="offlinePlayText">
+            We’re having trouble connecting to the internet. You can continue playing, but some online features may not work correctly.
+          </p>
+          <ul id="offlinePlayList">
+            <li>Google Play Games services, cloud saves, and account syncing may be delayed until your connection is restored.</li>
+            <li>Some fonts and online game content may not load correctly.</li>
+            <li>In-app purchases and other transactions may fail or remain incomplete while the connection is unstable.</li>
+          </ul>
+          <div class="offlinePlaySafeNote" id="offlinePlaySafeNote">
+            Your progress is saved here and will sync to Google Cloud when you're back online. Keep playing this device to avoid losing it.
+          </div>
+          <div class="offlinePlayQuestion" id="offlinePlayQuestion">
+            Continue playing with limited connectivity?
+          </div>
+          <div class="offlinePlayActions">
+            <button id="offlinePlayReload" type="button">RETRY</button>
+            <button id="offlinePlayContinue" type="button">CONTINUE</button>
+          </div>
+        </div>
+      </div>
 
     </div>
 </body>
